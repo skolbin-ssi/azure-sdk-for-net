@@ -24,50 +24,36 @@ namespace Azure.AI.TextAnalytics.Samples
             #region Snippet:TAAnalyzeSentimentWithOpinionMining
             var documents = new List<string>
             {
-                "The food and service were unacceptable, but the concierge were nice.",
-                "The rooms were beautiful. The AC was good and quiet.",
-                "The breakfast was good, but the toilet was smelly.",
-                "Loved this hotel - good breakfast - nice shuttle service - clean rooms.",
-                "I had a great unobstructed view of the Microsoft campus.",
-                "Nice rooms but bathrooms were old and the toilet was dirty when we arrived.",
-                "We changed rooms as the toilet smelled."
+                "Bad atmosphere.",
+                "Staff are not friendly and helpful."
             };
 
             AnalyzeSentimentResultCollection reviews = client.AnalyzeSentimentBatch(documents, options: new AnalyzeSentimentOptions() { AdditionalSentimentAnalyses = AdditionalSentimentAnalyses.OpinionMining });
 
-            Dictionary<string, int> complaints = GetComplaints(reviews);
-
-            var negativeAspect = complaints.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
-            Console.WriteLine($"Alert! major complaint is *{negativeAspect}*");
-            Console.WriteLine();
-            Console.WriteLine("---All complaints:");
-            foreach (KeyValuePair<string, int> complaint in complaints)
-            {
-                Console.WriteLine($"   {complaint.Key}, {complaint.Value}");
-            }
-            #endregion
-        }
-
-        #region Snippet:TAGetComplaints
-        private Dictionary<string, int> GetComplaints(AnalyzeSentimentResultCollection reviews)
-        {
-            var complaints = new Dictionary<string, int>();
             foreach (AnalyzeSentimentResult review in reviews)
             {
                 foreach (SentenceSentiment sentence in review.DocumentSentiment.Sentences)
                 {
+                    Console.WriteLine($"For sentence: {sentence.Text}");
+                    Console.WriteLine($"    Sentiment: {sentence.Sentiment}");
+                    Console.WriteLine($"    Confidence Scores: {sentence.Sentiment}");
+                    Console.WriteLine($"        Positive: {sentence.ConfidenceScores.Positive}");
+                    Console.WriteLine($"        Negative: {sentence.ConfidenceScores.Negative}");
+                    Console.WriteLine($"        Neutral: {sentence.ConfidenceScores.Neutral}");
                     foreach (MinedOpinion minedOpinion in sentence.MinedOpinions)
                     {
-                        if (minedOpinion.Aspect.Sentiment == TextSentiment.Negative)
+                        Console.WriteLine($"    Aspect: {minedOpinion.Aspect.Text}");
+                        Console.WriteLine($"        Sentiment: {minedOpinion.Aspect.Sentiment}");
+                        foreach (var opinion in minedOpinion.Opinions)
                         {
-                            complaints.TryGetValue(minedOpinion.Aspect.Text, out var value);
-                            complaints[minedOpinion.Aspect.Text] = value + 1;
+                            Console.WriteLine($"    Opinion: {opinion.Text}");
+                            Console.WriteLine($"        Sentiment: {opinion.Sentiment}");
+                            Console.WriteLine($"        Is negated: {opinion.IsNegated}");
                         }
                     }
                 }
             }
-            return complaints;
+            #endregion
         }
-        #endregion
     }
 }
