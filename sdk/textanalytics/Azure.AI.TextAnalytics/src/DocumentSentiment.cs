@@ -43,8 +43,8 @@ namespace Azure.AI.TextAnalytics
         public SentimentConfidenceScores ConfidenceScores { get; }
 
         /// <summary>
-        /// Gets the predicted sentiment for each sentence in the corresponding
-        /// document.
+        /// Gets the predicted sentiment and other analysis like Opinion Mining
+        /// for each sentence in the corresponding document.
         /// </summary>
         public IReadOnlyCollection<SentenceSentiment> Sentences { get; }
 
