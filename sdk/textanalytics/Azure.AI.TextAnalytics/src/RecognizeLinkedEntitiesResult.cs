@@ -42,7 +42,7 @@ namespace Azure.AI.TextAnalytics
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"ID: {Id}, # of Linked Entities: {Entities.Count}";
+            return $"ID: {Id}, # Linked Entities: {Entities.Count}";
         }
     }
 }
