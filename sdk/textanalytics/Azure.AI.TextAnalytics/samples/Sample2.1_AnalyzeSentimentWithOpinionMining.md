@@ -25,7 +25,7 @@ var documents = new List<string>
     "Staff are not friendly and helpful."
 };
 
-AnalyzeSentimentResultCollection reviews = client.AnalyzeSentimentBatch(documents, options: new AnalyzeSentimentOptions() { AdditionalSentimentAnalyses = AdditionalSentimentAnalyses.OpinionMining });
+AnalyzeSentimentResultCollection reviews = client.AnalyzeSentimentBatch(documents, options: new AnalyzeSentimentOptions() { IncludeOpinionMining = true });
 
 foreach (AnalyzeSentimentResult review in reviews)
 {

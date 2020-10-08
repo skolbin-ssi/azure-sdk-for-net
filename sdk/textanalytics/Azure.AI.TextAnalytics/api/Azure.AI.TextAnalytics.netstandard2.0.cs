@@ -1,20 +1,15 @@
 namespace Azure.AI.TextAnalytics
 {
-    [System.FlagsAttribute]
-    public enum AdditionalSentimentAnalyses
-    {
-        None = 0,
-        OpinionMining = 1,
-    }
     public partial class AnalyzeSentimentOptions : Azure.AI.TextAnalytics.TextAnalyticsRequestOptions
     {
         public AnalyzeSentimentOptions() { }
-        public Azure.AI.TextAnalytics.AdditionalSentimentAnalyses AdditionalSentimentAnalyses { get { throw null; } set { } }
+        public bool IncludeOpinionMining { get { throw null; } set { } }
     }
     public partial class AnalyzeSentimentResult : Azure.AI.TextAnalytics.TextAnalyticsResult
     {
         internal AnalyzeSentimentResult() { }
         public Azure.AI.TextAnalytics.DocumentSentiment DocumentSentiment { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class AnalyzeSentimentResultCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.AnalyzeSentimentResult>
     {
@@ -31,6 +26,7 @@ namespace Azure.AI.TextAnalytics
         public int Offset { get { throw null; } }
         public Azure.AI.TextAnalytics.TextSentiment Sentiment { get { throw null; } }
         public string Text { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public readonly partial struct CategorizedEntity
@@ -42,6 +38,7 @@ namespace Azure.AI.TextAnalytics
         public int Offset { get { throw null; } }
         public string SubCategory { get { throw null; } }
         public string Text { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class CategorizedEntityCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.CategorizedEntity>
     {
@@ -57,6 +54,7 @@ namespace Azure.AI.TextAnalytics
         public string Iso6391Name { get { throw null; } }
         public string Name { get { throw null; } }
         public System.Collections.Generic.IReadOnlyCollection<Azure.AI.TextAnalytics.TextAnalyticsWarning> Warnings { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class DetectLanguageInput : Azure.AI.TextAnalytics.TextAnalyticsInput
     {
@@ -68,6 +66,7 @@ namespace Azure.AI.TextAnalytics
     {
         internal DetectLanguageResult() { }
         public Azure.AI.TextAnalytics.DetectedLanguage PrimaryLanguage { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class DetectLanguageResultCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.DetectLanguageResult>
     {
@@ -82,6 +81,7 @@ namespace Azure.AI.TextAnalytics
         public System.Collections.Generic.IReadOnlyCollection<Azure.AI.TextAnalytics.SentenceSentiment> Sentences { get { throw null; } }
         public Azure.AI.TextAnalytics.TextSentiment Sentiment { get { throw null; } }
         public System.Collections.Generic.IReadOnlyCollection<Azure.AI.TextAnalytics.TextAnalyticsWarning> Warnings { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public readonly partial struct EntityCategory : System.IEquatable<Azure.AI.TextAnalytics.EntityCategory>
@@ -117,6 +117,7 @@ namespace Azure.AI.TextAnalytics
     {
         internal ExtractKeyPhrasesResult() { }
         public Azure.AI.TextAnalytics.KeyPhraseCollection KeyPhrases { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class ExtractKeyPhrasesResultCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.ExtractKeyPhrasesResult>
     {
@@ -141,6 +142,7 @@ namespace Azure.AI.TextAnalytics
         public System.Collections.Generic.IEnumerable<Azure.AI.TextAnalytics.LinkedEntityMatch> Matches { get { throw null; } }
         public string Name { get { throw null; } }
         public System.Uri Url { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class LinkedEntityCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.LinkedEntity>
     {
@@ -155,6 +157,7 @@ namespace Azure.AI.TextAnalytics
         public double ConfidenceScore { get { throw null; } }
         public int Offset { get { throw null; } }
         public string Text { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public readonly partial struct MinedOpinion
@@ -163,6 +166,7 @@ namespace Azure.AI.TextAnalytics
         private readonly int _dummyPrimitive;
         public Azure.AI.TextAnalytics.AspectSentiment Aspect { get { throw null; } }
         public System.Collections.Generic.IReadOnlyCollection<Azure.AI.TextAnalytics.OpinionSentiment> Opinions { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public readonly partial struct OpinionSentiment
@@ -174,6 +178,7 @@ namespace Azure.AI.TextAnalytics
         public int Offset { get { throw null; } }
         public Azure.AI.TextAnalytics.TextSentiment Sentiment { get { throw null; } }
         public string Text { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     [System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public readonly partial struct PiiEntity
@@ -185,6 +190,7 @@ namespace Azure.AI.TextAnalytics
         public int Offset { get { throw null; } }
         public string SubCategory { get { throw null; } }
         public string Text { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class PiiEntityCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.PiiEntity>
     {
@@ -200,6 +206,7 @@ namespace Azure.AI.TextAnalytics
     {
         internal RecognizeEntitiesResult() { }
         public Azure.AI.TextAnalytics.CategorizedEntityCollection Entities { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class RecognizeEntitiesResultCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.RecognizeEntitiesResult>
     {
@@ -211,6 +218,7 @@ namespace Azure.AI.TextAnalytics
     {
         internal RecognizeLinkedEntitiesResult() { }
         public Azure.AI.TextAnalytics.LinkedEntityCollection Entities { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class RecognizeLinkedEntitiesResultCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.RecognizeLinkedEntitiesResult>
     {
@@ -227,6 +235,7 @@ namespace Azure.AI.TextAnalytics
     {
         internal RecognizePiiEntitiesResult() { }
         public Azure.AI.TextAnalytics.PiiEntityCollection Entities { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class RecognizePiiEntitiesResultCollection : System.Collections.ObjectModel.ReadOnlyCollection<Azure.AI.TextAnalytics.RecognizePiiEntitiesResult>
     {
@@ -244,6 +253,7 @@ namespace Azure.AI.TextAnalytics
         public int Offset { get { throw null; } }
         public Azure.AI.TextAnalytics.TextSentiment Sentiment { get { throw null; } }
         public string Text { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class SentimentConfidenceScores
     {
@@ -251,6 +261,7 @@ namespace Azure.AI.TextAnalytics
         public double Negative { get { throw null; } }
         public double Neutral { get { throw null; } }
         public double Positive { get { throw null; } }
+        public override string ToString() { throw null; }
     }
     public partial class TextAnalyticsClient
     {
