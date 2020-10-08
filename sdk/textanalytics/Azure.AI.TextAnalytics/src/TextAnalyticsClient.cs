@@ -1107,12 +1107,11 @@ namespace Azure.AI.TextAnalytics
             try
             {
                 var documents = new List<MultiLanguageInput>() { ConvertToMultiLanguageInput(document, language) };
-                bool opinionMining = options.AdditionalSentimentAnalyses.HasFlag(AdditionalSentimentAnalyses.OpinionMining);
                 Response<SentimentResponse> result = await _serviceRestClient.SentimentAsync(
                     new MultiLanguageBatchInput(documents),
                     options.ModelVersion,
                     options.IncludeStatistics,
-                    opinionMining,
+                    options.IncludeOpinionMining,
                     _stringCodeUnit,
                     cancellationToken).ConfigureAwait(false);
                 Response response = result.GetRawResponse();
@@ -1168,12 +1167,11 @@ namespace Azure.AI.TextAnalytics
             try
             {
                 var documents = new List<MultiLanguageInput>() { ConvertToMultiLanguageInput(document, language) };
-                bool opinionMining = options.AdditionalSentimentAnalyses.HasFlag(AdditionalSentimentAnalyses.OpinionMining);
                 Response<SentimentResponse> result = _serviceRestClient.Sentiment(
                     new MultiLanguageBatchInput(documents),
                     options.ModelVersion,
                     options.IncludeStatistics,
-                    opinionMining,
+                    options.IncludeOpinionMining,
                     _stringCodeUnit,
                     cancellationToken);
                 Response response = result.GetRawResponse();
@@ -1447,12 +1445,11 @@ namespace Azure.AI.TextAnalytics
 
             try
             {
-                bool opinionMining = options.AdditionalSentimentAnalyses.HasFlag(AdditionalSentimentAnalyses.OpinionMining);
                 Response<SentimentResponse> result = await _serviceRestClient.SentimentAsync(
                     batchInput,
                     options.ModelVersion,
                     options.IncludeStatistics,
-                    opinionMining,
+                    options.IncludeOpinionMining,
                     _stringCodeUnit,
                     cancellationToken).ConfigureAwait(false);
                 var response = result.GetRawResponse();
@@ -1475,12 +1472,11 @@ namespace Azure.AI.TextAnalytics
 
             try
             {
-                bool opinionMining = options.AdditionalSentimentAnalyses.HasFlag(AdditionalSentimentAnalyses.OpinionMining);
                 Response<SentimentResponse> result = _serviceRestClient.Sentiment(
                     batchInput,
                     options.ModelVersion,
                     options.IncludeStatistics,
-                    opinionMining,
+                    options.IncludeOpinionMining,
                     _stringCodeUnit,
                     cancellationToken);
                 var response = result.GetRawResponse();

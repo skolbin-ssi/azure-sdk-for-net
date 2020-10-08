@@ -24,9 +24,9 @@ namespace Azure.AI.TextAnalytics
         }
 
         /// <summary>
-        /// Additional types of Sentiment Analysis to be applied to the
-        /// AnalyzeSentiment method, like for example Opinion Mining.
+        /// Sentiment analysis results with Opinion Mining, also known as Aspect-based Sentiment Analysis.
+        /// Only available for Text Analytics Service version v3.1-preview.1 and above.
         /// </summary>
-        public AdditionalSentimentAnalyses AdditionalSentimentAnalyses { get; set; }
+        public bool IncludeOpinionMining { get; set; }
 }
 }
