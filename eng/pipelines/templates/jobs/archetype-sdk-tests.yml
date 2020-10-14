@@ -29,6 +29,9 @@ parameters:
 - name: ServiceDirectory
   type: string
   default: not-specified
+- name: Clouds
+  type: string
+  default: 'AzureCloud'
 
 jobs:
 - template: archetype-sdk-tests-jobs.yml
@@ -42,22 +45,23 @@ jobs:
     Location: ${{ parameters.Location }}
     ServiceDirectory: ${{ parameters.ServiceDirectory }}
     CloudConfigurations:
-      AzureCloud:
-        SubscriptionConfiguration: ${{ parameters.SubscriptionConfiguration }}
-        ArmTemplateParameters: >-
-          @{ keyVaultDomainSuffix = '.vault.azure.net';
-          storageEndpointSuffix = 'core.windows.net';
-          endpointSuffix = '.cognitiveservices.azure.com';
-          azureAuthorityHost = 'https://login.microsoftonline.com/';
-          keyVaultEndpointSuffix = '.vault.azure.net'
-          }
-        EnvVars:
-          SERVICE_MANAGEMENT_URL: https://management.core.windows.net/
-          STORAGE_ENDPOINT_SUFFIX: core.windows.net
-          RESOURCE_MANAGER_URL: https://management.azure.com/
-          SEARCH_ENDPOINT_SUFFIX: search.windows.net
-          COSMOS_TABLES_ENDPOINT_SUFFIX: cosmos.azure.com
-      ${{ if and(eq(variables['System.TeamProject'], 'internal'), endsWith(variables['Build.DefinitionName'], ' - tests-weekly')) }}:
+      ${{ if contains(parameters.Clouds, 'AzureCloud') }}:
+        AzureCloud:
+          SubscriptionConfiguration: ${{ parameters.SubscriptionConfiguration }}
+          ArmTemplateParameters: >-
+            @{ keyVaultDomainSuffix = '.vault.azure.net';
+            storageEndpointSuffix = 'core.windows.net';
+            endpointSuffix = '.cognitiveservices.azure.com';
+            azureAuthorityHost = 'https://login.microsoftonline.com/';
+            keyVaultEndpointSuffix = '.vault.azure.net'
+            }
+          EnvVars:
+            SERVICE_MANAGEMENT_URL: https://management.core.windows.net/
+            STORAGE_ENDPOINT_SUFFIX: core.windows.net
+            RESOURCE_MANAGER_URL: https://management.azure.com/
+            SEARCH_ENDPOINT_SUFFIX: search.windows.net
+            COSMOS_TABLES_ENDPOINT_SUFFIX: cosmos.azure.com
+      ${{ if contains(parameters.Clouds, 'AzureUsGovCloud') }}:
         AzureUsGovCloud:
           SubscriptionConfiguration: $(sub-config-gov-test-resources)
           ArmTemplateParameters: >-
@@ -75,6 +79,7 @@ jobs:
             SERVICE_MANAGEMENT_URL: https://management.core.usgovcloudapi.net/
             SEARCH_ENDPOINT_SUFFIX: search.azure.us
             COSMOS_TABLES_ENDPOINT_SUFFIX: cosmos.azure.us
+      ${{ if contains(parameters.Clouds, 'AzureChinaCloud') }}:
         AzureChinaCloud:
           SubscriptionConfiguration: $(sub-config-cn-test-resources)
           ArmTemplateParameters: >-
