@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -117,10 +117,10 @@ namespace Azure.Storage
         /// <param name="fileStorageUri">A <see cref="System.Uri"/> specifying the File service endpoint or endpoints.</param>
         public StorageConnectionString(
             object storageCredentials,
-            (Uri, Uri) blobStorageUri = default,
-            (Uri, Uri) queueStorageUri = default,
-            (Uri, Uri) tableStorageUri = default,
-            (Uri, Uri) fileStorageUri = default)
+            (Uri Primary, Uri Secondary) blobStorageUri = default,
+            (Uri Primary, Uri Secondary) queueStorageUri = default,
+            (Uri Primary, Uri Secondary) tableStorageUri = default,
+            (Uri Primary, Uri Secondary) fileStorageUri = default)
         {
             Credentials = storageCredentials;
             BlobStorageUri = blobStorageUri;
@@ -470,7 +470,7 @@ namespace Azure.Storage
                         !string.IsNullOrWhiteSpace(primary)
                         || /* primary is null, and... */ string.IsNullOrWhiteSpace(secondary);
 
-                (Uri, Uri) createStorageUri(string primary, string secondary, string sasToken, Func<IDictionary<string, string>, (Uri, Uri)> factory)
+                (Uri Primary, Uri Secondary) createStorageUri(string primary, string secondary, string sasToken, Func<IDictionary<string, string>, (Uri Primary, Uri Secondary)> factory)
                 {
                     return
                         !string.IsNullOrWhiteSpace(secondary) && !string.IsNullOrWhiteSpace(primary)
@@ -538,7 +538,7 @@ namespace Azure.Storage
         /// <returns>Tokenized collection.</returns>
         private static IDictionary<string, string> ParseStringIntoSettings(string connectionString, Action<string> error)
         {
-            IDictionary<string, string> settings = new Dictionary<string, string>();
+            IDictionary<string, string> settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var splitted = connectionString.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var nameValue in splitted)
@@ -572,7 +572,7 @@ namespace Azure.Storage
         private static AccountSetting Setting(string name, params string[] validValues) =>
             new AccountSetting(
                 name,
-                (settingValue) => validValues.Length == 0 ? true : validValues.Contains(settingValue)
+                (settingValue) => validValues.Length == 0 ? true : validValues.Contains(settingValue, StringComparer.OrdinalIgnoreCase)
                 );
 
         /// <summary>
@@ -624,7 +624,7 @@ namespace Azure.Storage
         private static ConnectionStringFilter AllRequired(params AccountSetting[] requiredSettings) =>
             (settings) =>
             {
-                IDictionary<string, string> result = new Dictionary<string, string>(settings);
+                IDictionary<string, string> result = new Dictionary<string, string>(settings, StringComparer.OrdinalIgnoreCase);
 
                 foreach (AccountSetting requirement in requiredSettings)
                 {
@@ -649,7 +649,7 @@ namespace Azure.Storage
         private static ConnectionStringFilter Optional(params AccountSetting[] optionalSettings) =>
             (settings) =>
             {
-                IDictionary<string, string> result = new Dictionary<string, string>(settings);
+                IDictionary<string, string> result = new Dictionary<string, string>(settings, StringComparer.OrdinalIgnoreCase);
 
                 foreach (AccountSetting requirement in optionalSettings)
                 {
@@ -671,7 +671,7 @@ namespace Azure.Storage
         private static ConnectionStringFilter AtLeastOne(params AccountSetting[] atLeastOneSettings) =>
             (settings) =>
             {
-                IDictionary<string, string> result = new Dictionary<string, string>(settings);
+                IDictionary<string, string> result = new Dictionary<string, string>(settings, StringComparer.OrdinalIgnoreCase);
                 var foundOne = false;
 
                 foreach (AccountSetting requirement in atLeastOneSettings)
@@ -695,7 +695,7 @@ namespace Azure.Storage
         private static ConnectionStringFilter None(params AccountSetting[] atLeastOneSettings) =>
             (settings) =>
             {
-                IDictionary<string, string> result = new Dictionary<string, string>(settings);
+                IDictionary<string, string> result = new Dictionary<string, string>(settings, StringComparer.OrdinalIgnoreCase);
                 var foundOne = false;
 
                 foreach (AccountSetting requirement in atLeastOneSettings)
@@ -717,7 +717,7 @@ namespace Azure.Storage
         private static ConnectionStringFilter MatchesAll(params ConnectionStringFilter[] filters) =>
             (settings) =>
             {
-                IDictionary<string, string> result = new Dictionary<string, string>(settings);
+                IDictionary<string, string> result = new Dictionary<string, string>(settings, StringComparer.OrdinalIgnoreCase);
 
                 foreach (ConnectionStringFilter filter in filters)
                 {
@@ -832,7 +832,7 @@ namespace Azure.Storage
         /// </summary>
         /// <param name="settings">The settings to use.</param>
         /// <returns>The default blob endpoint.</returns>
-        private static (Uri, Uri) ConstructBlobEndpoint(IDictionary<string, string> settings) => ConstructBlobEndpoint(
+        private static (Uri Primary, Uri Secondary) ConstructBlobEndpoint(IDictionary<string, string> settings) => ConstructBlobEndpoint(
                 settings[Constants.ConnectionStrings.DefaultEndpointsProtocolSetting],
                 settings[Constants.ConnectionStrings.AccountNameSetting],
                 settings.ContainsKey(Constants.ConnectionStrings.EndpointSuffixSetting) ? settings[Constants.ConnectionStrings.EndpointSuffixSetting] : null,
@@ -846,7 +846,7 @@ namespace Azure.Storage
         /// <param name="endpointSuffix">The Endpoint DNS suffix; use <c>null</c> for default.</param>
         /// <param name="sasToken">The sas token; use <c>null</c> for default.</param>
         /// <returns>The default blob endpoint.</returns>
-        internal static (Uri, Uri) ConstructBlobEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
+        internal static (Uri Primary, Uri Secondary) ConstructBlobEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
         {
             if (string.IsNullOrEmpty(scheme))
             {
@@ -871,7 +871,7 @@ namespace Azure.Storage
         /// </summary>
         /// <param name="settings">The settings to use.</param>
         /// <returns>The default file endpoint.</returns>
-        private static (Uri, Uri) ConstructFileEndpoint(IDictionary<string, string> settings) => ConstructFileEndpoint(
+        private static (Uri Primary, Uri Secondary) ConstructFileEndpoint(IDictionary<string, string> settings) => ConstructFileEndpoint(
                 settings[Constants.ConnectionStrings.DefaultEndpointsProtocolSetting],
                 settings[Constants.ConnectionStrings.AccountNameSetting],
                 settings.ContainsKey(Constants.ConnectionStrings.EndpointSuffixSetting) ? settings[Constants.ConnectionStrings.EndpointSuffixSetting] : null,
@@ -885,7 +885,7 @@ namespace Azure.Storage
         /// <param name="endpointSuffix">The Endpoint DNS suffix; use <c>null</c> for default.</param>
         /// <param name="sasToken">The sas token; use <c>null</c> for default.</param>
         /// <returns>The default file endpoint.</returns>
-        internal static (Uri, Uri) ConstructFileEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
+        internal static (Uri Primary, Uri Secondary) ConstructFileEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
         {
             if (string.IsNullOrEmpty(scheme))
             {
@@ -910,7 +910,7 @@ namespace Azure.Storage
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <returns>The default queue endpoint.</returns>
-        private static (Uri, Uri) ConstructQueueEndpoint(IDictionary<string, string> settings) => ConstructQueueEndpoint(
+        private static (Uri Primary, Uri Secondary) ConstructQueueEndpoint(IDictionary<string, string> settings) => ConstructQueueEndpoint(
                 settings[Constants.ConnectionStrings.DefaultEndpointsProtocolSetting],
                 settings[Constants.ConnectionStrings.AccountNameSetting],
                 settings.ContainsKey(Constants.ConnectionStrings.EndpointSuffixSetting) ? settings[Constants.ConnectionStrings.EndpointSuffixSetting] : null,
@@ -924,7 +924,7 @@ namespace Azure.Storage
         /// <param name="endpointSuffix">The Endpoint DNS suffix; use <c>null</c> for default.</param>
         /// <param name="sasToken">The sas token; use <c>null</c> for default.</param>
         /// <returns>The default queue endpoint.</returns>
-        internal static (Uri, Uri) ConstructQueueEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
+        internal static (Uri Primary, Uri Secondary) ConstructQueueEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
         {
             if (string.IsNullOrEmpty(scheme))
             {
@@ -949,7 +949,7 @@ namespace Azure.Storage
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <returns>The default table endpoint.</returns>
-        private static (Uri, Uri) ConstructTableEndpoint(IDictionary<string, string> settings) => ConstructTableEndpoint(
+        private static (Uri Primary, Uri Secondary) ConstructTableEndpoint(IDictionary<string, string> settings) => ConstructTableEndpoint(
                 settings[Constants.ConnectionStrings.DefaultEndpointsProtocolSetting],
                 settings[Constants.ConnectionStrings.AccountNameSetting],
                 settings.ContainsKey(Constants.ConnectionStrings.EndpointSuffixSetting) ? settings[Constants.ConnectionStrings.EndpointSuffixSetting] : null,
@@ -963,7 +963,7 @@ namespace Azure.Storage
         /// <param name="endpointSuffix">The Endpoint DNS suffix; use <c>null</c> for default.</param>
         /// <param name="sasToken">The sas token; use <c>null</c> for default.</param>
         /// <returns>The default table endpoint.</returns>
-        internal static (Uri, Uri) ConstructTableEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
+        internal static (Uri Primary, Uri Secondary) ConstructTableEndpoint(string scheme, string accountName, string endpointSuffix, string sasToken)
         {
             if (string.IsNullOrEmpty(scheme))
             {
@@ -992,7 +992,7 @@ namespace Azure.Storage
         /// <param name="endpointSuffix">The Endpoint DNS suffix; use <c>null</c> for default.</param>
         /// <param name="sasToken">The sas token; use <c>null</c> for default.</param>
         /// <returns></returns>
-        private static (Uri, Uri) ConstructUris(
+        private static (Uri Primary, Uri Secondary) ConstructUris(
             string scheme,
             string accountName,
             string hostNamePrefix,

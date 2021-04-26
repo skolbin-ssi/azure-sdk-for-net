@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Core;
 using Azure.Core.Pipeline;
-using Azure.Security.Attestation.Models;
 
 namespace Azure.Security.Attestation
 {
@@ -110,8 +109,8 @@ namespace Azure.Security.Attestation
             uri.AppendPath("/certificates:add", false);
             uri.AppendQuery("api-version", apiVersion, true);
             request.Uri = uri;
-            request.Headers.Add("Content-Type", "application/json");
             request.Headers.Add("Accept", "application/json");
+            request.Headers.Add("Content-Type", "application/json");
             var content = new Utf8JsonRequestContent();
             content.JsonWriter.WriteStringValue(policyCertificateToAdd);
             request.Content = content;
@@ -182,8 +181,8 @@ namespace Azure.Security.Attestation
             uri.AppendPath("/certificates:remove", false);
             uri.AppendQuery("api-version", apiVersion, true);
             request.Uri = uri;
-            request.Headers.Add("Content-Type", "application/json");
             request.Headers.Add("Accept", "application/json");
+            request.Headers.Add("Content-Type", "application/json");
             var content = new Utf8JsonRequestContent();
             content.JsonWriter.WriteStringValue(policyCertificateToRemove);
             request.Content = content;

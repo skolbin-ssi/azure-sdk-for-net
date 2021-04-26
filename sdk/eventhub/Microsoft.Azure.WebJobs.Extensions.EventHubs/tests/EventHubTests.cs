@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
@@ -72,13 +73,13 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
             var evt = GetSystemProperties(new byte[] { });
 
             var input = EventHubTriggerInput.New(evt);
-            input.PartitionContext = GetPartitionContext();
+            input.ProcessorPartition = GetPartitionContext();
 
             var strategy = new EventHubTriggerBindingStrategy();
             var bindingData = strategy.GetBindingData(input);
 
             Assert.AreEqual(7, bindingData.Count);
-            Assert.AreSame(input.PartitionContext, bindingData["PartitionContext"]);
+            Assert.AreSame(input.ProcessorPartition.PartitionContext, bindingData["PartitionContext"]);
             Assert.AreEqual(evt.PartitionKey, bindingData["PartitionKey"]);
             Assert.AreEqual(evt.Offset, bindingData["Offset"]);
             Assert.AreEqual(evt.SequenceNumber, bindingData["SequenceNumber"]);
@@ -117,13 +118,13 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
             var input = new EventHubTriggerInput
             {
                 Events = events,
-                PartitionContext = GetPartitionContext(),
+                ProcessorPartition = GetPartitionContext(),
             };
             var strategy = new EventHubTriggerBindingStrategy();
             var bindingData = strategy.GetBindingData(input);
 
             Assert.AreEqual(7, bindingData.Count);
-            Assert.AreSame(input.PartitionContext, bindingData["PartitionContext"]);
+            Assert.AreSame(input.ProcessorPartition.PartitionContext, bindingData["PartitionContext"]);
 
             // verify an array was created for each binding data type
             Assert.AreEqual(events.Length, ((string[])bindingData["PartitionKeyArray"]).Length);
@@ -144,8 +145,8 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
             string data = "123";
 
             var strategy = new EventHubTriggerBindingStrategy();
-            EventHubTriggerInput triggerInput = strategy.ConvertFromString(data);
 
+            EventHubTriggerInput triggerInput = strategy.ConvertFromString(data);
             var contract = strategy.GetBindingData(triggerInput);
 
             EventData single = strategy.BindSingle(triggerInput, null);
@@ -154,17 +155,6 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
             Assert.AreEqual(data, body);
             Assert.Null(contract["PartitionContext"]);
             Assert.Null(contract["partitioncontext"]); // case insensitive
-        }
-
-        [TestCase("e", "n1", "n1/e/")]
-        [TestCase("e--1", "host_.path.foo", "host_.path.foo/e--1/")]
-        [TestCase("Ab", "Cd", "cd/ab/")]
-        [TestCase("A=", "Cd", "cd/a:3D/")]
-        [TestCase("A:", "Cd", "cd/a:3A/")]
-        public void EventHubBlobPrefix(string eventHubName, string serviceBusNamespace, string expected)
-        {
-            string actual = EventHubOptions.GetBlobPrefix(eventHubName, serviceBusNamespace);
-            Assert.AreEqual(expected, actual);
         }
 
         [TestCase(1)]
@@ -202,7 +192,8 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
                         { "AzureWebJobs:extensions:EventHubs:EventProcessorOptions:PrefetchCount", "200" },
                         { "AzureWebJobs:extensions:EventHubs:BatchCheckpointFrequency", "5" },
                         { "AzureWebJobs:extensions:EventHubs:PartitionManagerOptions:LeaseDuration", "00:00:31" },
-                        { "AzureWebJobs:extensions:EventHubs:PartitionManagerOptions:RenewInterval", "00:00:21" }
+                        { "AzureWebJobs:extensions:EventHubs:PartitionManagerOptions:RenewInterval", "00:00:21" },
+                        { "AzureWebJobs:extensions:EventHubs:InitialOffsetOptions:Type", "FromEnd" },
                     });
                 })
                 .Build();
@@ -217,6 +208,85 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
             Assert.AreEqual(100, options.MaxBatchSize);
             Assert.AreEqual(31, options.EventProcessorOptions.PartitionOwnershipExpirationInterval.TotalSeconds);
             Assert.AreEqual(21, options.EventProcessorOptions.LoadBalancingUpdateInterval.TotalSeconds);
+            Assert.AreEqual(EventPosition.Latest, eventProcessorOptions.DefaultStartingPosition);
+        }
+
+        [Test]
+        public void InitializeFromCodeRespectsFinalOffsetOptions_FromStart()
+        {
+            IHost host = new HostBuilder()
+                .ConfigureDefaultTestHost(builder =>
+                {
+                    builder.AddEventHubs(options => options.InitialOffsetOptions.Type = OffsetType.FromEnd);
+                })
+                .ConfigureServices(services =>
+                    {
+                        services.Configure<EventHubOptions>(options =>
+                        {
+                            options.InitialOffsetOptions.Type = OffsetType.FromStart;
+                        });
+                    })
+                .Build();
+
+            // Force the ExtensionRegistryFactory to run, which will initialize the EventHubConfiguration.
+            var extensionRegistry = host.Services.GetService<IExtensionRegistry>();
+            var options = host.Services.GetService<IOptions<EventHubOptions>>().Value;
+
+            var eventProcessorOptions = options.EventProcessorOptions;
+            Assert.AreEqual(EventPosition.Earliest, eventProcessorOptions.DefaultStartingPosition);
+        }
+
+        [Test]
+        public void InitializeFromCodeRespectsFinalOffsetOptions_FromEnd()
+        {
+            var host = new HostBuilder()
+                 .ConfigureDefaultTestHost(builder =>
+                 {
+                     builder.AddEventHubs(options => options.InitialOffsetOptions.Type = OffsetType.FromStart);
+                 })
+                 .ConfigureServices(services =>
+                 {
+                     services.Configure<EventHubOptions>(options =>
+                     {
+                         options.InitialOffsetOptions.Type = OffsetType.FromEnd;
+                     });
+                 })
+                 .Build();
+
+            // Force the ExtensionRegistryFactory to run, which will initialize the EventHubConfiguration.
+            var extensionRegistry = host.Services.GetService<IExtensionRegistry>();
+            var options = host.Services.GetService<IOptions<EventHubOptions>>().Value;
+
+            var eventProcessorOptions = options.EventProcessorOptions;
+            Assert.AreEqual(EventPosition.Latest, eventProcessorOptions.DefaultStartingPosition);
+        }
+
+        [Test]
+        public void InitializeFromCodeRespectsFinalOffsetOptions_FromEnqueuedTime()
+        {
+            var host = new HostBuilder()
+                 .ConfigureDefaultTestHost(builder =>
+                 {
+                     builder.AddEventHubs(options => options.InitialOffsetOptions.Type = OffsetType.FromStart);
+                 })
+                 .ConfigureServices(services =>
+                 {
+                     services.Configure<EventHubOptions>(options =>
+                     {
+                         options.InitialOffsetOptions.Type = OffsetType.FromEnqueuedTime;
+                         options.InitialOffsetOptions.EnqueuedTimeUtc = DateTimeOffset.UtcNow;
+                     });
+                 })
+                 .Build();
+
+            // Force the ExtensionRegistryFactory to run, which will initialize the EventHubConfiguration.
+            var extensionRegistry = host.Services.GetService<IExtensionRegistry>();
+            var options = host.Services.GetService<IOptions<EventHubOptions>>().Value;
+
+            var eventProcessorOptions = options.EventProcessorOptions;
+            Assert.AreEqual(
+                EventPosition.FromEnqueuedTime(options.InitialOffsetOptions.EnqueuedTimeUtc.Value),
+                eventProcessorOptions.DefaultStartingPosition);
         }
 
         internal static EventProcessorHostPartition GetPartitionContext(string partitionId = "0", string eventHubPath = "path",
@@ -226,8 +296,7 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
                 "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abc123=",
                 eventHubPath,
                 new EventProcessorOptions(),
-                Int32.MaxValue,
-                false, null);
+                Int32.MaxValue, null);
             return new EventProcessorHostPartition(partitionId)
             {
                 ProcessorHost = processor

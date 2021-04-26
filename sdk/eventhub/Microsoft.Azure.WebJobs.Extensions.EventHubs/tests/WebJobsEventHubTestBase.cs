@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Azure.Messaging.EventHubs.Processor.Tests;
 using Azure.Messaging.EventHubs.Tests;
 using Microsoft.Azure.WebJobs.EventHubs;
 using Microsoft.Azure.WebJobs.Host.TestCommon;
@@ -20,7 +19,6 @@ namespace Microsoft.Azure.WebJobs.Host.EndToEndTests
     {
         protected const string TestHubName = "%webjobstesthub%";
         protected const int Timeout = 30000;
-        protected static string _testId;
 
         /// <summary>The active Event Hub resource scope for the test fixture.</summary>
         protected EventHubScope _eventHubScope;
@@ -34,7 +32,6 @@ namespace Microsoft.Azure.WebJobs.Host.EndToEndTests
         public async Task FixtureSetUp()
         {
             _eventHubScope = await EventHubScope.CreateAsync(2);
-            _testId = Guid.NewGuid().ToString();
         }
 
         /// <summary>
@@ -50,50 +47,45 @@ namespace Microsoft.Azure.WebJobs.Host.EndToEndTests
 
         protected void ConfigureTestEventHub(IHostBuilder builder)
         {
-            builder.ConfigureServices(services =>
-            {
-                services.Configure<EventHubOptions>(options =>
-                {
-                    options.AddSender(_eventHubScope.EventHubName, EventHubsTestEnvironment.Instance.EventHubsConnectionString);
-                    options.AddReceiver(_eventHubScope.EventHubName, EventHubsTestEnvironment.Instance.EventHubsConnectionString);
-                });
-            });
-        }
-
-        protected (JobHost, IHost) BuildHost<T>(Action<IHostBuilder> configurationDelegate = null, Action<IHost> preStartCallback = null)
-        {
-            configurationDelegate ??= ConfigureTestEventHub;
-
-            var hostBuilder = new HostBuilder()
+            builder
                 .ConfigureAppConfiguration(builder =>
                 {
                     builder.AddInMemoryCollection(new Dictionary<string, string>()
                     {
                         {"webjobstesthub", _eventHubScope.EventHubName},
-                        {"AzureWebJobsStorage", StorageTestEnvironment.Instance.StorageConnectionString}
+                        {"AzureWebJobsStorage", StorageTestEnvironment.Instance.StorageConnectionString},
+                        {_eventHubScope.EventHubName, EventHubsTestEnvironment.Instance.EventHubsConnectionString}
                     });
-                })
-                .ConfigureServices(services =>
+                });
+        }
+
+        protected (JobHost JobHost, IHost Host) BuildHost<T>(Action<IHostBuilder> configurationDelegate = null, Action<IHost> preStartCallback = null)
+        {
+            configurationDelegate ??= ConfigureTestEventHub;
+
+            var hostBuilder = new HostBuilder();
+            hostBuilder
+                .ConfigureAppConfiguration(builder =>
                 {
-                    services.Configure<EventHubOptions>(options =>
+                    builder.AddInMemoryCollection(new Dictionary<string, string>()
                     {
-                        options.CheckpointContainer = Guid.NewGuid().ToString("D").Substring(0, 13);
-                        // Speedup shutdown
-                        options.EventProcessorOptions.MaximumWaitTime = TimeSpan.FromSeconds(5);
+                        {"webjobstesthub", _eventHubScope.EventHubName},
                     });
                 })
                 .ConfigureDefaultTestHost<T>(b =>
                 {
                     b.AddEventHubs(options =>
                     {
+                        options.IsSingleDispatchEnabled = true;
                         options.EventProcessorOptions.TrackLastEnqueuedEventProperties = true;
+                        options.EventProcessorOptions.MaximumWaitTime = TimeSpan.FromSeconds(5);
+                        options.CheckpointContainer = Guid.NewGuid().ToString("D").Substring(0, 13);
                     });
                 })
                 .ConfigureLogging(b =>
                 {
                     b.SetMinimumLevel(LogLevel.Debug);
                 });
-
             configurationDelegate(hostBuilder);
             IHost host = hostBuilder.Build();
 

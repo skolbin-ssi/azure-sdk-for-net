@@ -32,11 +32,16 @@ namespace Azure.Security.KeyVault.Administration.Tests
             var backupOperationId = originalBackupOperation.Id;
 
             #region Snippet:ResumeBackupAsync
+#if SNIPPET
             // Construct a new KeyVaultBackupClient or use an existing one.
-            //@@KeyVaultBackupClient Client = new KeyVaultBackupClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+            KeyVaultBackupClient client = new KeyVaultBackupClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+#endif
 
             // Construct a BackupOperation using a KeyVaultBackupClient and the Id from a previously started operation.
             BackupOperation backupOperation = new BackupOperation(client, backupOperationId);
+#if !SNIPPET
+            backupOperation._retryAfterSeconds = (int)PollingInterval.TotalSeconds;
+#endif
 
             // Wait for completion of the BackupOperation.
             Response<BackupResult> backupResult = await backupOperation.WaitForCompletionAsync();
@@ -55,11 +60,16 @@ namespace Azure.Security.KeyVault.Administration.Tests
             var restoreOperationId = originalRestoreOperation.Id;
 
             #region Snippet:ResumeRestoreAsync
+#if SNIPPET
             // Construct a new KeyVaultBackupClient or use an existing one.
-            //@@KeyVaultBackupClient Client = new KeyVaultBackupClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+            KeyVaultBackupClient Client = new KeyVaultBackupClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+#endif
 
             // Construct a RestoreOperation using a KeyVaultBackupClient and the Id from a previously started operation.
             RestoreOperation restoreOperation = new RestoreOperation(client, restoreOperationId);
+#if !SNIPPET
+            restoreOperation._operationInternal._retryAfterSeconds = (int)PollingInterval.TotalSeconds;
+#endif
 
             // Wait for completion of the RestoreOperation.
             RestoreResult restoreResult = await restoreOperation.WaitForCompletionAsync();

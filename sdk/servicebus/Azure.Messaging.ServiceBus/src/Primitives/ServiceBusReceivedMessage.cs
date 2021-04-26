@@ -12,8 +12,13 @@ using Azure.Messaging.ServiceBus.Amqp;
 namespace Azure.Messaging.ServiceBus
 {
     /// <summary>
-    ///
+    /// The <see cref="ServiceBusReceivedMessage"/> is used to receive data from Service Bus Queues and Subscriptions.
+    /// When sending messages, the <see cref="ServiceBusMessage"/> is used.
     /// </summary>
+    /// <remarks>
+    /// The message structure is discussed in detail in the
+    /// <see href="https://docs.microsoft.com/azure/service-bus-messaging/service-bus-messages-payloads">product documentation</see>.
+    /// </remarks>
     public class ServiceBusReceivedMessage
     {
         /// <summary>
@@ -21,7 +26,7 @@ namespace Azure.Messaging.ServiceBus
         /// </summary>
         /// <param name="body">The payload of the message represented as bytes.</param>
         internal ServiceBusReceivedMessage(ReadOnlyMemory<byte> body)
-            : this(new AmqpAnnotatedMessage(new AmqpMessageBody(new ReadOnlyMemory<byte>[] { body })))
+            : this(new AmqpAnnotatedMessage(new AmqpMessageBody(MessageBody.FromReadOnlyMemorySegments(new ReadOnlyMemory<byte>[] { body }))))
         {
         }
 
@@ -93,7 +98,7 @@ namespace Azure.Messaging.ServiceBus
         ///    messages are kept together and in order as they are transferred.
         ///    See <a href="https://docs.microsoft.com/azure/service-bus-messaging/service-bus-transactions#transfers-and-send-via">Transfers and Send Via</a>.
         /// </remarks>
-        internal string TransactionPartitionKey => AmqpMessage.GetViaPartitionKey();
+        public string TransactionPartitionKey => AmqpMessage.GetViaPartitionKey();
 
         /// <summary>Gets the session identifier for a session-aware entity.</summary>
         /// <value>The session identifier. Maximum length is 128 characters.</value>
@@ -128,7 +133,7 @@ namespace Azure.Messaging.ServiceBus
         /// </remarks>
         public TimeSpan TimeToLive => AmqpMessage.GetTimeToLive();
 
-        /// <summary>Gets the a correlation identifier.</summary>
+        /// <summary>Gets the correlation identifier.</summary>
         /// <value>Correlation identifier.</value>
         /// <remarks>
         ///    Allows an application to specify a context for the message for the purposes of correlation,

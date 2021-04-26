@@ -5,5 +5,6 @@ extends:
   parameters:
     MaxParallel: 6
     ServiceDirectory: eventhub
-    TimeoutInMinutes: 190
-    Clouds: 'Public,Canary'
+    SDKType: client
+    TimeoutInMinutes: 240
+    Clouds: 'Public,UsGov,China,Canary'

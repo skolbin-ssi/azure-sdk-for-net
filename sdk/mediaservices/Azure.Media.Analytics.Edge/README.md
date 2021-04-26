@@ -17,7 +17,7 @@ This is a models only sdk. All client operations are done using the [Microsoft A
 
 As mentioned above the client is coming from Azure IoT SDK. You will need to obtain an [IoT device connection string][iot_device_connection_string] in order to authenticate the Azure IoT SDK. For more information please visit: https://github.com/Azure/azure-iot-sdk-csharp. 
 ```C# Snippet:Azure_MediaServices_Samples_ConnectionString
-var connectionString = "connection-string";
+var connectionString = "connectionString";
 this._serviceClient = ServiceClient.CreateFromConnectionString(connectionString);
 ```
 
@@ -56,6 +56,20 @@ The parameter `method_name` is the name of the media graph request you are sendi
 
 To set the Json payload of the cloud method, use the media graph request method's `GetPayloadAsJson()` function. For example, `directCloudMethod.SetPayloadJson(MediaGraphTopologySetRequest.GetPayloadAsJson())`
 
+### Thread safety
+We guarantee that all client instance methods are thread-safe and independent of each other ([guideline](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-service-methods-thread-safety)). This ensures that the recommendation of reusing client instances is always safe, even across threads.
+
+### Additional concepts
+<!-- CLIENT COMMON BAR -->
+[Client options](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/core/Azure.Core/README.md#configuring-service-clients-using-clientoptions) |
+[Accessing the response](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/core/Azure.Core/README.md#accessing-http-response-details-using-responset) |
+[Long-running operations](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/core/Azure.Core/README.md#consuming-long-running-operations-using-operationt) |
+[Handling failures](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/core/Azure.Core/README.md#reporting-errors-requestfailedexception) |
+[Diagnostics](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/core/Azure.Core/samples/Diagnostics.md) |
+[Mocking](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/core/Azure.Core/README.md#mocking) |
+[Client lifetime](https://devblogs.microsoft.com/azure-sdk/lifetime-management-and-thread-safety-guarantees-of-azure-sdk-net-clients/)
+<!-- CLIENT COMMON BAR -->
+
 ## Examples
 
 ### Creating a graph topology
@@ -87,10 +101,7 @@ private void SetSources(MediaGraphTopologyProperties graphProperties)
 {
     graphProperties.Sources.Add(new MediaGraphRtspSource("rtspSource", new MediaGraphUnsecuredEndpoint("${rtspUrl}")
         {
-            Credentials = new MediaGraphUsernamePasswordCredentials("${rtspUserName}")
-            {
-                Password = "${rtspPassword}"
-            }
+            Credentials = new MediaGraphUsernamePasswordCredentials("${rtspUserName}", "${rtspPassword}")
         })
     );
 }
@@ -100,7 +111,7 @@ private void SetSinks(MediaGraphTopologyProperties graphProperties)
 {
     var graphNodeInput = new List<MediaGraphNodeInput>
     {
-        { new MediaGraphNodeInput{NodeName = "rtspSource"} }
+        new MediaGraphNodeInput("rtspSource")
     };
     var cachePath = "/var/lib/azuremediaservices/tmp/";
     var cacheMaxSize = "2048";
@@ -141,7 +152,7 @@ private MediaGraphInstance BuildGraphInstance(string graphTopologyName)
 
     graphInstanceProperties.Parameters.Add(new MediaGraphParameterDefinition("rtspUrl", "rtsp://sample.com"));
 
-    return new MediaGraphInstance("graphInstance1")
+    return new MediaGraphInstance("graphInstance")
     {
         Properties = graphInstanceProperties
     };
@@ -156,7 +167,7 @@ var setGraphRequest = new MediaGraphTopologySetRequest(graphTopology);
 var directMethod = new CloudToDeviceMethod(setGraphRequest.MethodName);
 directMethod.SetPayloadJson(setGraphRequest.GetPayloadAsJson());
 
-await _serviceClient.InvokeDeviceMethodAsync(_deviceId, _moduleId, directMethod);
+var setGraphResponse = await _serviceClient.InvokeDeviceMethodAsync(_deviceId, _moduleId, directMethod);
 ```
 
 To try different media graph topologies with the SDK, please see the official [Samples][samples].

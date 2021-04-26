@@ -5,5 +5,7 @@ extends:
   parameters:
     MaxParallel: 4
     ServiceDirectory: servicebus
-    TimeoutInMinutes: 120
+    SDKType: client
+    TimeoutInMinutes: 240
     Clouds: 'Public,Canary'
+    SupportedClouds: 'Public,UsGov,China,Canary'

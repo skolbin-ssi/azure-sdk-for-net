@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
+using Azure.Messaging.EventHubs.Consumer;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.EventHubs;
 using Microsoft.Extensions.Azure;
@@ -19,8 +21,7 @@ namespace Microsoft.Extensions.Hosting
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddEventHubs(p => {});
-
+            builder.AddEventHubs(p => { });
             return builder;
         }
 
@@ -41,26 +42,17 @@ namespace Microsoft.Extensions.Hosting
                 {
                     // Map old property names for backwards compatibility
                     // do it before the binding so new property names take precedence
-                    options.InvokeProcessorAfterReceiveTimeout = section.GetValue(
-                        "EventProcessorOptions:InvokeProcessorAfterReceiveTimeout",
-                        options.InvokeProcessorAfterReceiveTimeout);
-
-                    options.EventProcessorOptions.TrackLastEnqueuedEventProperties = section.GetValue(
+                    options.TrackLastEnqueuedEventProperties = section.GetValue(
                         "EventProcessorOptions:EnableReceiverRuntimeMetric",
-                        options.EventProcessorOptions.TrackLastEnqueuedEventProperties);
+                        options.TrackLastEnqueuedEventProperties);
 
                     options.MaxBatchSize = section.GetValue(
                         "EventProcessorOptions:MaxBatchSize",
                         options.MaxBatchSize);
 
-                    var receiveTimeout = section.GetValue<TimeSpan?>(
-                        "EventProcessorOptions:ReceiveTimeout",
-                        null);
-
-                    if (receiveTimeout != null)
-                    {
-                        options.EventProcessorOptions.MaximumWaitTime = receiveTimeout.Value;
-                    }
+                    options.PrefetchCount = section.GetValue(
+                        "EventProcessorOptions:PrefetchCount",
+                        options.PrefetchCount);
 
                     var leaseDuration = section.GetValue<TimeSpan?>(
                         "PartitionManagerOptions:LeaseDuration",
@@ -68,7 +60,7 @@ namespace Microsoft.Extensions.Hosting
 
                     if (leaseDuration != null)
                     {
-                        options.EventProcessorOptions.PartitionOwnershipExpirationInterval = leaseDuration.Value;
+                        options.PartitionOwnershipExpirationInterval = leaseDuration.Value;
                     }
 
                     var renewInterval = section.GetValue<TimeSpan?>(
@@ -77,7 +69,7 @@ namespace Microsoft.Extensions.Hosting
 
                     if (renewInterval != null)
                     {
-                        options.EventProcessorOptions.LoadBalancingUpdateInterval = renewInterval.Value;
+                        options.LoadBalancingUpdateInterval = renewInterval.Value;
                     }
                 })
                 .BindOptions<EventHubOptions>();
@@ -85,8 +77,41 @@ namespace Microsoft.Extensions.Hosting
             builder.Services.AddAzureClientsCore();
             builder.Services.AddSingleton<EventHubClientFactory>();
             builder.Services.Configure<EventHubOptions>(configure);
+            builder.Services.PostConfigure<EventHubOptions>(ConfigureInitialOffsetOptions);
 
             return builder;
+        }
+
+        internal static void ConfigureInitialOffsetOptions(EventHubOptions options)
+        {
+            OffsetType? type = options?.InitialOffsetOptions?.Type;
+            if (type.HasValue)
+            {
+                switch (type)
+                {
+                    case OffsetType.FromStart:
+                        options.EventProcessorOptions.DefaultStartingPosition = EventPosition.Earliest;
+                        break;
+                    case OffsetType.FromEnd:
+                        options.EventProcessorOptions.DefaultStartingPosition = EventPosition.Latest;
+                        break;
+                    case OffsetType.FromEnqueuedTime:
+                        if (!options.InitialOffsetOptions.EnqueuedTimeUtc.HasValue)
+                        {
+                            throw new InvalidOperationException(
+                                "A time must be specified for 'enqueuedTimeUtc', when " +
+                                "'initialOffsetOptions.type' is set to 'fromEnqueuedTime'.");
+                        }
+
+                        options.EventProcessorOptions.DefaultStartingPosition =
+                            EventPosition.FromEnqueuedTime(options.InitialOffsetOptions.EnqueuedTimeUtc.Value);
+                        break;
+                    default:
+                        throw new InvalidOperationException(
+                            "An unsupported value was supplied for initialOffsetOptions.type");
+                }
+                // If not specified, EventProcessor's default offset will apply
+            }
         }
     }
 }
