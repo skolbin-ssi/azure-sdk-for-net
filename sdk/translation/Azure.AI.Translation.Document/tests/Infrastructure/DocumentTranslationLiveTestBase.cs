@@ -36,7 +36,8 @@ namespace Azure.AI.Translation.Document.Tests
 
         public DocumentTranslationClient GetClient(
             AzureKeyCredential credential = default,
-            DocumentTranslationClientOptions options = default)
+            DocumentTranslationClientOptions options = default,
+            bool useTokenCredential = default)
         {
             var endpoint = new Uri(TestEnvironment.Endpoint);
             options ??= new DocumentTranslationClientOptions()
@@ -48,8 +49,15 @@ namespace Azure.AI.Translation.Document.Tests
                 }
             };
 
-            credential ??= new AzureKeyCredential(TestEnvironment.ApiKey);
-            return InstrumentClient(new DocumentTranslationClient(endpoint, credential, InstrumentClientOptions(options)));
+            if (useTokenCredential)
+            {
+                return InstrumentClient(new DocumentTranslationClient(endpoint, TestEnvironment.Credential, InstrumentClientOptions(options)));
+            }
+            else
+            {
+                credential ??= new AzureKeyCredential(TestEnvironment.ApiKey);
+                return InstrumentClient(new DocumentTranslationClient(endpoint, credential, InstrumentClientOptions(options)));
+            }
         }
 
         public BlobContainerClient GetBlobContainerClient(string containerName)
@@ -83,7 +91,7 @@ namespace Azure.AI.Translation.Document.Tests
             }
 
             var expiresOn = DateTimeOffset.UtcNow.AddHours(1);
-            return containerClient.GenerateSasUri(BlobContainerSasPermissions.Read | BlobContainerSasPermissions.Write, expiresOn);
+            return containerClient.GenerateSasUri(BlobContainerSasPermissions.List | BlobContainerSasPermissions.Write, expiresOn);
         }
 
         private async Task UploadDocumentsAsync(BlobContainerClient containerClient, List<TestDocument> documents)

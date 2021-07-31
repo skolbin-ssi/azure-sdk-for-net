@@ -32,17 +32,8 @@ namespace Azure.Data.Tables
         /// <exception cref="ArgumentNullException"> <paramref name="url"/> or <paramref name="version"/> is null. </exception>
         public TableRestClient(ClientDiagnostics clientDiagnostics, HttpPipeline pipeline, string url, string version = "2019-02-02")
         {
-            if (url == null)
-            {
-                throw new ArgumentNullException(nameof(url));
-            }
-            if (version == null)
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
-
-            this.url = url;
-            this.version = version;
+            this.url = url ?? throw new ArgumentNullException(nameof(url));
+            this.version = version ?? throw new ArgumentNullException(nameof(version));
             _clientDiagnostics = clientDiagnostics;
             _pipeline = pipeline;
         }
@@ -1011,7 +1002,7 @@ namespace Azure.Data.Tables
         /// <param name="timeout"> The timeout parameter is expressed in seconds. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="table"/> is null. </exception>
-        public async Task<ResponseWithHeaders<IReadOnlyList<SignedIdentifier>, TableGetAccessPolicyHeaders>> GetAccessPolicyAsync(string table, int? timeout = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<IReadOnlyList<TableSignedIdentifier>, TableGetAccessPolicyHeaders>> GetAccessPolicyAsync(string table, int? timeout = null, CancellationToken cancellationToken = default)
         {
             if (table == null)
             {
@@ -1025,14 +1016,14 @@ namespace Azure.Data.Tables
             {
                 case 200:
                     {
-                        IReadOnlyList<SignedIdentifier> value = default;
+                        IReadOnlyList<TableSignedIdentifier> value = default;
                         var document = XDocument.Load(message.Response.ContentStream, LoadOptions.PreserveWhitespace);
                         if (document.Element("SignedIdentifiers") is XElement signedIdentifiersElement)
                         {
-                            var array = new List<SignedIdentifier>();
+                            var array = new List<TableSignedIdentifier>();
                             foreach (var e in signedIdentifiersElement.Elements("SignedIdentifier"))
                             {
-                                array.Add(SignedIdentifier.DeserializeSignedIdentifier(e));
+                                array.Add(TableSignedIdentifier.DeserializeTableSignedIdentifier(e));
                             }
                             value = array;
                         }
@@ -1048,7 +1039,7 @@ namespace Azure.Data.Tables
         /// <param name="timeout"> The timeout parameter is expressed in seconds. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="table"/> is null. </exception>
-        public ResponseWithHeaders<IReadOnlyList<SignedIdentifier>, TableGetAccessPolicyHeaders> GetAccessPolicy(string table, int? timeout = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<IReadOnlyList<TableSignedIdentifier>, TableGetAccessPolicyHeaders> GetAccessPolicy(string table, int? timeout = null, CancellationToken cancellationToken = default)
         {
             if (table == null)
             {
@@ -1062,14 +1053,14 @@ namespace Azure.Data.Tables
             {
                 case 200:
                     {
-                        IReadOnlyList<SignedIdentifier> value = default;
+                        IReadOnlyList<TableSignedIdentifier> value = default;
                         var document = XDocument.Load(message.Response.ContentStream, LoadOptions.PreserveWhitespace);
                         if (document.Element("SignedIdentifiers") is XElement signedIdentifiersElement)
                         {
-                            var array = new List<SignedIdentifier>();
+                            var array = new List<TableSignedIdentifier>();
                             foreach (var e in signedIdentifiersElement.Elements("SignedIdentifier"))
                             {
-                                array.Add(SignedIdentifier.DeserializeSignedIdentifier(e));
+                                array.Add(TableSignedIdentifier.DeserializeTableSignedIdentifier(e));
                             }
                             value = array;
                         }
@@ -1080,7 +1071,7 @@ namespace Azure.Data.Tables
             }
         }
 
-        internal HttpMessage CreateSetAccessPolicyRequest(string table, int? timeout, IEnumerable<SignedIdentifier> tableAcl)
+        internal HttpMessage CreateSetAccessPolicyRequest(string table, int? timeout, IEnumerable<TableSignedIdentifier> tableAcl)
         {
             var message = _pipeline.CreateMessage();
             var request = message.Request;
@@ -1118,7 +1109,7 @@ namespace Azure.Data.Tables
         /// <param name="tableAcl"> The acls for the table. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="table"/> is null. </exception>
-        public async Task<ResponseWithHeaders<TableSetAccessPolicyHeaders>> SetAccessPolicyAsync(string table, int? timeout = null, IEnumerable<SignedIdentifier> tableAcl = null, CancellationToken cancellationToken = default)
+        public async Task<ResponseWithHeaders<TableSetAccessPolicyHeaders>> SetAccessPolicyAsync(string table, int? timeout = null, IEnumerable<TableSignedIdentifier> tableAcl = null, CancellationToken cancellationToken = default)
         {
             if (table == null)
             {
@@ -1143,7 +1134,7 @@ namespace Azure.Data.Tables
         /// <param name="tableAcl"> The acls for the table. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="table"/> is null. </exception>
-        public ResponseWithHeaders<TableSetAccessPolicyHeaders> SetAccessPolicy(string table, int? timeout = null, IEnumerable<SignedIdentifier> tableAcl = null, CancellationToken cancellationToken = default)
+        public ResponseWithHeaders<TableSetAccessPolicyHeaders> SetAccessPolicy(string table, int? timeout = null, IEnumerable<TableSignedIdentifier> tableAcl = null, CancellationToken cancellationToken = default)
         {
             if (table == null)
             {

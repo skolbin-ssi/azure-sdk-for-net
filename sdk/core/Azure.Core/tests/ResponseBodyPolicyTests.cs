@@ -174,16 +174,18 @@ namespace Azure.Core.Tests
         {
             var tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            MockTransport mockTransport = new MockTransport((_, ct) =>
+            MockTransport mockTransport = MockTransport.FromMessageCallback(message =>
             {
-                tcs.Task.Wait(ct);
+                tcs.Task.Wait(message.CancellationToken);
                 return null;
             });
 
-            Assert.ThrowsAsync<OperationCanceledException>(async () => await SendRequestAsync(mockTransport, message =>
+            var exception = Assert.ThrowsAsync<TaskCanceledException>(async () => await SendRequestAsync(mockTransport, message =>
             {
-                message.SetProperty("NetworkTimeoutOverride", TimeSpan.FromMilliseconds(30));
+                message.NetworkTimeout = TimeSpan.FromMilliseconds(30);
             }, new ResponseBodyPolicy(TimeSpan.MaxValue), bufferResponse: false));
+            Assert.AreEqual("The operation was cancelled because it exceeded the configured timeout of 0:00:00.03. " +
+                            "Network timeout can be adjusted in ClientOptions.Retry.NetworkTimeout.", exception.Message);
         }
 
         [Test]
@@ -199,7 +201,7 @@ namespace Azure.Core.Tests
             MockTransport mockTransport = new MockTransport(mockResponse);
             Response response = await SendRequestAsync(mockTransport, message =>
             {
-                message.SetProperty("NetworkTimeoutOverride", TimeSpan.FromMilliseconds(30));
+                message.NetworkTimeout = TimeSpan.FromMilliseconds(30);
             }, new ResponseBodyPolicy(TimeSpan.MaxValue), bufferResponse: false);
 
             Assert.IsInstanceOf<ReadTimeoutStream>(response.ContentStream);

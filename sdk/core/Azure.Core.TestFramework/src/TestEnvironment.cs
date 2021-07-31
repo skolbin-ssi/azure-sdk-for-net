@@ -7,13 +7,11 @@ using System.Security.Cryptography;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
 using System.ComponentModel;
 using System.Linq;
 using NUnit.Framework;
-using System.Collections.Concurrent;
 
 namespace Azure.Core.TestFramework
 {
@@ -26,7 +24,7 @@ namespace Azure.Core.TestFramework
         [EditorBrowsableAttribute(EditorBrowsableState.Never)]
         public static string RepositoryRoot { get; }
 
-        private static readonly ConcurrentDictionary<Type, Task> s_environmentStateCache = new ConcurrentDictionary<Type, Task>();
+        private static readonly Dictionary<Type, Task> s_environmentStateCache = new Dictionary<Type, Task>();
 
         private readonly string _prefix;
 
@@ -135,7 +133,7 @@ namespace Azure.Core.TestFramework
         /// <summary>
         ///   The URL of the Azure Authority host to be used for authentication. Recorded.
         /// </summary>
-        public string AuthorityHostUrl => GetRecordedOptionalVariable("AZURE_AUTHORITY_HOST");
+        public string AuthorityHostUrl => GetRecordedOptionalVariable("AZURE_AUTHORITY_HOST") ?? AzureAuthorityHosts.AzurePublicCloud.ToString();
 
         /// <summary>
         ///   The suffix for Azure Storage accounts for the active cloud environment, such as "core.windows.net".  Recorded.
@@ -152,7 +150,7 @@ namespace Azure.Core.TestFramework
         /// </summary>
         public string ClientSecret => GetVariable("CLIENT_SECRET");
 
-        public TokenCredential Credential
+        public virtual TokenCredential Credential
         {
             get
             {
@@ -179,7 +177,7 @@ namespace Azure.Core.TestFramework
         }
 
         /// <summary>
-        /// Returns whether environment is ready to use. Should be overriden to provide service specific sampling scenario.
+        /// Returns whether environment is ready to use. Should be overridden to provide service specific sampling scenario.
         /// The test framework will wait until this returns true before starting tests.
         /// Use this place to hook up logic that polls if eventual consistency has happened.
         ///
@@ -201,7 +199,16 @@ namespace Azure.Core.TestFramework
         {
             if (GlobalIsRunningInCI && Mode == RecordedTestMode.Live)
             {
-                await s_environmentStateCache.GetOrAdd(GetType(), t => WaitForEnvironmentInternalAsync());
+                Task task;
+                lock (s_environmentStateCache)
+                {
+                    if (!s_environmentStateCache.TryGetValue(GetType(), out task))
+                    {
+                        task = WaitForEnvironmentInternalAsync();
+                        s_environmentStateCache[GetType()] = task;
+                    }
+                }
+                await task;
             }
         }
 
@@ -305,6 +312,11 @@ namespace Azure.Core.TestFramework
             if (value == null)
             {
                 value = Environment.GetEnvironmentVariable(name);
+            }
+
+            if (value == null)
+            {
+                value = Environment.GetEnvironmentVariable($"AZURE_{name}");
             }
 
             if (value == null)

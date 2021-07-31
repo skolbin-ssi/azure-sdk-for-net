@@ -14,11 +14,12 @@ namespace Azure.Security.KeyVault.Secrets.Tests
     [ClientTestFixture(
         SecretClientOptions.ServiceVersion.V7_0,
         SecretClientOptions.ServiceVersion.V7_1,
-        SecretClientOptions.ServiceVersion.V7_2)]
+        SecretClientOptions.ServiceVersion.V7_2,
+        SecretClientOptions.ServiceVersion.V7_3_Preview)]
     [NonParallelizable]
     public abstract class SecretsTestBase : RecordedTestBase<KeyVaultTestEnvironment>
     {
-        protected readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(10);
+        protected readonly TimeSpan PollingInterval = KeyVaultTestEnvironment.DefaultPollingInterval;
         private readonly SecretClientOptions.ServiceVersion _serviceVersion;
 
         public SecretClient Client { get; set; }

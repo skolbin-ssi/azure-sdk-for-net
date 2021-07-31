@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Messaging.ServiceBus.Authorization;
 using Azure.Messaging.ServiceBus.Core;
-using Azure.Messaging.ServiceBus.Plugins;
 using Moq;
 using NUnit.Framework;
 
@@ -24,7 +23,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             Assert.That(() => processor.ProcessMessageAsync += null, Throws.InstanceOf<ArgumentNullException>());
@@ -38,7 +36,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             Assert.That(async () => await processor.StartProcessingAsync(), Throws.InstanceOf<InvalidOperationException>());
@@ -51,7 +48,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             processor.ProcessMessageAsync += eventArgs => Task.CompletedTask;
@@ -66,7 +62,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             processor.ProcessMessageAsync += eventArgs => Task.CompletedTask;
@@ -83,7 +78,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             // First scenario: no handler has been set.
@@ -107,7 +101,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             Func<ProcessMessageEventArgs, Task> eventHandler = eventArgs => Task.CompletedTask;
@@ -139,7 +132,8 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 PrefetchCount = 5,
                 ReceiveMode = ServiceBusReceiveMode.ReceiveAndDelete,
                 MaxAutoLockRenewalDuration = TimeSpan.FromSeconds(60),
-                MaxReceiveWaitTime = TimeSpan.FromSeconds(10)
+                MaxReceiveWaitTime = TimeSpan.FromSeconds(10),
+                SubQueue = SubQueue.DeadLetter
             };
             var processor = client.CreateProcessor("queueName", options);
             Assert.AreEqual(options.AutoCompleteMessages, processor.AutoCompleteMessages);
@@ -149,6 +143,7 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
             Assert.AreEqual(options.MaxAutoLockRenewalDuration, processor.MaxAutoLockRenewalDuration);
             Assert.AreEqual(options.MaxReceiveWaitTime, processor.MaxReceiveWaitTime);
             Assert.AreEqual(fullyQualifiedNamespace, processor.FullyQualifiedNamespace);
+            Assert.AreEqual(EntityNameFormatter.FormatDeadLetterPath("queueName"), processor.EntityPath);
             Assert.IsFalse(processor.IsClosed);
             Assert.IsFalse(processor.IsProcessing);
         }
@@ -293,7 +288,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
             processor.ProcessMessageAsync += _ => Task.CompletedTask;
             processor.ProcessErrorAsync += _ => Task.CompletedTask;
@@ -310,7 +304,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 GetMockedReceiverConnection(),
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             processor.ProcessMessageAsync += _ => Task.CompletedTask;
@@ -375,7 +368,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 mockConnection,
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             processor.ProcessMessageAsync += _ => Task.CompletedTask;
@@ -411,7 +403,6 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 mockConnection.Object,
                 "entityPath",
                 false,
-                new ServiceBusPlugin[] { },
                 new ServiceBusProcessorOptions());
 
             processor.ProcessMessageAsync += _ => Task.CompletedTask;
@@ -423,6 +414,21 @@ namespace Azure.Messaging.ServiceBus.Tests.Processor
                 Throws.InstanceOf<ObjectDisposedException>().And.Property(nameof(ObjectDisposedException.ObjectName)).EqualTo(nameof(ServiceBusConnection)));
 
             await processor.DisposeAsync();
+        }
+
+        [Test]
+        public async Task CloseRespectsCancellationToken()
+        {
+            var mockProcessor = new Mock<ServiceBusProcessor>() {CallBase = true};
+            mockProcessor.Setup(
+                p => p.IsProcessing).Returns(true);
+            var cts = new CancellationTokenSource();
+
+            // mutate the cancellation token to distinguish it from CancellationToken.None
+            cts.CancelAfter(100);
+
+            await mockProcessor.Object.CloseAsync(cts.Token);
+            mockProcessor.Verify(p => p.StopProcessingAsync(It.Is<CancellationToken>(ct => ct == cts.Token)));
         }
     }
 
