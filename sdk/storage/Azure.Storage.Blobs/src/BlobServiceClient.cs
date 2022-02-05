@@ -429,7 +429,7 @@ namespace Azure.Storage.Blobs
         #region GetBlobContainers
         /// <summary>
         /// The <see cref="GetBlobContainers(BlobContainerTraits, BlobContainerStates, string, CancellationToken)"/>
-        /// operation returns an asyncsequence of blob containers in the storage account.  Enumerating the
+        /// operation returns a sequence of blob containers in the storage account.  Enumerating the
         /// blob containers may make multiple requests to the service while fetching
         /// all the values.  Containers are ordered lexicographically by name.
         ///
@@ -1524,7 +1524,8 @@ namespace Azure.Storage.Blobs
         /// <summary>
         /// The <see cref="DeleteBlobContainer"/> operation marks the
         /// specified blob container for deletion. The container and any blobs
-        /// contained within it are later deleted during garbage collection.
+        /// contained within it are later deleted during garbage collection
+        /// which could take several minutes.
         ///
         /// For more information, see
         /// <see href="https://docs.microsoft.com/rest/api/storageservices/delete-container">
@@ -1542,7 +1543,7 @@ namespace Azure.Storage.Blobs
         /// notifications that the operation should be cancelled.
         /// </param>
         /// <returns>
-        /// A <see cref="Response"/> if successful.
+        /// A <see cref="Response"/> on successfully marking for deletion.
         /// </returns>
         /// <remarks>
         /// A <see cref="RequestFailedException"/> will be thrown if
@@ -1561,7 +1562,8 @@ namespace Azure.Storage.Blobs
         /// <summary>
         /// The <see cref="DeleteBlobContainerAsync"/> operation marks the
         /// specified container for deletion. The container and any blobs
-        /// contained within it are later deleted during garbage collection.
+        /// contained within it are later deleted during garbage collection
+        /// which could take several minutes.
         ///
         /// For more information, see
         /// <see href="https://docs.microsoft.com/rest/api/storageservices/delete-container">
@@ -1579,7 +1581,7 @@ namespace Azure.Storage.Blobs
         /// notifications that the operation should be cancelled.
         /// </param>
         /// <returns>
-        /// A <see cref="Response"/> if successful.
+        /// A <see cref="Response"/> on successfully marking for deletion.
         /// </returns>
         /// <remarks>
         /// A <see cref="RequestFailedException"/> will be thrown if

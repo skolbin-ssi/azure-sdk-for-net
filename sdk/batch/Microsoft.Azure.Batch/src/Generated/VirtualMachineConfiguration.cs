@@ -112,6 +112,14 @@ namespace Microsoft.Azure.Batch
             this.NodeAgentSkuId = nodeAgentSkuId;
         }
 
+        /// <summary>
+        /// Default constructor to support mocking the <see cref="VirtualMachineConfiguration"/> class.
+        /// </summary>
+        protected VirtualMachineConfiguration()
+        {
+            this.propertyContainer = new PropertyContainer();
+        }
+
         internal VirtualMachineConfiguration(Models.VirtualMachineConfiguration protocolObject)
         {
             this.propertyContainer = new PropertyContainer(protocolObject);
@@ -136,7 +144,7 @@ namespace Microsoft.Azure.Batch
         }
 
         /// <summary>
-        /// Gets or sets the configuration for data disks attached to the Comptue Nodes in the pool.
+        /// Gets or sets the configuration for data disks attached to the Compute Nodes in the pool.
         /// </summary>
         /// <remarks>
         /// This property must be specified if the Compute Nodes in the pool need to have empty data disks attached to them. 

@@ -21,7 +21,35 @@ namespace Azure.Core.TestFramework
 
         public void Intercept(IInvocation invocation)
         {
+            bool modifiedAskToWait = false;
+
+            if (IsLro(invocation.Method.ReturnType))
+            {
+                bool current = (bool)invocation.Arguments[0];
+                if (current)
+                {
+                    modifiedAskToWait = true;
+                    invocation.Arguments[0] = false;
+                }
+            }
+
             invocation.Proceed();
+
+            if (modifiedAskToWait)
+            {
+                if (IsTaskFaulted(invocation.ReturnValue))
+                    return;
+                object lro = GetResultFromTask(invocation.ReturnValue);
+                if (lro.GetType().BaseType?.BaseType == typeof(Operation))
+                {
+                    _ = OperationInterceptor.InvokeWaitForCompletionResponse(lro, invocation.Arguments.Last());
+                }
+                else
+                {
+                    _ = OperationInterceptor.InvokeWaitForCompletion(lro, lro.GetType(), invocation.Arguments.Last());
+                }
+                return;
+            }
 
             var result = invocation.ReturnValue;
             if (result == null)
@@ -30,38 +58,22 @@ namespace Azure.Core.TestFramework
             }
 
             var type = result.GetType();
-            if (type.Name.StartsWith("ValueTask") ||
-                type.Name.StartsWith("Task") ||
-                type.Name.StartsWith("AsyncStateMachineBox")) //in .net 5 the type is not task here
+            if (IsTaskType(type))
             {
-                if ((bool)type.GetProperty("IsFaulted").GetValue(result))
+                if (IsTaskFaulted(result))
                     return;
 
                 var taskResultType = type.GetGenericArguments()[0];
-                if (taskResultType.Name.StartsWith("Response"))
+                if (taskResultType.Name.StartsWith("Response") || InheritsFromArmResource(taskResultType))
                 {
-                    try
-                    {
-                        var taskResult = result.GetType().GetProperty("Result").GetValue(result);
-                        var instrumentedResult = _testBase.InstrumentClient(taskResultType, taskResult, new IInterceptor[] { new ManagementInterceptor(_testBase) });
-                        invocation.ReturnValue = type.Name.StartsWith("ValueTask")
-                            ? GetValueFromValueTask(taskResultType, instrumentedResult)
-                            : GetValueFromOther(taskResultType, instrumentedResult);
-                    }
-                    catch (TargetInvocationException e)
-                    {
-                        if (e.InnerException is AggregateException aggException)
-                        {
-                            throw aggException.InnerExceptions.First();
-                        }
-                        else
-                        {
-                            throw e.InnerException;
-                        }
-                    }
+                    var taskResult = GetResultFromTask(result);
+                    var instrumentedResult = _testBase.InstrumentClient(taskResultType, taskResult, new IInterceptor[] { new ManagementInterceptor(_testBase) });
+                    invocation.ReturnValue = type.Name.StartsWith("ValueTask")
+                        ? GetValueFromValueTask(taskResultType, instrumentedResult)
+                        : GetValueFromOther(taskResultType, instrumentedResult);
                 }
             }
-            else if (invocation.Method.Name.EndsWith("Value") && type.BaseType.Name.EndsWith("Operations"))
+            else if (invocation.Method.Name.EndsWith("Value") && InheritsFromArmResource(type))
             {
                 invocation.ReturnValue = _testBase.InstrumentClient(type, result, new IInterceptor[] { new ManagementInterceptor(_testBase) });
             }
@@ -72,7 +84,7 @@ namespace Azure.Core.TestFramework
             else if (invocation.Method.Name.StartsWith("Get") &&
                 invocation.Method.Name.EndsWith("Enumerator") &&
                 type.IsGenericType &&
-                InheritsFromOperationBase(type.GetGenericArguments().First()))
+                InheritsFromArmResource(type.GetGenericArguments().First()))
             {
                 var wrapperType = typeof(AsyncPageableInterceptor<>);
                 var genericType = wrapperType.MakeGenericType(type.GetGenericArguments()[0]);
@@ -81,7 +93,53 @@ namespace Azure.Core.TestFramework
             }
         }
 
-        private bool InheritsFromOperationBase(Type elementType)
+        private static bool IsTaskFaulted(object taskObj)
+        {
+            return (bool)taskObj.GetType().GetProperty("IsFaulted").GetValue(taskObj);
+        }
+
+        private static object GetResultFromTask(object returnValue)
+        {
+            try
+            {
+                object lro = null;
+                Type returnType = returnValue.GetType();
+                return IsTaskType(returnType)
+                    ? lro = returnType.GetProperty("Result").GetValue(returnValue)
+                    : lro = returnValue;
+            }
+            catch (TargetInvocationException e)
+            {
+                if (e.InnerException is AggregateException aggException)
+                {
+                    throw aggException.InnerExceptions.First();
+                }
+                else
+                {
+                    throw e.InnerException;
+                }
+            }
+        }
+
+        private static bool IsTaskType(Type type)
+        {
+            string name = type.Name;
+            return name.StartsWith("ValueTask", StringComparison.Ordinal) ||
+                name.StartsWith("Task", StringComparison.Ordinal) ||
+                name.StartsWith("AsyncStateMachineBox", StringComparison.Ordinal); //in .net 5 the type is not task here
+        }
+
+        private static bool IsLro(Type returnType)
+        {
+            if (returnType.Name.StartsWith("Task"))
+            {
+                returnType = returnType.GetGenericArguments()[0];
+            }
+
+            return returnType.IsSubclassOf(typeof(Operation));
+        }
+
+        internal static bool InheritsFromArmResource(Type elementType)
         {
             if (elementType.BaseType == null)
                 return false;
@@ -89,10 +147,10 @@ namespace Azure.Core.TestFramework
             if (elementType.BaseType == typeof(object))
                 return false;
 
-            if (elementType.BaseType.Name == "ResourceOperations")
+            if (elementType.BaseType.Name == "ArmResource")
                 return true;
 
-            return InheritsFromOperationBase(elementType.BaseType);
+            return InheritsFromArmResource(elementType.BaseType);
         }
 
         private object GetValueFromOther(Type taskResultType, object instrumentedResult)

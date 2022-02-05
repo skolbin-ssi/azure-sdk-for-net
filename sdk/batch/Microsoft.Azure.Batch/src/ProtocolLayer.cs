@@ -412,11 +412,13 @@
             Models.OnAllTasksComplete? onAllTasksComplete,
             Models.PoolInformation poolInfo,
             Models.JobConstraints constraints,
+            int? maxParallelTasks,
+            bool? allowTaskPreemption,
             IList<Models.MetadataItem> metadata,
             BehaviorManager bhMgr,
             CancellationToken cancellationToken)
         {
-            var parameters = new Models.JobUpdateParameter(poolInfo, priority, constraints, metadata, onAllTasksComplete);
+            var parameters = new Models.JobUpdateParameter(poolInfo, priority, maxParallelTasks, allowTaskPreemption, constraints, metadata, onAllTasksComplete);
             var request = new JobUpdateBatchRequest(this._client, parameters, cancellationToken);
 
             request.ServiceRequestFunc = (lambdaCancelToken) => request.RestClient.Job.UpdateWithHttpMessagesAsync(
@@ -435,6 +437,7 @@
             string jobId,
             int? priority,
             int? maxParallelTasks,
+            bool? allowTaskPreemption,
             Models.OnAllTasksComplete? onAllTasksComplete,
             Models.PoolInformation poolInfo,
             Models.JobConstraints constraints,
@@ -442,7 +445,7 @@
             BehaviorManager bhMgr,
             CancellationToken cancellationToken)
         {
-            var parameters = new Models.JobPatchParameter(priority, maxParallelTasks, onAllTasksComplete, constraints, poolInfo, metadata);
+            var parameters = new Models.JobPatchParameter(priority, maxParallelTasks, allowTaskPreemption, onAllTasksComplete, constraints, poolInfo, metadata);
             var request = new JobPatchBatchRequest(this._client, parameters, cancellationToken);
 
             request.ServiceRequestFunc = (lambdaCancelToken) => request.RestClient.Job.PatchWithHttpMessagesAsync(
@@ -1162,10 +1165,13 @@
             string containerUrl,
             DateTime startTime,
             DateTime? endTime,
+            ComputeNodeIdentityReference identityReference,
             BehaviorManager bhMgr,
             CancellationToken cancellationToken)
         {
-            var parameters = new Models.UploadBatchServiceLogsConfiguration(containerUrl, startTime, endTime);
+            var identityRefModel = identityReference != null ? new Models.ComputeNodeIdentityReference(identityReference.ResourceId) : null;
+
+            var parameters = new Models.UploadBatchServiceLogsConfiguration(containerUrl, startTime, endTime, identityRefModel);
             var request = new ComputeNodeUploadBatchServiceLogsBatchRequest(this._client, cancellationToken);
 
             request.ServiceRequestFunc = (lambdaCancelToken) => request.RestClient.ComputeNode.UploadBatchServiceLogsWithHttpMessagesAsync(
@@ -1348,13 +1354,21 @@
             return asyncTask;
         }
 
-        public Task<AzureOperationResponse<IPage<Models.NodeVMExtension>, Models.ComputeNodeExtensionListHeaders>> ListComputeNodeExtensions(string poolId, string computeNodeId, string skipToken, BehaviorManager bhMgr, CancellationToken cancellationToken)
+        public Task<AzureOperationResponse<IPage<Models.NodeVMExtension>, Models.ComputeNodeExtensionListHeaders>> ListComputeNodeExtensions(
+            string poolId,
+            string computeNodeId,
+            string skipToken,
+            BehaviorManager bhMgr,
+            DetailLevel detailLevel,
+            CancellationToken cancellationToken)
         {
             Task<AzureOperationResponse<IPage<Models.NodeVMExtension>, Models.ComputeNodeExtensionListHeaders>> asyncTask;
 
             if (string.IsNullOrEmpty(skipToken))
             {
                 var request = new ComputeNodeExtensionListBatchRequest(this._client, cancellationToken);
+
+                bhMgr = bhMgr.CreateBehaviorManagerWithDetailLevel(detailLevel);
 
                 request.ServiceRequestFunc = (lambdaCancelToken) => request.RestClient.ComputeNodeExtension.ListWithHttpMessagesAsync(
                     poolId,
@@ -1856,7 +1870,7 @@
                         // enforce that the returned object is the required type
                         ValidateReturnObject(request, typeof(IBatchRequest<TResponse>));
 
-                        // any changes must be communcated back to the caller
+                        // any changes must be communicated back to the caller
                         request = (Protocol.IBatchRequest<TResponse>)proxyObj;
                     }
                 }
@@ -1901,7 +1915,7 @@
                     // enforce that the returned object is the required type
                     ValidateReturnObject(responseFromIntercept, typeof(TResponse));
 
-                    // promote the intercetor response to official response
+                    // promote the interceptor response to official response
                     response = (TResponse)responseFromIntercept;
                 }
             }

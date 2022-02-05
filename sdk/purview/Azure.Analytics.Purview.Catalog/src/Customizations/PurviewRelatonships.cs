@@ -11,12 +11,11 @@ namespace Azure.Analytics.Purview.Catalog
     [CodeGenSuppress("PurviewRelationships", typeof(Uri), typeof(TokenCredential), typeof(PurviewCatalogClientOptions))]
     public partial class PurviewRelationships
     {
-        internal PurviewRelationships(HttpPipeline pipeline, ClientDiagnostics clientDiagnostics, Uri endpoint, string apiVersion)
+        internal PurviewRelationships(HttpPipeline pipeline, ClientDiagnostics clientDiagnostics, Uri endpoint)
         {
-            Pipeline = pipeline;
-            _clientDiagnostics = clientDiagnostics;
-            this.endpoint = endpoint;
-            this.apiVersion = apiVersion;
+            _pipeline = pipeline;
+            ClientDiagnostics = clientDiagnostics;
+            _endpoint = endpoint;
         }
     }
 }

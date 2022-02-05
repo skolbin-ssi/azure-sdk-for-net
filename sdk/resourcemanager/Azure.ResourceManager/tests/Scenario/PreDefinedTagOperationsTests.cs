@@ -1,59 +1,51 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Core;
 using Azure.Core.TestFramework;
+using Azure.ResourceManager.Resources;
 using NUnit.Framework;
 
 namespace Azure.ResourceManager.Tests
 {
     public class PredefinedTagOperationsTests : ResourceManagerTestBase
     {
+        private string _tagName;
+        private Subscription _subscription;
+
         public PredefinedTagOperationsTests(bool isAsync)
             : base(isAsync)//, RecordedTestMode.Record)
         {
         }
 
-        [OneTimeTearDown]
-        protected async Task GlobalTagCleanupAsync()
+        [TearDown]
+        protected async Task TagCleanupAsync()
         {
-            var container = Client.DefaultSubscription.GetPredefinedTags();
-            var operation = Client.DefaultSubscription.GetPreDefinedTagOperations();
-            var listResult = (await container.GetAllAsync().ToEnumerableAsync()).Where(x => x.Data.TagName.StartsWith("tagName"));
-            foreach (var item in listResult)
+            var tags = await _subscription.GetAllPredefinedTagsAsync().ToEnumerableAsync();
+            if (tags.Any(tag => tag.TagName.Equals(_tagName)))
             {
-                await item.DeleteAsync(item.Data.TagName).ConfigureAwait(false);
-            };
-        }
-
-        [TestCase]
-        [RecordedTest]
-        public void GetTagsOperation()
-        {
-            var operation = Client.DefaultSubscription.GetPreDefinedTagOperations();
-            string subscriptionId;
-            Assert.IsTrue(operation.Id.TryGetSubscriptionId(out subscriptionId));
-            Assert.AreEqual(subscriptionId, TestEnvironment.SubscriptionId);
+                _ = await _subscription.DeletePredefinedTagAsync(_tagName);
+            }
         }
 
         [TestCase]
         [RecordedTest]
         public async Task ValueTest()
         {
-            var tagName = Recording.GenerateAssetName("tagName");
-            var operation = Client.DefaultSubscription.GetPreDefinedTagOperations();
-            var container = Client.DefaultSubscription.GetPredefinedTags();
-            await container.CreateOrUpdateAsync(tagName).ConfigureAwait(false);
+            _tagName = Recording.GenerateAssetName("tagName");
+            _subscription = await Client.GetDefaultSubscriptionAsync().ConfigureAwait(false);
+            var preDefinedTagOp = await _subscription.CreateOrUpdatePredefinedTagAsync(_tagName).ConfigureAwait(false);
             // Assert create tag value
-            var createValue = await operation.CreateOrUpdateValueAsync(tagName, "testValue").ConfigureAwait(false);
-            Assert.IsTrue(createValue.Value.TagValueValue.Equals("testValue"));
+            var createValue = await _subscription.CreateOrUpdatePredefinedTagValueAsync(_tagName, "testValue").ConfigureAwait(false);
+            Assert.IsTrue(createValue.Value.TagValue.Equals("testValue"));
             // Assert delete tag value
-            await operation.DeleteValueAsync(tagName, "testValue").ConfigureAwait(false);
-            var listResult = await container.GetAllAsync().ToEnumerableAsync();
-            var expectTag = listResult.Where(x => x.Data.TagName == tagName).FirstOrDefault();
-            var expectValue = expectTag.Data.Values.Where(x => x.TagValueValue == "testValue").FirstOrDefault();
+            await _subscription.DeletePredefinedTagValueAsync(_tagName, "testValue").ConfigureAwait(false);
+            var listResult = await _subscription.GetAllPredefinedTagsAsync().ToEnumerableAsync();
+            var expectTag = listResult.Where(x => x.TagName == _tagName).FirstOrDefault();
+            var expectValue = expectTag.Values.Where(x => x.TagValue == "testValue").FirstOrDefault();
             Assert.IsNull(expectValue);
         }
 
@@ -61,27 +53,12 @@ namespace Azure.ResourceManager.Tests
         [RecordedTest]
         public async Task DeleteTag()
         {
-            var tagName = Recording.GenerateAssetName("tagName");
-            var operation = Client.DefaultSubscription.GetPreDefinedTagOperations();
-            var container = Client.DefaultSubscription.GetPredefinedTags();
-            await container.CreateOrUpdateAsync(tagName).ConfigureAwait(false);
-            await operation.DeleteAsync(tagName).ConfigureAwait(false);
-            var listResult = await container.GetAllAsync().ToEnumerableAsync();
-            var expectTag = listResult.Where(x => x.Data.TagName.Equals(tagName)).FirstOrDefault();
-            Assert.IsNull(expectTag);
-        }
-
-        [TestCase]
-        [RecordedTest]
-        public async Task StartDelete()
-        {
-            var tagName = Recording.GenerateAssetName("tagName");
-            var operation = Client.DefaultSubscription.GetPreDefinedTagOperations();
-            var container = Client.DefaultSubscription.GetPredefinedTags();
-            await container.CreateOrUpdateAsync(tagName).ConfigureAwait(false);
-            await operation.StartDeleteAsync(tagName).ConfigureAwait(false);
-            var listResult = await container.GetAllAsync().ToEnumerableAsync();
-            var expectTag = listResult.Where(x => x.Data.TagName.Equals(tagName)).FirstOrDefault();
+            _tagName = Recording.GenerateAssetName("tagName");
+            _subscription = await Client.GetDefaultSubscriptionAsync().ConfigureAwait(false);
+            var preDefinedTagOp = await _subscription.CreateOrUpdatePredefinedTagAsync(_tagName).ConfigureAwait(false);
+            await _subscription.DeletePredefinedTagAsync(_tagName).ConfigureAwait(false);
+            var listResult = await _subscription.GetAllPredefinedTagsAsync().ToEnumerableAsync();
+            var expectTag = listResult.Where(x => x.TagName.Equals(_tagName)).FirstOrDefault();
             Assert.IsNull(expectTag);
         }
     }

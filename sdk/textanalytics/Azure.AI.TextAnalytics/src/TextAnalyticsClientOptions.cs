@@ -16,7 +16,7 @@ namespace Azure.AI.TextAnalytics
         /// <summary>
         /// The latest service version supported by this client library.
         /// </summary>
-        internal const ServiceVersion LatestVersion = ServiceVersion.V3_1;
+        internal const ServiceVersion LatestVersion = ServiceVersion.V3_2_Preview_2;
 
         /// <summary>
         /// The versions of the Text Analytics service supported by this client library.
@@ -33,6 +33,11 @@ namespace Azure.AI.TextAnalytics
             /// Version 3.1
             /// </summary>
             V3_1 = 2,
+
+            /// <summary>
+            /// Version 3.2-preview.2
+            /// </summary>
+            V3_2_Preview_2 = 3
 #pragma warning restore CA1707 // Identifiers should not contain underscores
         }
 
@@ -41,6 +46,12 @@ namespace Azure.AI.TextAnalytics
         /// making requests.
         /// </summary>
         internal ServiceVersion Version { get; }
+
+        /// <summary>
+        /// Gets or sets the Audience to use for authentication with Azure Active Directory (AAD). The audience is not considered when using a shared key.
+        /// </summary>
+        /// <value>If <c>null</c>, <see cref="TextAnalyticsAudience.AzurePublicCloud" /> will be assumed.</value>
+        public TextAnalyticsAudience? Audience { get; set; }
 
         /// <summary>
         /// Default country hint value to use in all client calls.
@@ -75,6 +86,7 @@ namespace Azure.AI.TextAnalytics
             {
                 ServiceVersion.V3_0 => "v3.0",
                 ServiceVersion.V3_1 => "v3.1",
+                ServiceVersion.V3_2_Preview_2 => "v3.2-preview.2",
 
                 _ => throw new ArgumentException($"Version {version} not supported."),
             };

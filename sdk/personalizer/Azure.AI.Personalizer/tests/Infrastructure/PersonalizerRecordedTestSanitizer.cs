@@ -6,33 +6,15 @@ using Azure.Core.TestFramework;
 
 namespace Azure.AI.Personalizer.Tests
 {
-    public class PersonalizerRecordedTestSanitizer: RecordedTestSanitizer
+    public class PersonalizerRecordedTestSanitizer : RecordedTestSanitizer
     {
-        public PersonalizerRecordedTestSanitizer(): base()
+        public PersonalizerRecordedTestSanitizer() : base()
         {
             AddJsonPathSanitizer("$..accessToken");
             AddJsonPathSanitizer("$..source");
+            SanitizedHeaders.Add("Ocp-Apim-Subscription-Key");
             // TODO: Remove when re-recording
             LegacyConvertJsonDateTokens = true;
-        }
-
-        public override void SanitizeHeaders(IDictionary<string, string[]> headers)
-        {
-            if (headers.ContainsKey("Ocp-Apim-Subscription-Key"))
-            {
-                headers["Ocp-Apim-Subscription-Key"] = new[] { SanitizeValue };
-            }
-
-            base.SanitizeHeaders(headers);
-        }
-
-        public override string SanitizeVariable(string variableName, string environmentVariableValue)
-        {
-            return variableName switch
-            {
-                PersonalizerTestEnvironment.ApiKeyEnvironmentVariableName => SanitizeValue,
-                _ => base.SanitizeVariable(variableName, environmentVariableValue)
-            };
         }
     }
 }

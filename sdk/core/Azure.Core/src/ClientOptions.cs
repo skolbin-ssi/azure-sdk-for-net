@@ -14,6 +14,7 @@ namespace Azure.Core
     public abstract class ClientOptions
     {
         private HttpPipelineTransport _transport;
+        internal bool IsCustomTransportSet { get; private set; }
 
         /// <summary>
         /// Gets the default set of <see cref="ClientOptions"/>. Changes to the <see cref="Default"/> options would be reflected
@@ -43,16 +44,16 @@ namespace Azure.Core
                 Diagnostics = new DiagnosticsOptions(clientOptions.Diagnostics);
 
                 _transport = clientOptions.Transport;
-                PerCallPolicies = new List<HttpPipelinePolicy>(clientOptions.PerCallPolicies);
-                PerRetryPolicies = new List<HttpPipelinePolicy>(clientOptions.PerRetryPolicies);
+                if (clientOptions.Policies != null)
+                {
+                    Policies = new(clientOptions.Policies);
+                }
             }
             else
             {
                 // Intentionally leaving this null. The only consumer of this branch is
                 // DefaultAzureCredential that would re-assign the value
                 _transport = null!;
-                PerCallPolicies = new List<HttpPipelinePolicy>();
-                PerRetryPolicies = new List<HttpPipelinePolicy>();
                 Diagnostics = new DiagnosticsOptions();
                 Retry = new RetryOptions();
             }
@@ -64,7 +65,11 @@ namespace Azure.Core
         public HttpPipelineTransport Transport
         {
             get => _transport;
-            set => _transport = value ?? throw new ArgumentNullException(nameof(value));
+            set
+            {
+                _transport = value ?? throw new ArgumentNullException(nameof(value));
+                IsCustomTransportSet = true;
+            }
         }
 
         /// <summary>
@@ -86,22 +91,18 @@ namespace Azure.Core
         /// <param name="position">The position of policy in the pipeline.</param>
         public void AddPolicy(HttpPipelinePolicy policy, HttpPipelinePosition position)
         {
-            switch (position)
+            if (position != HttpPipelinePosition.PerCall &&
+                position != HttpPipelinePosition.PerRetry &&
+                position != HttpPipelinePosition.BeforeTransport)
             {
-                case HttpPipelinePosition.PerCall:
-                    PerCallPolicies.Add(policy);
-                    break;
-                case HttpPipelinePosition.PerRetry:
-                    PerRetryPolicies.Add(policy);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(position), position, null);
+                throw new ArgumentOutOfRangeException(nameof(position), position, null);
             }
+
+            Policies ??= new();
+            Policies.Add((position, policy));
         }
 
-        internal IList<HttpPipelinePolicy> PerCallPolicies { get; }
-
-        internal IList<HttpPipelinePolicy> PerRetryPolicies { get; }
+        internal List<(HttpPipelinePosition Position, HttpPipelinePolicy Policy)>? Policies { get; private set; }
 
         /// <inheritdoc />
         [EditorBrowsable(EditorBrowsableState.Never)]

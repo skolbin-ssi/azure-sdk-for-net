@@ -17,7 +17,11 @@ using Azure.Identity;
 Uri endpoint = new Uri(Environment.GetEnvironmentVariable("REGISTRY_ENDPOINT"));
 
 // Create a new ContainerRegistryClient
-ContainerRegistryClient client = new ContainerRegistryClient(endpoint, new DefaultAzureCredential());
+ContainerRegistryClient client = new ContainerRegistryClient(endpoint, new DefaultAzureCredential(),
+    new ContainerRegistryClientOptions()
+    {
+        Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud
+    });
 
 // Iterate through repositories
 AsyncPageable<string> repositoryNames = client.GetRepositoryNamesAsync();
@@ -27,7 +31,7 @@ await foreach (string repositoryName in repositoryNames)
 
     // Obtain the images ordered from newest to oldest
     AsyncPageable<ArtifactManifestProperties> imageManifests =
-        repository.GetManifestPropertiesCollectionAsync(orderBy: ArtifactManifestOrderBy.LastUpdatedOnDescending);
+        repository.GetAllManifestPropertiesAsync(manifestOrder: ArtifactManifestOrder.LastUpdatedOnDescending);
 
     // Delete images older than the first three.
     await foreach (ArtifactManifestProperties imageManifest in imageManifests.Skip(3))

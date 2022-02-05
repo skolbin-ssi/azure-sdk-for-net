@@ -67,8 +67,6 @@ public class AppConfigurationTestEnvironment : TestEnvironment
     public string Endpoint => GetRecordedVariable("APPCONFIGURATION_ENDPOINT");
     // Variables retrieved using GetVariable will not be recorded but the method will throw if the variable is not set
     public string SystemAssignedVault => GetVariable("IDENTITYTEST_TEST_SYSTEMASSIGNEDVAULT");
-    // Variables retrieved using GetOptionalVariable will not be recorded and the method will return null if variable is not set
-    public string TestPassword => GetOptionalVariable("AZURE_IDENTITY_TEST_PASSWORD") ?? "SANITIZED";
 }
 ```
 
@@ -265,6 +263,8 @@ For example:
 
 Another sanitizer feature that is available for sanitizing Json payloads is the `AddJsonPathSanitizer`.
 This method allows adding a [Json Path](https://www.newtonsoft.com/json/help/html/QueryJsonSelectToken.htm) format strings that will be validated against the body. If a match exists, the value will be sanitized.
+
+By default, the following values are added to the `AddJsonPathSanitizer` to be sanitized: `primaryKey`, `secondaryKey`, `primaryConnectionString`, `secondaryConnectionString`, and `connectionString`.
 
 ```c#
     public class FormRecognizerRecordedTestSanitizer : RecordedTestSanitizer

@@ -29,7 +29,11 @@ namespace Azure.Containers.ContainerRegistry.Tests.Samples
             Uri endpoint = new Uri(Environment.GetEnvironmentVariable("REGISTRY_ENDPOINT"));
 
             // Create a new ContainerRegistryClient
-            ContainerRegistryClient client = new ContainerRegistryClient(endpoint, new DefaultAzureCredential());
+            ContainerRegistryClient client = new ContainerRegistryClient(endpoint, new DefaultAzureCredential(),
+                new ContainerRegistryClientOptions()
+                {
+                    Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud
+                });
 
             // Iterate through repositories
             Pageable<string> repositoryNames = client.GetRepositoryNames();
@@ -39,7 +43,7 @@ namespace Azure.Containers.ContainerRegistry.Tests.Samples
 
                 // Obtain the images ordered from newest to oldest
                 Pageable<ArtifactManifestProperties> imageManifests =
-                    repository.GetManifestPropertiesCollection(orderBy: ArtifactManifestOrderBy.LastUpdatedOnDescending);
+                    repository.GetAllManifestProperties(manifestOrder: ArtifactManifestOrder.LastUpdatedOnDescending);
 
                 // Delete images older than the first three.
                 foreach (ArtifactManifestProperties imageManifest in imageManifests.Skip(3))
@@ -75,7 +79,11 @@ namespace Azure.Containers.ContainerRegistry.Tests.Samples
             Uri endpoint = new Uri(Environment.GetEnvironmentVariable("REGISTRY_ENDPOINT"));
 
             // Create a new ContainerRegistryClient
-            ContainerRegistryClient client = new ContainerRegistryClient(endpoint, new DefaultAzureCredential());
+            ContainerRegistryClient client = new ContainerRegistryClient(endpoint, new DefaultAzureCredential(),
+                new ContainerRegistryClientOptions()
+                {
+                    Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud
+                });
 
             // Iterate through repositories
             AsyncPageable<string> repositoryNames = client.GetRepositoryNamesAsync();
@@ -85,7 +93,7 @@ namespace Azure.Containers.ContainerRegistry.Tests.Samples
 
                 // Obtain the images ordered from newest to oldest
                 AsyncPageable<ArtifactManifestProperties> imageManifests =
-                    repository.GetManifestPropertiesCollectionAsync(orderBy: ArtifactManifestOrderBy.LastUpdatedOnDescending);
+                    repository.GetAllManifestPropertiesAsync(manifestOrder: ArtifactManifestOrder.LastUpdatedOnDescending);
 
                 // Delete images older than the first three.
                 await foreach (ArtifactManifestProperties imageManifest in imageManifests.Skip(3))

@@ -2,7 +2,7 @@
   "Name": "ContainerRegistry",
   "ProtocolName": "Models.ContainerRegistry",
   "SummaryComment": "A private container registry.",
-  "IsConstructorPublic": true,
+  "ConstructorAccess": "public",
   "IsUsedInCollections": true,
   "Properties": [
     {
@@ -13,7 +13,7 @@
         "RemarksComment": null,
         "BoundAccess": "read",
         "UnboundAccess": "read,write",
-        "ConstructorArgumentType": "Required",
+        "ConstructorArgumentType": "Optional",
         "HideSetter": true
       },
       "Value": null

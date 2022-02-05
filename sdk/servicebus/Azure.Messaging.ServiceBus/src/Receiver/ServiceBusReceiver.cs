@@ -37,8 +37,13 @@ namespace Azure.Messaging.ServiceBus
         public virtual string EntityPath { get; }
 
         /// <summary>
-        /// The <see cref="ReceiveMode"/> used to specify how messages are received. Defaults to PeekLock mode.
+        /// The <see cref="ReceiveMode"/> used to specify how messages are received.
         /// </summary>
+        /// <value>
+        /// The option to auto complete messages is specified when creating the receiver
+        /// using <see cref="ServiceBusReceiverOptions.ReceiveMode"/> and has a default mode of
+        /// <see cref="ServiceBusReceiveMode.PeekLock"/>.
+        /// </value>
         public virtual ServiceBusReceiveMode ReceiveMode { get; }
 
         /// <summary>
@@ -49,8 +54,12 @@ namespace Azure.Messaging.ServiceBus
         /// <summary>
         /// The number of messages that will be eagerly requested from Queues or Subscriptions and queued locally without regard to
         /// whether a processing is currently active, intended to help maximize throughput by allowing the receiver to receive
-        /// from a local cache rather than waiting on a service request.
+        /// from a local cache rather than waiting on a service request
         /// </summary>
+        /// <value>
+        /// The option to auto complete messages is specified when creating the receiver
+        /// using <see cref="ServiceBusReceiverOptions.PrefetchCount"/> and has a default value of 0.
+        /// </value>
         public virtual int PrefetchCount { get; }
 
         /// <summary>
@@ -260,7 +269,15 @@ namespace Azure.Messaging.ServiceBus
 
             if (maxWaitTime.HasValue)
             {
-                Argument.AssertPositive(maxWaitTime.Value, nameof(maxWaitTime));
+                // maxWaitTime could be zero only when prefetch enabled
+                if (PrefetchCount > 0)
+                {
+                    Argument.AssertNotNegative(maxWaitTime.Value, nameof(maxWaitTime));
+                }
+                else
+                {
+                    Argument.AssertPositive(maxWaitTime.Value, nameof(maxWaitTime));
+                }
             }
             if (PrefetchCount > 0 && maxMessages > PrefetchCount)
             {
@@ -272,7 +289,7 @@ namespace Azure.Messaging.ServiceBus
 
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.ReceiveActivityName,
-                DiagnosticProperty.ConsumerKind);
+                DiagnosticScope.ActivityKind.Client);
 
             scope.Start();
 
@@ -436,7 +453,7 @@ namespace Azure.Messaging.ServiceBus
             Logger.PeekMessageStart(Identifier, sequenceNumber, maxMessages);
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.PeekActivityName,
-                DiagnosticProperty.ProducerKind);
+                DiagnosticScope.ActivityKind.Client);
             scope.Start();
 
             IReadOnlyList<ServiceBusReceivedMessage> messages;
@@ -527,7 +544,7 @@ namespace Azure.Messaging.ServiceBus
                 lockToken);
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.CompleteActivityName,
-                DiagnosticProperty.ClientKind);
+                DiagnosticScope.ActivityKind.Client);
             scope.Start();
 
             try
@@ -613,7 +630,7 @@ namespace Azure.Messaging.ServiceBus
 
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.AbandonActivityName,
-                DiagnosticProperty.ClientKind);
+                DiagnosticScope.ActivityKind.Client);
 
             scope.Start();
 
@@ -799,7 +816,7 @@ namespace Azure.Messaging.ServiceBus
 
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.DeadLetterActivityName,
-                DiagnosticProperty.ClientKind);
+                DiagnosticScope.ActivityKind.Client);
 
             scope.Start();
 
@@ -891,7 +908,7 @@ namespace Azure.Messaging.ServiceBus
 
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.DeferActivityName,
-                DiagnosticProperty.ClientKind);
+                DiagnosticScope.ActivityKind.Client);
 
             scope.Start();
 
@@ -942,10 +959,14 @@ namespace Azure.Messaging.ServiceBus
         /// the <see cref="ServiceBusReceivedMessage.SequenceNumber"/>.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         ///
-        /// <returns>The deferred message identified by the specified sequence number. Returns null if no message is found.
+        /// <returns>The deferred message identified by the specified sequence number.
         /// Throws if the message has not been deferred.</returns>
         /// <seealso cref="DeferMessageAsync(ServiceBusReceivedMessage, IDictionary{string, object}, CancellationToken)"/>
         /// <seealso cref="DeferMessageAsync(Guid, IDictionary{string, object}, CancellationToken)"/>
+        /// <exception cref="ServiceBusException">
+        ///   The specified sequence number does not correspond to a message that has been deferred.
+        ///   The <see cref="ServiceBusException.Reason" /> will be set to <see cref="ServiceBusFailureReason.MessageNotFound"/> in this case.
+        /// </exception>
         public virtual async Task<ServiceBusReceivedMessage> ReceiveDeferredMessageAsync(
             long sequenceNumber,
             CancellationToken cancellationToken = default) =>
@@ -958,7 +979,7 @@ namespace Azure.Messaging.ServiceBus
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
         /// <param name="sequenceNumbers">An <see cref="IEnumerable{T}"/> containing the sequence numbers to receive.</param>
         ///
-        /// <returns>Messages identified by sequence number are returned. Returns null if no messages are found.
+        /// <returns>Messages identified by sequence number are returned.
         /// Throws if the messages have not been deferred.</returns>
         /// <seealso cref="DeferMessageAsync(ServiceBusReceivedMessage, IDictionary{string, object}, CancellationToken)"/>
         /// <seealso cref="DeferMessageAsync(Guid, IDictionary{string, object}, CancellationToken)"/>
@@ -991,7 +1012,7 @@ namespace Azure.Messaging.ServiceBus
 
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.ReceiveDeferredActivityName,
-                DiagnosticProperty.ConsumerKind);
+                DiagnosticScope.ActivityKind.Client);
 
             scope.Start();
 
@@ -1070,7 +1091,7 @@ namespace Azure.Messaging.ServiceBus
 
             using DiagnosticScope scope = ScopeFactory.CreateScope(
                 DiagnosticProperty.RenewMessageLockActivityName,
-                DiagnosticProperty.ClientKind);
+                DiagnosticScope.ActivityKind.Client);
             scope.Start();
 
             DateTimeOffset lockedUntil;
