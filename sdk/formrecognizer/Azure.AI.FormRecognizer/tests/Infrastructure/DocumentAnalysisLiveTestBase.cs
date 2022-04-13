@@ -19,10 +19,12 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
         private readonly DocumentAnalysisClientOptions.ServiceVersion _serviceVersion;
 
         public DocumentAnalysisLiveTestBase(bool isAsync, DocumentAnalysisClientOptions.ServiceVersion serviceVersion)
-            : base(isAsync, useLegacyTransport: true)
+            : base(isAsync)
         {
             _serviceVersion = serviceVersion;
-            Sanitizer = new DocumentAnalysisRecordedTestSanitizer();
+            JsonPathSanitizers.Add("$..accessToken");
+            JsonPathSanitizers.Add("$..containerUrl");
+            SanitizedHeaders.Add(Constants.AuthorizationHeader);
         }
 
         /// <summary>

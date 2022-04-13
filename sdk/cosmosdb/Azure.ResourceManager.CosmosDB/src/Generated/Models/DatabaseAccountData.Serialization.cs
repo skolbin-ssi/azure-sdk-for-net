@@ -5,6 +5,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core;
@@ -26,7 +27,8 @@ namespace Azure.ResourceManager.CosmosDB
             if (Optional.IsDefined(Identity))
             {
                 writer.WritePropertyName("identity");
-                JsonSerializer.Serialize(writer, Identity);
+                var serializeOptions = new JsonSerializerOptions { Converters = { new ManagedServiceIdentityTypeV3Converter() } };
+                JsonSerializer.Serialize(writer, Identity, serializeOptions);
             }
             writer.WritePropertyName("tags");
             writer.WriteStartObject();
@@ -40,11 +42,11 @@ namespace Azure.ResourceManager.CosmosDB
             writer.WriteStringValue(Location);
             writer.WritePropertyName("properties");
             writer.WriteStartObject();
-            if (Optional.IsCollectionDefined(IpRules))
+            if (Optional.IsCollectionDefined(IPRules))
             {
                 writer.WritePropertyName("ipRules");
                 writer.WriteStartArray();
-                foreach (var item in IpRules)
+                foreach (var item in IPRules)
                 {
                     writer.WriteObjectValue(item);
                 }
@@ -108,7 +110,7 @@ namespace Azure.ResourceManager.CosmosDB
             if (Optional.IsDefined(KeyVaultKeyUri))
             {
                 writer.WritePropertyName("keyVaultKeyUri");
-                writer.WriteStringValue(KeyVaultKeyUri);
+                writer.WriteStringValue(KeyVaultKeyUri.AbsoluteUri);
             }
             if (Optional.IsDefined(DefaultIdentity))
             {
@@ -207,7 +209,7 @@ namespace Azure.ResourceManager.CosmosDB
             Optional<string> provisioningState = default;
             Optional<string> documentEndpoint = default;
             Optional<string> databaseAccountOfferType = default;
-            Optional<IList<IpAddressOrRange>> ipRules = default;
+            Optional<IList<IPAddressOrRange>> ipRules = default;
             Optional<bool> isVirtualNetworkFilterEnabled = default;
             Optional<bool> enableAutomaticFailover = default;
             Optional<ConsistencyPolicy> consistencyPolicy = default;
@@ -222,7 +224,7 @@ namespace Azure.ResourceManager.CosmosDB
             Optional<bool> enableCassandraConnector = default;
             Optional<ConnectorOffer> connectorOffer = default;
             Optional<bool> disableKeyBasedMetadataWriteAccess = default;
-            Optional<string> keyVaultKeyUri = default;
+            Optional<Uri> keyVaultKeyUri = default;
             Optional<string> defaultIdentity = default;
             Optional<PublicNetworkAccess> publicNetworkAccess = default;
             Optional<bool> enableFreeTier = default;
@@ -257,7 +259,8 @@ namespace Azure.ResourceManager.CosmosDB
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    identity = JsonSerializer.Deserialize<ManagedServiceIdentity>(property.Value.ToString());
+                    var serializeOptions = new JsonSerializerOptions { Converters = { new ManagedServiceIdentityTypeV3Converter() } };
+                    identity = JsonSerializer.Deserialize<ManagedServiceIdentity>(property.Value.ToString(), serializeOptions);
                     continue;
                 }
                 if (property.NameEquals("tags"))
@@ -326,10 +329,10 @@ namespace Azure.ResourceManager.CosmosDB
                                 property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
-                            List<IpAddressOrRange> array = new List<IpAddressOrRange>();
+                            List<IPAddressOrRange> array = new List<IPAddressOrRange>();
                             foreach (var item in property0.Value.EnumerateArray())
                             {
-                                array.Add(IpAddressOrRange.DeserializeIpAddressOrRange(item));
+                                array.Add(IPAddressOrRange.DeserializeIPAddressOrRange(item));
                             }
                             ipRules = array;
                             continue;
@@ -511,7 +514,12 @@ namespace Azure.ResourceManager.CosmosDB
                         }
                         if (property0.NameEquals("keyVaultKeyUri"))
                         {
-                            keyVaultKeyUri = property0.Value.GetString();
+                            if (property0.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                keyVaultKeyUri = null;
+                                continue;
+                            }
+                            keyVaultKeyUri = new Uri(property0.Value.GetString());
                             continue;
                         }
                         if (property0.NameEquals("defaultIdentity"))

@@ -16,13 +16,15 @@ using Azure;
 using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.ResourceManager;
-using Azure.ResourceManager.Cdn.Models;
-using Azure.ResourceManager.Core;
 
 namespace Azure.ResourceManager.Cdn
 {
-    /// <summary> A class representing collection of AfdEndpoint and their operations over its parent. </summary>
-    public partial class AfdEndpointCollection : ArmCollection, IEnumerable<AfdEndpoint>, IAsyncEnumerable<AfdEndpoint>
+    /// <summary>
+    /// A class representing a collection of <see cref="AfdEndpointResource" /> and their operations.
+    /// Each <see cref="AfdEndpointResource" /> in the collection will belong to the same instance of <see cref="ProfileResource" />.
+    /// To get an <see cref="AfdEndpointCollection" /> instance call the GetAfdEndpoints method from an instance of <see cref="ProfileResource" />.
+    /// </summary>
+    public partial class AfdEndpointCollection : ArmCollection, IEnumerable<AfdEndpointResource>, IAsyncEnumerable<AfdEndpointResource>
     {
         private readonly ClientDiagnostics _afdEndpointClientDiagnostics;
         private readonly AfdEndpointsRestOperations _afdEndpointRestClient;
@@ -37,9 +39,9 @@ namespace Azure.ResourceManager.Cdn
         /// <param name="id"> The identifier of the parent resource that is the target of operations. </param>
         internal AfdEndpointCollection(ArmClient client, ResourceIdentifier id) : base(client, id)
         {
-            _afdEndpointClientDiagnostics = new ClientDiagnostics("Azure.ResourceManager.Cdn", AfdEndpoint.ResourceType.Namespace, DiagnosticOptions);
-            Client.TryGetApiVersion(AfdEndpoint.ResourceType, out string afdEndpointApiVersion);
-            _afdEndpointRestClient = new AfdEndpointsRestOperations(_afdEndpointClientDiagnostics, Pipeline, DiagnosticOptions.ApplicationId, BaseUri, afdEndpointApiVersion);
+            _afdEndpointClientDiagnostics = new ClientDiagnostics("Azure.ResourceManager.Cdn", AfdEndpointResource.ResourceType.Namespace, Diagnostics);
+            TryGetApiVersion(AfdEndpointResource.ResourceType, out string afdEndpointApiVersion);
+            _afdEndpointRestClient = new AfdEndpointsRestOperations(Pipeline, Diagnostics.ApplicationId, Endpoint, afdEndpointApiVersion);
 #if DEBUG
 			ValidateResourceId(Id);
 #endif
@@ -47,32 +49,33 @@ namespace Azure.ResourceManager.Cdn
 
         internal static void ValidateResourceId(ResourceIdentifier id)
         {
-            if (id.ResourceType != Profile.ResourceType)
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, "Invalid resource type {0} expected {1}", id.ResourceType, Profile.ResourceType), nameof(id));
+            if (id.ResourceType != ProfileResource.ResourceType)
+                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, "Invalid resource type {0} expected {1}", id.ResourceType, ProfileResource.ResourceType), nameof(id));
         }
 
-        /// <summary> Creates a new AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile. </summary>
-        /// <param name="waitForCompletion"> Waits for the completion of the long running operations. </param>
+        /// <summary>
+        /// Creates a new AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints/{endpointName}
+        /// Operation Id: AfdEndpoints_Create
+        /// </summary>
+        /// <param name="waitUntil"> <see cref="WaitUntil.Completed"/> if the method should wait to return until the long-running operation has completed on the service; <see cref="WaitUntil.Started"/> if it should return after starting the operation. For more information on long-running operations, please see <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/LongRunningOperations.md"> Azure.Core Long-Running Operation samples</see>. </param>
         /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
-        /// <param name="endpointInput"> Endpoint properties. </param>
+        /// <param name="data"> Endpoint properties. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
-        /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> or <paramref name="endpointInput"/> is null. </exception>
-        public async virtual Task<AfdEndpointCreateOrUpdateOperation> CreateOrUpdateAsync(bool waitForCompletion, string endpointName, AfdEndpointData endpointInput, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is an empty string, and was expected to be non-empty. </exception>
+        /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> or <paramref name="data"/> is null. </exception>
+        public virtual async Task<ArmOperation<AfdEndpointResource>> CreateOrUpdateAsync(WaitUntil waitUntil, string endpointName, AfdEndpointData data, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(endpointName, nameof(endpointName));
-            if (endpointInput == null)
-            {
-                throw new ArgumentNullException(nameof(endpointInput));
-            }
+            Argument.AssertNotNull(data, nameof(data));
 
             using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.CreateOrUpdate");
             scope.Start();
             try
             {
-                var response = await _afdEndpointRestClient.CreateAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, endpointInput, cancellationToken).ConfigureAwait(false);
-                var operation = new AfdEndpointCreateOrUpdateOperation(Client, _afdEndpointClientDiagnostics, Pipeline, _afdEndpointRestClient.CreateCreateRequest(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, endpointInput).Request, response);
-                if (waitForCompletion)
+                var response = await _afdEndpointRestClient.CreateAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, data, cancellationToken).ConfigureAwait(false);
+                var operation = new CdnArmOperation<AfdEndpointResource>(new AfdEndpointOperationSource(Client), _afdEndpointClientDiagnostics, Pipeline, _afdEndpointRestClient.CreateCreateRequest(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, data).Request, response, OperationFinalStateVia.AzureAsyncOperation);
+                if (waitUntil == WaitUntil.Completed)
                     await operation.WaitForCompletionAsync(cancellationToken).ConfigureAwait(false);
                 return operation;
             }
@@ -83,28 +86,29 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Creates a new AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile. </summary>
-        /// <param name="waitForCompletion"> Waits for the completion of the long running operations. </param>
+        /// <summary>
+        /// Creates a new AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints/{endpointName}
+        /// Operation Id: AfdEndpoints_Create
+        /// </summary>
+        /// <param name="waitUntil"> <see cref="WaitUntil.Completed"/> if the method should wait to return until the long-running operation has completed on the service; <see cref="WaitUntil.Started"/> if it should return after starting the operation. For more information on long-running operations, please see <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/LongRunningOperations.md"> Azure.Core Long-Running Operation samples</see>. </param>
         /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
-        /// <param name="endpointInput"> Endpoint properties. </param>
+        /// <param name="data"> Endpoint properties. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
-        /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> or <paramref name="endpointInput"/> is null. </exception>
-        public virtual AfdEndpointCreateOrUpdateOperation CreateOrUpdate(bool waitForCompletion, string endpointName, AfdEndpointData endpointInput, CancellationToken cancellationToken = default)
+        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is an empty string, and was expected to be non-empty. </exception>
+        /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> or <paramref name="data"/> is null. </exception>
+        public virtual ArmOperation<AfdEndpointResource> CreateOrUpdate(WaitUntil waitUntil, string endpointName, AfdEndpointData data, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(endpointName, nameof(endpointName));
-            if (endpointInput == null)
-            {
-                throw new ArgumentNullException(nameof(endpointInput));
-            }
+            Argument.AssertNotNull(data, nameof(data));
 
             using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.CreateOrUpdate");
             scope.Start();
             try
             {
-                var response = _afdEndpointRestClient.Create(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, endpointInput, cancellationToken);
-                var operation = new AfdEndpointCreateOrUpdateOperation(Client, _afdEndpointClientDiagnostics, Pipeline, _afdEndpointRestClient.CreateCreateRequest(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, endpointInput).Request, response);
-                if (waitForCompletion)
+                var response = _afdEndpointRestClient.Create(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, data, cancellationToken);
+                var operation = new CdnArmOperation<AfdEndpointResource>(new AfdEndpointOperationSource(Client), _afdEndpointClientDiagnostics, Pipeline, _afdEndpointRestClient.CreateCreateRequest(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, data).Request, response, OperationFinalStateVia.AzureAsyncOperation);
+                if (waitUntil == WaitUntil.Completed)
                     operation.WaitForCompletion(cancellationToken);
                 return operation;
             }
@@ -115,12 +119,16 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Gets an existing AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile. </summary>
+        /// <summary>
+        /// Gets an existing AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints/{endpointName}
+        /// Operation Id: AfdEndpoints_Get
+        /// </summary>
         /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> is null. </exception>
-        public async virtual Task<Response<AfdEndpoint>> GetAsync(string endpointName, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<AfdEndpointResource>> GetAsync(string endpointName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(endpointName, nameof(endpointName));
 
@@ -130,8 +138,8 @@ namespace Azure.ResourceManager.Cdn
             {
                 var response = await _afdEndpointRestClient.GetAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, cancellationToken).ConfigureAwait(false);
                 if (response.Value == null)
-                    throw await _afdEndpointClientDiagnostics.CreateRequestFailedExceptionAsync(response.GetRawResponse()).ConfigureAwait(false);
-                return Response.FromValue(new AfdEndpoint(Client, response.Value), response.GetRawResponse());
+                    throw new RequestFailedException(response.GetRawResponse());
+                return Response.FromValue(new AfdEndpointResource(Client, response.Value), response.GetRawResponse());
             }
             catch (Exception e)
             {
@@ -140,12 +148,16 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Gets an existing AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile. </summary>
+        /// <summary>
+        /// Gets an existing AzureFrontDoor endpoint with the specified endpoint name under the specified subscription, resource group and profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints/{endpointName}
+        /// Operation Id: AfdEndpoints_Get
+        /// </summary>
         /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> is null. </exception>
-        public virtual Response<AfdEndpoint> Get(string endpointName, CancellationToken cancellationToken = default)
+        public virtual Response<AfdEndpointResource> Get(string endpointName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(endpointName, nameof(endpointName));
 
@@ -155,8 +167,8 @@ namespace Azure.ResourceManager.Cdn
             {
                 var response = _afdEndpointRestClient.Get(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, cancellationToken);
                 if (response.Value == null)
-                    throw _afdEndpointClientDiagnostics.CreateRequestFailedException(response.GetRawResponse());
-                return Response.FromValue(new AfdEndpoint(Client, response.Value), response.GetRawResponse());
+                    throw new RequestFailedException(response.GetRawResponse());
+                return Response.FromValue(new AfdEndpointResource(Client, response.Value), response.GetRawResponse());
             }
             catch (Exception e)
             {
@@ -165,19 +177,23 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Lists existing AzureFrontDoor endpoints. </summary>
+        /// <summary>
+        /// Lists existing AzureFrontDoor endpoints.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints
+        /// Operation Id: AfdEndpoints_ListByProfile
+        /// </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <returns> An async collection of <see cref="AfdEndpoint" /> that may take multiple service requests to iterate over. </returns>
-        public virtual AsyncPageable<AfdEndpoint> GetAllAsync(CancellationToken cancellationToken = default)
+        /// <returns> An async collection of <see cref="AfdEndpointResource" /> that may take multiple service requests to iterate over. </returns>
+        public virtual AsyncPageable<AfdEndpointResource> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            async Task<Page<AfdEndpoint>> FirstPageFunc(int? pageSizeHint)
+            async Task<Page<AfdEndpointResource>> FirstPageFunc(int? pageSizeHint)
             {
                 using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = await _afdEndpointRestClient.ListByProfileAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpoint(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpointResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -185,14 +201,14 @@ namespace Azure.ResourceManager.Cdn
                     throw;
                 }
             }
-            async Task<Page<AfdEndpoint>> NextPageFunc(string nextLink, int? pageSizeHint)
+            async Task<Page<AfdEndpointResource>> NextPageFunc(string nextLink, int? pageSizeHint)
             {
                 using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = await _afdEndpointRestClient.ListByProfileNextPageAsync(nextLink, Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpoint(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpointResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -203,19 +219,23 @@ namespace Azure.ResourceManager.Cdn
             return PageableHelpers.CreateAsyncEnumerable(FirstPageFunc, NextPageFunc);
         }
 
-        /// <summary> Lists existing AzureFrontDoor endpoints. </summary>
+        /// <summary>
+        /// Lists existing AzureFrontDoor endpoints.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints
+        /// Operation Id: AfdEndpoints_ListByProfile
+        /// </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <returns> A collection of <see cref="AfdEndpoint" /> that may take multiple service requests to iterate over. </returns>
-        public virtual Pageable<AfdEndpoint> GetAll(CancellationToken cancellationToken = default)
+        /// <returns> A collection of <see cref="AfdEndpointResource" /> that may take multiple service requests to iterate over. </returns>
+        public virtual Pageable<AfdEndpointResource> GetAll(CancellationToken cancellationToken = default)
         {
-            Page<AfdEndpoint> FirstPageFunc(int? pageSizeHint)
+            Page<AfdEndpointResource> FirstPageFunc(int? pageSizeHint)
             {
                 using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = _afdEndpointRestClient.ListByProfile(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpoint(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpointResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -223,14 +243,14 @@ namespace Azure.ResourceManager.Cdn
                     throw;
                 }
             }
-            Page<AfdEndpoint> NextPageFunc(string nextLink, int? pageSizeHint)
+            Page<AfdEndpointResource> NextPageFunc(string nextLink, int? pageSizeHint)
             {
                 using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = _afdEndpointRestClient.ListByProfileNextPage(nextLink, Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpoint(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdEndpointResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -241,12 +261,16 @@ namespace Azure.ResourceManager.Cdn
             return PageableHelpers.CreateEnumerable(FirstPageFunc, NextPageFunc);
         }
 
-        /// <summary> Checks to see if the resource exists in azure. </summary>
+        /// <summary>
+        /// Checks to see if the resource exists in azure.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints/{endpointName}
+        /// Operation Id: AfdEndpoints_Get
+        /// </summary>
         /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> is null. </exception>
-        public async virtual Task<Response<bool>> ExistsAsync(string endpointName, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<bool>> ExistsAsync(string endpointName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(endpointName, nameof(endpointName));
 
@@ -254,7 +278,7 @@ namespace Azure.ResourceManager.Cdn
             scope.Start();
             try
             {
-                var response = await GetIfExistsAsync(endpointName, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var response = await _afdEndpointRestClient.GetAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return Response.FromValue(response.Value != null, response.GetRawResponse());
             }
             catch (Exception e)
@@ -264,10 +288,14 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Checks to see if the resource exists in azure. </summary>
+        /// <summary>
+        /// Checks to see if the resource exists in azure.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/afdEndpoints/{endpointName}
+        /// Operation Id: AfdEndpoints_Get
+        /// </summary>
         /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> is null. </exception>
         public virtual Response<bool> Exists(string endpointName, CancellationToken cancellationToken = default)
         {
@@ -277,7 +305,7 @@ namespace Azure.ResourceManager.Cdn
             scope.Start();
             try
             {
-                var response = GetIfExists(endpointName, cancellationToken: cancellationToken);
+                var response = _afdEndpointRestClient.Get(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, cancellationToken: cancellationToken);
                 return Response.FromValue(response.Value != null, response.GetRawResponse());
             }
             catch (Exception e)
@@ -287,57 +315,7 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Tries to get details for this resource from the service. </summary>
-        /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
-        /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
-        /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> is null. </exception>
-        public async virtual Task<Response<AfdEndpoint>> GetIfExistsAsync(string endpointName, CancellationToken cancellationToken = default)
-        {
-            Argument.AssertNotNullOrEmpty(endpointName, nameof(endpointName));
-
-            using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.GetIfExists");
-            scope.Start();
-            try
-            {
-                var response = await _afdEndpointRestClient.GetAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (response.Value == null)
-                    return Response.FromValue<AfdEndpoint>(null, response.GetRawResponse());
-                return Response.FromValue(new AfdEndpoint(Client, response.Value), response.GetRawResponse());
-            }
-            catch (Exception e)
-            {
-                scope.Failed(e);
-                throw;
-            }
-        }
-
-        /// <summary> Tries to get details for this resource from the service. </summary>
-        /// <param name="endpointName"> Name of the endpoint under the profile which is unique globally. </param>
-        /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="endpointName"/> is empty. </exception>
-        /// <exception cref="ArgumentNullException"> <paramref name="endpointName"/> is null. </exception>
-        public virtual Response<AfdEndpoint> GetIfExists(string endpointName, CancellationToken cancellationToken = default)
-        {
-            Argument.AssertNotNullOrEmpty(endpointName, nameof(endpointName));
-
-            using var scope = _afdEndpointClientDiagnostics.CreateScope("AfdEndpointCollection.GetIfExists");
-            scope.Start();
-            try
-            {
-                var response = _afdEndpointRestClient.Get(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, endpointName, cancellationToken: cancellationToken);
-                if (response.Value == null)
-                    return Response.FromValue<AfdEndpoint>(null, response.GetRawResponse());
-                return Response.FromValue(new AfdEndpoint(Client, response.Value), response.GetRawResponse());
-            }
-            catch (Exception e)
-            {
-                scope.Failed(e);
-                throw;
-            }
-        }
-
-        IEnumerator<AfdEndpoint> IEnumerable<AfdEndpoint>.GetEnumerator()
+        IEnumerator<AfdEndpointResource> IEnumerable<AfdEndpointResource>.GetEnumerator()
         {
             return GetAll().GetEnumerator();
         }
@@ -347,7 +325,7 @@ namespace Azure.ResourceManager.Cdn
             return GetAll().GetEnumerator();
         }
 
-        IAsyncEnumerator<AfdEndpoint> IAsyncEnumerable<AfdEndpoint>.GetAsyncEnumerator(CancellationToken cancellationToken)
+        IAsyncEnumerator<AfdEndpointResource> IAsyncEnumerable<AfdEndpointResource>.GetAsyncEnumerator(CancellationToken cancellationToken)
         {
             return GetAllAsync(cancellationToken: cancellationToken).GetAsyncEnumerator(cancellationToken);
         }

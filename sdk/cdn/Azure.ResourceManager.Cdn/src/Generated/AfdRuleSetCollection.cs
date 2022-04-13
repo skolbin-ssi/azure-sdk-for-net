@@ -16,13 +16,15 @@ using Azure;
 using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.ResourceManager;
-using Azure.ResourceManager.Cdn.Models;
-using Azure.ResourceManager.Core;
 
 namespace Azure.ResourceManager.Cdn
 {
-    /// <summary> A class representing collection of AfdRuleSet and their operations over its parent. </summary>
-    public partial class AfdRuleSetCollection : ArmCollection, IEnumerable<AfdRuleSet>, IAsyncEnumerable<AfdRuleSet>
+    /// <summary>
+    /// A class representing a collection of <see cref="AfdRuleSetResource" /> and their operations.
+    /// Each <see cref="AfdRuleSetResource" /> in the collection will belong to the same instance of <see cref="ProfileResource" />.
+    /// To get an <see cref="AfdRuleSetCollection" /> instance call the GetAfdRuleSets method from an instance of <see cref="ProfileResource" />.
+    /// </summary>
+    public partial class AfdRuleSetCollection : ArmCollection, IEnumerable<AfdRuleSetResource>, IAsyncEnumerable<AfdRuleSetResource>
     {
         private readonly ClientDiagnostics _afdRuleSetClientDiagnostics;
         private readonly AfdRuleSetsRestOperations _afdRuleSetRestClient;
@@ -37,9 +39,9 @@ namespace Azure.ResourceManager.Cdn
         /// <param name="id"> The identifier of the parent resource that is the target of operations. </param>
         internal AfdRuleSetCollection(ArmClient client, ResourceIdentifier id) : base(client, id)
         {
-            _afdRuleSetClientDiagnostics = new ClientDiagnostics("Azure.ResourceManager.Cdn", AfdRuleSet.ResourceType.Namespace, DiagnosticOptions);
-            Client.TryGetApiVersion(AfdRuleSet.ResourceType, out string afdRuleSetApiVersion);
-            _afdRuleSetRestClient = new AfdRuleSetsRestOperations(_afdRuleSetClientDiagnostics, Pipeline, DiagnosticOptions.ApplicationId, BaseUri, afdRuleSetApiVersion);
+            _afdRuleSetClientDiagnostics = new ClientDiagnostics("Azure.ResourceManager.Cdn", AfdRuleSetResource.ResourceType.Namespace, Diagnostics);
+            TryGetApiVersion(AfdRuleSetResource.ResourceType, out string afdRuleSetApiVersion);
+            _afdRuleSetRestClient = new AfdRuleSetsRestOperations(Pipeline, Diagnostics.ApplicationId, Endpoint, afdRuleSetApiVersion);
 #if DEBUG
 			ValidateResourceId(Id);
 #endif
@@ -47,17 +49,21 @@ namespace Azure.ResourceManager.Cdn
 
         internal static void ValidateResourceId(ResourceIdentifier id)
         {
-            if (id.ResourceType != Profile.ResourceType)
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, "Invalid resource type {0} expected {1}", id.ResourceType, Profile.ResourceType), nameof(id));
+            if (id.ResourceType != ProfileResource.ResourceType)
+                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, "Invalid resource type {0} expected {1}", id.ResourceType, ProfileResource.ResourceType), nameof(id));
         }
 
-        /// <summary> Creates a new rule set within the specified profile. </summary>
-        /// <param name="waitForCompletion"> Waits for the completion of the long running operations. </param>
+        /// <summary>
+        /// Creates a new rule set within the specified profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets/{ruleSetName}
+        /// Operation Id: AfdRuleSets_Create
+        /// </summary>
+        /// <param name="waitUntil"> <see cref="WaitUntil.Completed"/> if the method should wait to return until the long-running operation has completed on the service; <see cref="WaitUntil.Started"/> if it should return after starting the operation. For more information on long-running operations, please see <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/LongRunningOperations.md"> Azure.Core Long-Running Operation samples</see>. </param>
         /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
-        public async virtual Task<AfdRuleSetCreateOrUpdateOperation> CreateOrUpdateAsync(bool waitForCompletion, string ruleSetName, CancellationToken cancellationToken = default)
+        public virtual async Task<ArmOperation<AfdRuleSetResource>> CreateOrUpdateAsync(WaitUntil waitUntil, string ruleSetName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(ruleSetName, nameof(ruleSetName));
 
@@ -66,8 +72,8 @@ namespace Azure.ResourceManager.Cdn
             try
             {
                 var response = await _afdRuleSetRestClient.CreateAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken).ConfigureAwait(false);
-                var operation = new AfdRuleSetCreateOrUpdateOperation(Client, _afdRuleSetClientDiagnostics, Pipeline, _afdRuleSetRestClient.CreateCreateRequest(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName).Request, response);
-                if (waitForCompletion)
+                var operation = new CdnArmOperation<AfdRuleSetResource>(Response.FromValue(new AfdRuleSetResource(Client, response), response.GetRawResponse()));
+                if (waitUntil == WaitUntil.Completed)
                     await operation.WaitForCompletionAsync(cancellationToken).ConfigureAwait(false);
                 return operation;
             }
@@ -78,13 +84,17 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Creates a new rule set within the specified profile. </summary>
-        /// <param name="waitForCompletion"> Waits for the completion of the long running operations. </param>
+        /// <summary>
+        /// Creates a new rule set within the specified profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets/{ruleSetName}
+        /// Operation Id: AfdRuleSets_Create
+        /// </summary>
+        /// <param name="waitUntil"> <see cref="WaitUntil.Completed"/> if the method should wait to return until the long-running operation has completed on the service; <see cref="WaitUntil.Started"/> if it should return after starting the operation. For more information on long-running operations, please see <see href="https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/LongRunningOperations.md"> Azure.Core Long-Running Operation samples</see>. </param>
         /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
-        public virtual AfdRuleSetCreateOrUpdateOperation CreateOrUpdate(bool waitForCompletion, string ruleSetName, CancellationToken cancellationToken = default)
+        public virtual ArmOperation<AfdRuleSetResource> CreateOrUpdate(WaitUntil waitUntil, string ruleSetName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(ruleSetName, nameof(ruleSetName));
 
@@ -93,8 +103,8 @@ namespace Azure.ResourceManager.Cdn
             try
             {
                 var response = _afdRuleSetRestClient.Create(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken);
-                var operation = new AfdRuleSetCreateOrUpdateOperation(Client, _afdRuleSetClientDiagnostics, Pipeline, _afdRuleSetRestClient.CreateCreateRequest(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName).Request, response);
-                if (waitForCompletion)
+                var operation = new CdnArmOperation<AfdRuleSetResource>(Response.FromValue(new AfdRuleSetResource(Client, response), response.GetRawResponse()));
+                if (waitUntil == WaitUntil.Completed)
                     operation.WaitForCompletion(cancellationToken);
                 return operation;
             }
@@ -105,12 +115,16 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Gets an existing AzureFrontDoor rule set with the specified rule set name under the specified subscription, resource group and profile. </summary>
+        /// <summary>
+        /// Gets an existing AzureFrontDoor rule set with the specified rule set name under the specified subscription, resource group and profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets/{ruleSetName}
+        /// Operation Id: AfdRuleSets_Get
+        /// </summary>
         /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
-        public async virtual Task<Response<AfdRuleSet>> GetAsync(string ruleSetName, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<AfdRuleSetResource>> GetAsync(string ruleSetName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(ruleSetName, nameof(ruleSetName));
 
@@ -120,8 +134,8 @@ namespace Azure.ResourceManager.Cdn
             {
                 var response = await _afdRuleSetRestClient.GetAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken).ConfigureAwait(false);
                 if (response.Value == null)
-                    throw await _afdRuleSetClientDiagnostics.CreateRequestFailedExceptionAsync(response.GetRawResponse()).ConfigureAwait(false);
-                return Response.FromValue(new AfdRuleSet(Client, response.Value), response.GetRawResponse());
+                    throw new RequestFailedException(response.GetRawResponse());
+                return Response.FromValue(new AfdRuleSetResource(Client, response.Value), response.GetRawResponse());
             }
             catch (Exception e)
             {
@@ -130,12 +144,16 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Gets an existing AzureFrontDoor rule set with the specified rule set name under the specified subscription, resource group and profile. </summary>
+        /// <summary>
+        /// Gets an existing AzureFrontDoor rule set with the specified rule set name under the specified subscription, resource group and profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets/{ruleSetName}
+        /// Operation Id: AfdRuleSets_Get
+        /// </summary>
         /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
-        public virtual Response<AfdRuleSet> Get(string ruleSetName, CancellationToken cancellationToken = default)
+        public virtual Response<AfdRuleSetResource> Get(string ruleSetName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(ruleSetName, nameof(ruleSetName));
 
@@ -145,8 +163,8 @@ namespace Azure.ResourceManager.Cdn
             {
                 var response = _afdRuleSetRestClient.Get(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken);
                 if (response.Value == null)
-                    throw _afdRuleSetClientDiagnostics.CreateRequestFailedException(response.GetRawResponse());
-                return Response.FromValue(new AfdRuleSet(Client, response.Value), response.GetRawResponse());
+                    throw new RequestFailedException(response.GetRawResponse());
+                return Response.FromValue(new AfdRuleSetResource(Client, response.Value), response.GetRawResponse());
             }
             catch (Exception e)
             {
@@ -155,19 +173,23 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Lists existing AzureFrontDoor rule sets within a profile. </summary>
+        /// <summary>
+        /// Lists existing AzureFrontDoor rule sets within a profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets
+        /// Operation Id: AfdRuleSets_ListByProfile
+        /// </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <returns> An async collection of <see cref="AfdRuleSet" /> that may take multiple service requests to iterate over. </returns>
-        public virtual AsyncPageable<AfdRuleSet> GetAllAsync(CancellationToken cancellationToken = default)
+        /// <returns> An async collection of <see cref="AfdRuleSetResource" /> that may take multiple service requests to iterate over. </returns>
+        public virtual AsyncPageable<AfdRuleSetResource> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            async Task<Page<AfdRuleSet>> FirstPageFunc(int? pageSizeHint)
+            async Task<Page<AfdRuleSetResource>> FirstPageFunc(int? pageSizeHint)
             {
                 using var scope = _afdRuleSetClientDiagnostics.CreateScope("AfdRuleSetCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = await _afdRuleSetRestClient.ListByProfileAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSet(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSetResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -175,14 +197,14 @@ namespace Azure.ResourceManager.Cdn
                     throw;
                 }
             }
-            async Task<Page<AfdRuleSet>> NextPageFunc(string nextLink, int? pageSizeHint)
+            async Task<Page<AfdRuleSetResource>> NextPageFunc(string nextLink, int? pageSizeHint)
             {
                 using var scope = _afdRuleSetClientDiagnostics.CreateScope("AfdRuleSetCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = await _afdRuleSetRestClient.ListByProfileNextPageAsync(nextLink, Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSet(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSetResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -193,19 +215,23 @@ namespace Azure.ResourceManager.Cdn
             return PageableHelpers.CreateAsyncEnumerable(FirstPageFunc, NextPageFunc);
         }
 
-        /// <summary> Lists existing AzureFrontDoor rule sets within a profile. </summary>
+        /// <summary>
+        /// Lists existing AzureFrontDoor rule sets within a profile.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets
+        /// Operation Id: AfdRuleSets_ListByProfile
+        /// </summary>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <returns> A collection of <see cref="AfdRuleSet" /> that may take multiple service requests to iterate over. </returns>
-        public virtual Pageable<AfdRuleSet> GetAll(CancellationToken cancellationToken = default)
+        /// <returns> A collection of <see cref="AfdRuleSetResource" /> that may take multiple service requests to iterate over. </returns>
+        public virtual Pageable<AfdRuleSetResource> GetAll(CancellationToken cancellationToken = default)
         {
-            Page<AfdRuleSet> FirstPageFunc(int? pageSizeHint)
+            Page<AfdRuleSetResource> FirstPageFunc(int? pageSizeHint)
             {
                 using var scope = _afdRuleSetClientDiagnostics.CreateScope("AfdRuleSetCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = _afdRuleSetRestClient.ListByProfile(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSet(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSetResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -213,14 +239,14 @@ namespace Azure.ResourceManager.Cdn
                     throw;
                 }
             }
-            Page<AfdRuleSet> NextPageFunc(string nextLink, int? pageSizeHint)
+            Page<AfdRuleSetResource> NextPageFunc(string nextLink, int? pageSizeHint)
             {
                 using var scope = _afdRuleSetClientDiagnostics.CreateScope("AfdRuleSetCollection.GetAll");
                 scope.Start();
                 try
                 {
                     var response = _afdRuleSetRestClient.ListByProfileNextPage(nextLink, Id.SubscriptionId, Id.ResourceGroupName, Id.Name, cancellationToken: cancellationToken);
-                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSet(Client, value)), response.Value.NextLink, response.GetRawResponse());
+                    return Page.FromValues(response.Value.Value.Select(value => new AfdRuleSetResource(Client, value)), response.Value.NextLink, response.GetRawResponse());
                 }
                 catch (Exception e)
                 {
@@ -231,12 +257,16 @@ namespace Azure.ResourceManager.Cdn
             return PageableHelpers.CreateEnumerable(FirstPageFunc, NextPageFunc);
         }
 
-        /// <summary> Checks to see if the resource exists in azure. </summary>
+        /// <summary>
+        /// Checks to see if the resource exists in azure.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets/{ruleSetName}
+        /// Operation Id: AfdRuleSets_Get
+        /// </summary>
         /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
-        public async virtual Task<Response<bool>> ExistsAsync(string ruleSetName, CancellationToken cancellationToken = default)
+        public virtual async Task<Response<bool>> ExistsAsync(string ruleSetName, CancellationToken cancellationToken = default)
         {
             Argument.AssertNotNullOrEmpty(ruleSetName, nameof(ruleSetName));
 
@@ -244,7 +274,7 @@ namespace Azure.ResourceManager.Cdn
             scope.Start();
             try
             {
-                var response = await GetIfExistsAsync(ruleSetName, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var response = await _afdRuleSetRestClient.GetAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return Response.FromValue(response.Value != null, response.GetRawResponse());
             }
             catch (Exception e)
@@ -254,10 +284,14 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Checks to see if the resource exists in azure. </summary>
+        /// <summary>
+        /// Checks to see if the resource exists in azure.
+        /// Request Path: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/ruleSets/{ruleSetName}
+        /// Operation Id: AfdRuleSets_Get
+        /// </summary>
         /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
         /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
+        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is an empty string, and was expected to be non-empty. </exception>
         /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
         public virtual Response<bool> Exists(string ruleSetName, CancellationToken cancellationToken = default)
         {
@@ -267,7 +301,7 @@ namespace Azure.ResourceManager.Cdn
             scope.Start();
             try
             {
-                var response = GetIfExists(ruleSetName, cancellationToken: cancellationToken);
+                var response = _afdRuleSetRestClient.Get(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken: cancellationToken);
                 return Response.FromValue(response.Value != null, response.GetRawResponse());
             }
             catch (Exception e)
@@ -277,57 +311,7 @@ namespace Azure.ResourceManager.Cdn
             }
         }
 
-        /// <summary> Tries to get details for this resource from the service. </summary>
-        /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
-        /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
-        /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
-        public async virtual Task<Response<AfdRuleSet>> GetIfExistsAsync(string ruleSetName, CancellationToken cancellationToken = default)
-        {
-            Argument.AssertNotNullOrEmpty(ruleSetName, nameof(ruleSetName));
-
-            using var scope = _afdRuleSetClientDiagnostics.CreateScope("AfdRuleSetCollection.GetIfExists");
-            scope.Start();
-            try
-            {
-                var response = await _afdRuleSetRestClient.GetAsync(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (response.Value == null)
-                    return Response.FromValue<AfdRuleSet>(null, response.GetRawResponse());
-                return Response.FromValue(new AfdRuleSet(Client, response.Value), response.GetRawResponse());
-            }
-            catch (Exception e)
-            {
-                scope.Failed(e);
-                throw;
-            }
-        }
-
-        /// <summary> Tries to get details for this resource from the service. </summary>
-        /// <param name="ruleSetName"> Name of the rule set under the profile which is unique globally. </param>
-        /// <param name="cancellationToken"> The cancellation token to use. </param>
-        /// <exception cref="ArgumentException"> <paramref name="ruleSetName"/> is empty. </exception>
-        /// <exception cref="ArgumentNullException"> <paramref name="ruleSetName"/> is null. </exception>
-        public virtual Response<AfdRuleSet> GetIfExists(string ruleSetName, CancellationToken cancellationToken = default)
-        {
-            Argument.AssertNotNullOrEmpty(ruleSetName, nameof(ruleSetName));
-
-            using var scope = _afdRuleSetClientDiagnostics.CreateScope("AfdRuleSetCollection.GetIfExists");
-            scope.Start();
-            try
-            {
-                var response = _afdRuleSetRestClient.Get(Id.SubscriptionId, Id.ResourceGroupName, Id.Name, ruleSetName, cancellationToken: cancellationToken);
-                if (response.Value == null)
-                    return Response.FromValue<AfdRuleSet>(null, response.GetRawResponse());
-                return Response.FromValue(new AfdRuleSet(Client, response.Value), response.GetRawResponse());
-            }
-            catch (Exception e)
-            {
-                scope.Failed(e);
-                throw;
-            }
-        }
-
-        IEnumerator<AfdRuleSet> IEnumerable<AfdRuleSet>.GetEnumerator()
+        IEnumerator<AfdRuleSetResource> IEnumerable<AfdRuleSetResource>.GetEnumerator()
         {
             return GetAll().GetEnumerator();
         }
@@ -337,7 +321,7 @@ namespace Azure.ResourceManager.Cdn
             return GetAll().GetEnumerator();
         }
 
-        IAsyncEnumerator<AfdRuleSet> IAsyncEnumerable<AfdRuleSet>.GetAsyncEnumerator(CancellationToken cancellationToken)
+        IAsyncEnumerator<AfdRuleSetResource> IAsyncEnumerable<AfdRuleSetResource>.GetAsyncEnumerator(CancellationToken cancellationToken)
         {
             return GetAllAsync(cancellationToken: cancellationToken).GetAsyncEnumerator(cancellationToken);
         }

@@ -60,11 +60,12 @@ namespace Azure.Messaging.EventHubs
         /// <param name="ownerLevel">The owner level associated with the partition.</param>
         /// <param name="lastPublishedSequenceNumber">The sequence number assigned to the event that was last successfully published to the partition.</param>
         ///
-        internal static PartitionPublishingPropertiesInternal PartitionPublishingProperties(bool isIdempotentPublishingEnabled,
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static PartitionPublishingProperties PartitionPublishingProperties(bool isIdempotentPublishingEnabled,
                                                                                     long? producerGroupId,
                                                                                     short? ownerLevel,
                                                                                     int? lastPublishedSequenceNumber) =>
-            new PartitionPublishingPropertiesInternal(isIdempotentPublishingEnabled, producerGroupId, ownerLevel, lastPublishedSequenceNumber);
+            new PartitionPublishingProperties(isIdempotentPublishingEnabled, producerGroupId, ownerLevel, lastPublishedSequenceNumber);
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="LastEnqueuedEventProperties"/> class.
@@ -291,7 +292,11 @@ namespace Azure.Messaging.EventHubs
             ///
             /// <returns>The set of events as an enumerable of the requested type.</returns>
             ///
-            public override IEnumerable<T> AsEnumerable<T>() => (IEnumerable<T>)_backingStore;
+            public override IReadOnlyCollection<T> AsReadOnlyCollection<T>() => _backingStore switch
+            {
+                IReadOnlyCollection<T> storeCollection => storeCollection,
+                _ => new List<T>((IEnumerable<T>)_backingStore)
+            };
 
             /// <summary>
             ///   Performs the task needed to clean up resources used by the <see cref="TransportEventBatch" />.
