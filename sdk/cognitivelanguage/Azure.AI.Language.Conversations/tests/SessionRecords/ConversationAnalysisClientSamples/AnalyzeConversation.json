@@ -1,52 +1,52 @@
 {
   "Entries": [
     {
-      "RequestUri": "https://westeurope.api.cognitive.microsoft.com/language/:analyze-conversations?api-version=2022-03-01-preview",
+      "RequestUri": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2022-05-15-preview",
       "RequestMethod": "POST",
       "RequestHeaders": {
         "Accept": "application/json",
-        "Content-Length": "250",
+        "Content-Length": "228",
         "Content-Type": "application/json",
         "Ocp-Apim-Subscription-Key": "Sanitized",
-        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220405.1 (.NET Core 3.1.23; Microsoft Windows 10.0.19044)",
-        "x-ms-client-request-id": "16faba7b0df983693f73160114db2256",
+        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220519.1 (.NET Framework 4.8.4510.0; Microsoft Windows 10.0.19044 )",
+        "x-ms-client-request-id": "131595ea3e9439fb34540c5edaf043ed",
         "x-ms-return-client-request-id": "true"
       },
       "RequestBody": {
         "analysisInput": {
           "conversationItem": {
             "text": "Send an email to Carol about the tomorrow\u0027s demo.",
-            "participantId": "1",
             "id": "1",
-            "modality": "text"
+            "participantId": "1"
           }
         },
         "parameters": {
-          "projectName": "SampleProject",
-          "deploymentName": "MoTest"
+          "projectName": "EmailDomain",
+          "deploymentName": "production"
         },
-        "kind": "CustomConversation"
+        "kind": "Conversation"
       },
       "StatusCode": 200,
       "ResponseHeaders": {
-        "apim-request-id": "36a4d549-448c-40f9-a95a-0b9783a3e730",
+        "apim-request-id": "bef2350a-86c8-4f50-9678-d2f2ecf92d73",
         "Cache-Control": "no-store, proxy-revalidate, no-cache, max-age=0, private",
         "Content-Type": "application/json; charset=utf-8",
-        "Date": "Tue, 05 Apr 2022 12:33:57 GMT",
+        "csp-billing-usage": "CognitiveServices.TextAnalytics.Language.ConversationalLanguageUnderstanding.Prediction=1",
+        "Date": "Thu, 19 May 2022 15:14:03 GMT",
         "Pragma": "no-cache",
-        "request-id": "36a4d549-448c-40f9-a95a-0b9783a3e730",
+        "request-id": "bef2350a-86c8-4f50-9678-d2f2ecf92d73",
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
         "Transfer-Encoding": "chunked",
         "X-Content-Type-Options": "nosniff",
-        "x-envoy-upstream-service-time": "98"
+        "x-envoy-upstream-service-time": "83"
       },
       "ResponseBody": {
-        "kind": "CustomConversationResult",
-        "results": {
+        "kind": "ConversationResult",
+        "result": {
           "query": "Send an email to Carol about the tomorrow\u0027s demo.",
           "prediction": {
             "topIntent": "Read",
-            "projectKind": "conversation",
+            "projectKind": "Conversation",
             "intents": [
               {
                 "category": "Read",
@@ -109,8 +109,8 @@
                   {
                     "resolutionKind": "DateTimeResolution",
                     "dateTimeSubKind": "Date",
-                    "timex": "2022-04-06",
-                    "value": "2022-04-06"
+                    "timex": "2022-05-20",
+                    "value": "2022-05-20"
                   }
                 ],
                 "extraInformation": [
@@ -134,10 +134,10 @@
     }
   ],
   "Variables": {
-    "AZURE_CONVERSATIONS_DEPLOYMENT_NAME": "MoTest",
-    "AZURE_CONVERSATIONS_ENDPOINT": "https://westeurope.api.cognitive.microsoft.com",
+    "AZURE_CONVERSATIONS_DEPLOYMENT_NAME": "production",
+    "AZURE_CONVERSATIONS_ENDPOINT": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/",
     "AZURE_CONVERSATIONS_KEY": "Sanitized",
-    "AZURE_CONVERSATIONS_PROJECT_NAME": "SampleProject",
-    "RandomSeed": "642953683"
+    "AZURE_CONVERSATIONS_PROJECT_NAME": "EmailDomain",
+    "RandomSeed": "923099991"
   }
 }

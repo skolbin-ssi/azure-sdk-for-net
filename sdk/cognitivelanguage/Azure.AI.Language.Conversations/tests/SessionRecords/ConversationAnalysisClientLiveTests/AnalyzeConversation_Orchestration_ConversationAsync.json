@@ -1,134 +1,116 @@
 {
   "Entries": [
     {
-      "RequestUri": "https://westeurope.api.cognitive.microsoft.com/language/:analyze-conversations?api-version=2022-03-01-preview",
+      "RequestUri": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2022-05-15-preview",
       "RequestMethod": "POST",
       "RequestHeaders": {
         "Accept": "application/json",
-        "Content-Length": "260",
+        "Content-Length": "236",
         "Content-Type": "application/json",
         "Ocp-Apim-Subscription-Key": "Sanitized",
-        "traceparent": "00-ca964d572b15b448a0533f64ad8d84a8-16990502ecc2cc44-00",
-        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220405.1 (.NET Core 3.1.23; Microsoft Windows 10.0.19044)",
-        "x-ms-client-request-id": "4bc3ab81a3ac972278b497b566c534a5",
+        "traceparent": "00-2a26bb7a74881241b657d2f28684203f-b1e906eae940e249-00",
+        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220519.1 (.NET Framework 4.8.4510.0; Microsoft Windows 10.0.19044 )",
+        "x-ms-client-request-id": "8413a1c4db6317cc9eb9a88c3d75a8dc",
         "x-ms-return-client-request-id": "true"
       },
       "RequestBody": {
         "analysisInput": {
           "conversationItem": {
             "text": "Send an email to Carol about the tomorrow\u0027s demo",
-            "participantId": "1",
             "id": "1",
-            "modality": "text"
+            "participantId": "1"
           }
         },
         "parameters": {
           "projectName": "OrchestrationProject",
-          "deploymentName": "ShabanTest"
+          "deploymentName": "production"
         },
-        "kind": "CustomConversation"
+        "kind": "Conversation"
       },
       "StatusCode": 200,
       "ResponseHeaders": {
-        "apim-request-id": "8140b2ea-d862-4f3a-ac20-46d07361f023",
+        "apim-request-id": "f767c4e6-97bd-4844-939e-17febcfff970",
         "Cache-Control": "no-store, proxy-revalidate, no-cache, max-age=0, private",
         "Content-Type": "application/json; charset=utf-8",
-        "Date": "Tue, 05 Apr 2022 12:33:56 GMT",
+        "csp-billing-usage": "CognitiveServices.TextAnalytics.Language.OrchestrationWorkflow.Prediction=1",
+        "Date": "Thu, 19 May 2022 15:14:02 GMT",
         "Pragma": "no-cache",
-        "request-id": "8140b2ea-d862-4f3a-ac20-46d07361f023",
+        "request-id": "f767c4e6-97bd-4844-939e-17febcfff970",
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
         "Transfer-Encoding": "chunked",
         "X-Content-Type-Options": "nosniff",
-        "x-envoy-upstream-service-time": "144"
+        "x-envoy-upstream-service-time": "112"
       },
       "ResponseBody": {
-        "kind": "CustomConversationResult",
-        "results": {
+        "kind": "ConversationResult",
+        "result": {
           "query": "Send an email to Carol about the tomorrow\u0027s demo",
           "prediction": {
             "topIntent": "EmailIntent",
-            "projectKind": "workflow",
+            "projectKind": "Orchestration",
             "intents": {
               "EmailIntent": {
-                "confidenceScore": 0.9318673,
-                "targetKind": "conversation",
+                "confidenceScore": 0.7871714,
+                "targetProjectKind": "Conversation",
                 "result": {
                   "query": "Send an email to Carol about the tomorrow\u0027s demo",
                   "prediction": {
+                    "topIntent": "Read",
+                    "projectKind": "Conversation",
                     "intents": [
                       {
-                        "category": "SendEmail",
-                        "confidenceScore": 0.99994856
+                        "category": "Read",
+                        "confidenceScore": 0.53281987
                       },
                       {
-                        "category": "Forward",
-                        "confidenceScore": 3.8603193E-05
+                        "category": "Send",
+                        "confidenceScore": 0.2706726
                       },
                       {
-                        "category": "AddFlag",
-                        "confidenceScore": 3.830757E-06
+                        "category": "Setup",
+                        "confidenceScore": 0.12964208
                       },
                       {
-                        "category": "SearchMessages",
-                        "confidenceScore": 2.8891448E-06
+                        "category": "Find",
+                        "confidenceScore": 0.056024347
                       },
                       {
-                        "category": "Confirm",
-                        "confidenceScore": 2.1230276E-06
+                        "category": "Set",
+                        "confidenceScore": 0.006720359
                       },
                       {
-                        "category": "Reply",
-                        "confidenceScore": 1.506443E-06
-                      },
-                      {
-                        "category": "AddMore",
-                        "confidenceScore": 9.303157E-07
-                      },
-                      {
-                        "category": "CheckMessages",
-                        "confidenceScore": 8.9035467E-07
-                      },
-                      {
-                        "category": "QueryLastText",
-                        "confidenceScore": 2.485766E-07
-                      },
-                      {
-                        "category": "Cancel",
-                        "confidenceScore": 1.8692687E-07
-                      },
-                      {
-                        "category": "ShowNext",
-                        "confidenceScore": 7.9404124E-08
-                      },
-                      {
-                        "category": "ReadAloud",
-                        "confidenceScore": 7.020071E-08
+                        "category": "Call",
+                        "confidenceScore": 0.0032539133
                       },
                       {
                         "category": "None",
-                        "confidenceScore": 5.6591706E-08
+                        "confidenceScore": 0.0005657527
                       },
                       {
-                        "category": "Delete",
-                        "confidenceScore": 2.9716455E-08
+                        "category": "Open",
+                        "confidenceScore": 0.00024706984
                       },
                       {
-                        "category": "ShowPrevious",
-                        "confidenceScore": 1.6835317E-08
+                        "category": "Play",
+                        "confidenceScore": 5.4002798E-05
                       }
                     ],
                     "entities": [
                       {
-                        "category": "ContactName",
+                        "category": "Contact",
                         "text": "Carol",
                         "offset": 17,
                         "length": 5,
                         "confidenceScore": 1,
-                        "resolutions": [],
-                        "extraInformation": []
+                        "extraInformation": [
+                          {
+                            "extraInformationKind": "EntitySubtype",
+                            "value": "person.name"
+                          }
+                        ]
                       },
                       {
-                        "category": "Date",
+                        "category": "MeetingDate",
                         "text": "tomorrow",
                         "offset": 33,
                         "length": 8,
@@ -137,8 +119,8 @@
                           {
                             "resolutionKind": "DateTimeResolution",
                             "dateTimeSubKind": "Date",
-                            "timex": "2022-04-06",
-                            "value": "2022-04-06"
+                            "timex": "2022-05-20",
+                            "value": "2022-05-20"
                           }
                         ],
                         "extraInformation": [
@@ -149,52 +131,27 @@
                         ]
                       },
                       {
-                        "category": "StartTime",
-                        "text": "tomorrow",
-                        "offset": 33,
-                        "length": 8,
-                        "confidenceScore": 1,
-                        "resolutions": [
-                          {
-                            "resolutionKind": "DateTimeResolution",
-                            "dateTimeSubKind": "Date",
-                            "timex": "2022-04-06",
-                            "value": "2022-04-06"
-                          }
-                        ],
-                        "extraInformation": [
-                          {
-                            "extraInformationKind": "EntitySubtype",
-                            "value": "datetime.date"
-                          }
-                        ]
-                      },
-                      {
-                        "category": "EmailSubject",
-                        "text": "tomorrow\u0027s demo",
-                        "offset": 33,
-                        "length": 15,
-                        "confidenceScore": 1,
-                        "resolutions": [],
-                        "extraInformation": []
+                        "category": "Contact",
+                        "text": "demo",
+                        "offset": 44,
+                        "length": 4,
+                        "confidenceScore": 1
                       }
-                    ],
-                    "topIntent": "SendEmail",
-                    "projectKind": "conversation"
+                    ]
                   }
                 }
               },
               "RestaurantIntent": {
-                "confidenceScore": 0.6352559,
-                "targetKind": "luis"
+                "confidenceScore": 0.6524802,
+                "targetProjectKind": "Luis"
               },
               "ChitChat-QnA": {
-                "confidenceScore": 0.5937791,
-                "targetKind": "question_answering"
+                "confidenceScore": 0.65022516,
+                "targetProjectKind": "QuestionAnswering"
               },
               "None": {
-                "confidenceScore": 0.15089184,
-                "targetKind": "non_linked"
+                "confidenceScore": 0.15003002,
+                "targetProjectKind": "NonLinked"
               }
             }
           }
@@ -203,10 +160,10 @@
     }
   ],
   "Variables": {
-    "AZURE_CONVERSATIONS_ENDPOINT": "https://westeurope.api.cognitive.microsoft.com",
+    "AZURE_CONVERSATIONS_ENDPOINT": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/",
     "AZURE_CONVERSATIONS_KEY": "Sanitized",
-    "AZURE_CONVERSATIONS_WORKFLOW_DEPLOYMENT_NAME": "ShabanTest",
+    "AZURE_CONVERSATIONS_WORKFLOW_DEPLOYMENT_NAME": "production",
     "AZURE_CONVERSATIONS_WORKFLOW_PROJECT_NAME": "OrchestrationProject",
-    "RandomSeed": "1367744315"
+    "RandomSeed": "1625675660"
   }
 }

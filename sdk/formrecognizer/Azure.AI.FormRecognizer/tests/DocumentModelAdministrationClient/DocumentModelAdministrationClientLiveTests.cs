@@ -17,6 +17,7 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
     /// These tests have a dependency on live Azure services and may incur costs for the associated
     /// Azure subscription.
     /// </remarks>
+    [IgnoreServiceError(400, "InvalidRequest", Message = "Content is not accessible: Invalid data URL", Reason = "https://github.com/Azure/azure-sdk-for-net/issues/28923")]
     public class DocumentModelAdministrationClientLiveTests : DocumentAnalysisLiveTestBase
     {
         private readonly IReadOnlyDictionary<string, string> TestingTags = new Dictionary<string, string>()
@@ -35,6 +36,7 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
         }
 
         [RecordedTest]
+        [Ignore("https://github.com/Azure/azure-sdk-for-net-pr/issues/1726")]
         public async Task StartBuildModelCanAuthenticateWithTokenCredential()
         {
             var client = CreateDocumentModelAdministrationClient(useTokenCredential: true);
@@ -128,6 +130,7 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
         }
 
         [RecordedTest]
+        [Ignore("https://github.com/azure/azure-sdk-for-net/issues/28272")]
         public void StartBuildModelFailsWithInvalidPrefix()
         {
             var client = CreateDocumentModelAdministrationClient();
@@ -199,8 +202,9 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
         }
 
         [RecordedTest]
-        [TestCase(true)]
+        [TestCase(true, Ignore = "https://github.com/Azure/azure-sdk-for-net-pr/issues/1726")]
         [TestCase(false)]
+        [Ignore("https://github.com/Azure/azure-sdk-for-net/issues/28705")]
         public async Task AdminOps(bool useTokenCredential)
         {
             var client = CreateDocumentModelAdministrationClient(useTokenCredential);
@@ -235,8 +239,7 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
 
             await client.DeleteModelAsync(modelId);
 
-            RequestFailedException ex = Assert.ThrowsAsync<RequestFailedException>(() => client.GetModelAsync(modelId));
-            Console.WriteLine(ex.ErrorCode);
+            Assert.ThrowsAsync<RequestFailedException>(() => client.GetModelAsync(modelId));
         }
 
         [RecordedTest]
@@ -250,7 +253,7 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
         }
 
         [RecordedTest]
-        [TestCase(true)]
+        [TestCase(true, Ignore = "https://github.com/Azure/azure-sdk-for-net-pr/issues/1726")]
         [TestCase(false)]
         public async Task GetAndListOperations(bool useTokenCredential)
         {
@@ -322,7 +325,7 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
 
         #region copy
         [RecordedTest]
-        [TestCase(true)]
+        [TestCase(true, Ignore = "https://github.com/Azure/azure-sdk-for-net-pr/issues/1726")]
         [TestCase(false)]
         public async Task CopyModel(bool useTokenCredential)
         {
@@ -412,7 +415,7 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis.Tests
 
         [RecordedTest]
         [TestCase(false)]
-        [TestCase(true)]
+        [TestCase(true, Ignore = "https://github.com/Azure/azure-sdk-for-net-pr/issues/1726")]
         public async Task StartCreateComposedModel(bool useTokenCredential)
         {
             var client = CreateDocumentModelAdministrationClient(useTokenCredential);

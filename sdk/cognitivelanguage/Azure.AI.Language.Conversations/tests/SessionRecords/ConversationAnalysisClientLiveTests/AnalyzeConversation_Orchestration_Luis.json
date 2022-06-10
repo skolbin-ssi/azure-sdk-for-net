@@ -1,105 +1,105 @@
 {
   "Entries": [
     {
-      "RequestUri": "https://westeurope.api.cognitive.microsoft.com/language/:analyze-conversations?api-version=2022-03-01-preview",
+      "RequestUri": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2022-05-15-preview",
       "RequestMethod": "POST",
       "RequestHeaders": {
         "Accept": "application/json",
-        "Content-Length": "254",
+        "Content-Length": "230",
         "Content-Type": "application/json",
         "Ocp-Apim-Subscription-Key": "Sanitized",
-        "traceparent": "00-d6c9f4c5264f504ab75417c534bfaa42-5d245132859ebf4f-00",
-        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220405.1 (.NET Core 3.1.23; Microsoft Windows 10.0.19044)",
-        "x-ms-client-request-id": "60e933a5c519d66d28843811b699153c",
+        "traceparent": "00-62d8474f48f19b4eb2a7b52658935f5d-0994fea77f46bc42-00",
+        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220519.1 (.NET Framework 4.8.4510.0; Microsoft Windows 10.0.19044 )",
+        "x-ms-client-request-id": "12dbf596365f5ae0a1ce375e3a6c7129",
         "x-ms-return-client-request-id": "true"
       },
       "RequestBody": {
         "analysisInput": {
           "conversationItem": {
             "text": "Reserve a table for 2 at the Italian restaurant",
-            "participantId": "1",
             "id": "1",
-            "modality": "text"
+            "participantId": "1"
           }
         },
         "parameters": {
           "projectName": "OrchestrationProject",
-          "deploymentName": "ShabanTest"
+          "deploymentName": "production"
         },
-        "kind": "CustomConversation"
+        "kind": "Conversation"
       },
       "StatusCode": 200,
       "ResponseHeaders": {
-        "apim-request-id": "015d8c71-a95d-485b-977d-2cdb4f562059",
+        "apim-request-id": "b958edcc-1a83-4561-8759-9c8972f84225",
         "Cache-Control": "no-store, proxy-revalidate, no-cache, max-age=0, private",
         "Content-Type": "application/json; charset=utf-8",
-        "Date": "Tue, 05 Apr 2022 12:33:55 GMT",
+        "csp-billing-usage": "CognitiveServices.TextAnalytics.Language.OrchestrationWorkflow.Prediction=1",
+        "Date": "Thu, 19 May 2022 15:14:01 GMT",
         "Pragma": "no-cache",
-        "request-id": "015d8c71-a95d-485b-977d-2cdb4f562059",
+        "request-id": "b958edcc-1a83-4561-8759-9c8972f84225",
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
         "Transfer-Encoding": "chunked",
         "X-Content-Type-Options": "nosniff",
-        "x-envoy-upstream-service-time": "64"
+        "x-envoy-upstream-service-time": "121"
       },
       "ResponseBody": {
-        "kind": "CustomConversationResult",
-        "results": {
+        "kind": "ConversationResult",
+        "result": {
           "query": "Reserve a table for 2 at the Italian restaurant",
           "prediction": {
             "topIntent": "RestaurantIntent",
-            "projectKind": "workflow",
+            "projectKind": "Orchestration",
             "intents": {
               "RestaurantIntent": {
-                "confidenceScore": 0.938881,
-                "targetKind": "luis",
+                "confidenceScore": 0.94069785,
+                "targetProjectKind": "Luis",
                 "result": {
                   "query": "Reserve a table for 2 at the Italian restaurant",
                   "prediction": {
-                    "topIntent": "RestaurantReservation.Reserve",
+                    "topIntent": "Reserve",
                     "intents": {
-                      "RestaurantReservation.Reserve": {
-                        "score": 0.99826175
+                      "Reserve": {
+                        "score": 0.9980438
                       },
-                      "RestaurantReservation.Confirm": {
-                        "score": 0.071711905
+                      "Reject": {
+                        "score": 0.0063399523
                       },
-                      "RestaurantReservation.Reject": {
-                        "score": 0.036779575
+                      "FindReservationEntry": {
+                        "score": 0.005012738
                       },
-                      "RestaurantReservation.FindReservationEntry": {
-                        "score": 0.009185963
+                      "Confirm": {
+                        "score": 0.0044919797
                       },
-                      "RestaurantReservation.DeleteReservation": {
-                        "score": 0.0070448318
+                      "DeleteReservation": {
+                        "score": 0.002177323
                       },
-                      "RestaurantReservation.FindReservationWhen": {
-                        "score": 0.0047224266
+                      "FindReservationWhen": {
+                        "score": 0.0016674146
                       },
-                      "RestaurantReservation.FindReservationWhere": {
-                        "score": 0.0027942427
+                      "FindReservationWhere": {
+                        "score": 0.00022145486
                       },
                       "None": {
-                        "score": 0.00071293896
+                        "score": 0.00016065584
                       },
-                      "RestaurantReservation.ChangeReservation": {
-                        "score": 0.00027522864
+                      "ChangeReservation": {
+                        "score": 9.196726E-05
                       }
                     },
                     "entities": {
-                      "RestaurantReservation.NumberPeople": [
+                      "NumberPeople": [
                         "2"
                       ],
-                      "RestaurantReservation.Cuisine": [
+                      "Cuisine": [
                         "Italian"
                       ],
                       "$instance": {
-                        "RestaurantReservation.NumberPeople": [
+                        "NumberPeople": [
                           {
-                            "type": "RestaurantReservation.NumberPeople",
+                            "type": "NumberPeople",
                             "text": "2",
                             "startIndex": 20,
                             "length": 1,
-                            "score": 0.9888221,
+                            "score": 0.99470425,
                             "modelTypeId": 1,
                             "modelType": "Entity Extractor",
                             "recognitionSources": [
@@ -107,9 +107,9 @@
                             ]
                           }
                         ],
-                        "RestaurantReservation.Cuisine": [
+                        "Cuisine": [
                           {
-                            "type": "RestaurantReservation.Cuisine",
+                            "type": "Cuisine",
                             "text": "Italian",
                             "startIndex": 29,
                             "length": 7,
@@ -127,16 +127,16 @@
                 }
               },
               "ChitChat-QnA": {
-                "confidenceScore": 0.6247971,
-                "targetKind": "question_answering"
+                "confidenceScore": 0.6333038,
+                "targetProjectKind": "QuestionAnswering"
               },
               "EmailIntent": {
-                "confidenceScore": 0.45969298,
-                "targetKind": "conversation"
+                "confidenceScore": 0.26476184,
+                "targetProjectKind": "Conversation"
               },
               "None": {
-                "confidenceScore": 0.24402595,
-                "targetKind": "non_linked"
+                "confidenceScore": 0.24316412,
+                "targetProjectKind": "NonLinked"
               }
             }
           }
@@ -145,10 +145,10 @@
     }
   ],
   "Variables": {
-    "AZURE_CONVERSATIONS_ENDPOINT": "https://westeurope.api.cognitive.microsoft.com",
+    "AZURE_CONVERSATIONS_ENDPOINT": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/",
     "AZURE_CONVERSATIONS_KEY": "Sanitized",
-    "AZURE_CONVERSATIONS_WORKFLOW_DEPLOYMENT_NAME": "ShabanTest",
+    "AZURE_CONVERSATIONS_WORKFLOW_DEPLOYMENT_NAME": "production",
     "AZURE_CONVERSATIONS_WORKFLOW_PROJECT_NAME": "OrchestrationProject",
-    "RandomSeed": "229109894"
+    "RandomSeed": "1407805130"
   }
 }

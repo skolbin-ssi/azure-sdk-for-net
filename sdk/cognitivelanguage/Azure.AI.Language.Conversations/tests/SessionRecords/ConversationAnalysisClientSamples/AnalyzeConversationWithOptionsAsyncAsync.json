@@ -1,55 +1,54 @@
 {
   "Entries": [
     {
-      "RequestUri": "https://westeurope.api.cognitive.microsoft.com/language/:analyze-conversations?api-version=2022-03-01-preview",
+      "RequestUri": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/language/:analyze-conversations?api-version=2022-05-15-preview",
       "RequestMethod": "POST",
       "RequestHeaders": {
         "Accept": "application/json",
-        "Content-Length": "289",
+        "Content-Length": "243",
         "Content-Type": "application/json",
         "Ocp-Apim-Subscription-Key": "Sanitized",
-        "traceparent": "00-69f28233898d4045bb4e25bd65aa119e-31383a57430f2645-00",
-        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220405.1 (.NET Core 3.1.23; Microsoft Windows 10.0.19044)",
-        "x-ms-client-request-id": "ccf05a229ac50ed11f1f7df69232d2da",
+        "traceparent": "00-1c03e232ef97ce40bb62a5cea16a40e4-e8761f0fe260ba46-00",
+        "User-Agent": "azsdk-net-AI.Language.Conversations/1.0.0-alpha.20220519.1 (.NET Framework 4.8.4510.0; Microsoft Windows 10.0.19044 )",
+        "x-ms-client-request-id": "f873ec46849bb2d32e26edbad903b253",
         "x-ms-return-client-request-id": "true"
       },
       "RequestBody": {
         "analysisInput": {
           "conversationItem": {
             "text": "Send an email to Carol about the tomorrow\u0027s demo.",
-            "participantId": "1",
             "id": "1",
-            "modality": "text"
-          },
-          "isLoggingEnabled": true
+            "participantId": "1"
+          }
         },
         "parameters": {
-          "projectName": "SampleProject",
-          "deploymentName": "MoTest",
+          "projectName": "EmailDomain",
+          "deploymentName": "production",
           "verbose": true
         },
-        "kind": "CustomConversation"
+        "kind": "Conversation"
       },
       "StatusCode": 200,
       "ResponseHeaders": {
-        "apim-request-id": "c1fb45a8-f75b-430a-8b46-383180942689",
+        "apim-request-id": "fd95f4b7-1d46-4da1-826e-29c783ccf1f3",
         "Cache-Control": "no-store, proxy-revalidate, no-cache, max-age=0, private",
         "Content-Type": "application/json; charset=utf-8",
-        "Date": "Tue, 05 Apr 2022 12:34:00 GMT",
+        "csp-billing-usage": "CognitiveServices.TextAnalytics.Language.ConversationalLanguageUnderstanding.Prediction=1",
+        "Date": "Thu, 19 May 2022 15:14:07 GMT",
         "Pragma": "no-cache",
-        "request-id": "c1fb45a8-f75b-430a-8b46-383180942689",
+        "request-id": "fd95f4b7-1d46-4da1-826e-29c783ccf1f3",
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
         "Transfer-Encoding": "chunked",
         "X-Content-Type-Options": "nosniff",
-        "x-envoy-upstream-service-time": "88"
+        "x-envoy-upstream-service-time": "69"
       },
       "ResponseBody": {
-        "kind": "CustomConversationResult",
-        "results": {
+        "kind": "ConversationResult",
+        "result": {
           "query": "Send an email to Carol about the tomorrow\u0027s demo.",
           "prediction": {
             "topIntent": "Read",
-            "projectKind": "conversation",
+            "projectKind": "Conversation",
             "intents": [
               {
                 "category": "Read",
@@ -112,8 +111,8 @@
                   {
                     "resolutionKind": "DateTimeResolution",
                     "dateTimeSubKind": "Date",
-                    "timex": "2022-04-06",
-                    "value": "2022-04-06"
+                    "timex": "2022-05-20",
+                    "value": "2022-05-20"
                   }
                 ],
                 "extraInformation": [
@@ -137,10 +136,10 @@
     }
   ],
   "Variables": {
-    "AZURE_CONVERSATIONS_DEPLOYMENT_NAME": "MoTest",
-    "AZURE_CONVERSATIONS_ENDPOINT": "https://westeurope.api.cognitive.microsoft.com",
+    "AZURE_CONVERSATIONS_DEPLOYMENT_NAME": "production",
+    "AZURE_CONVERSATIONS_ENDPOINT": "https://language-dev-frontend-westus2-qna.cognitiveservices.azure.com/",
     "AZURE_CONVERSATIONS_KEY": "Sanitized",
-    "AZURE_CONVERSATIONS_PROJECT_NAME": "SampleProject",
-    "RandomSeed": "202778429"
+    "AZURE_CONVERSATIONS_PROJECT_NAME": "EmailDomain",
+    "RandomSeed": "1358841051"
   }
 }
