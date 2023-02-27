@@ -15,19 +15,19 @@ namespace Azure.ResourceManager.ServiceLinker.Models
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("authType");
+            writer.WritePropertyName("authType"u8);
             writer.WriteStringValue(AuthType.ToString());
             writer.WriteEndObject();
         }
 
         internal static SystemAssignedIdentityAuthInfo DeserializeSystemAssignedIdentityAuthInfo(JsonElement element)
         {
-            AuthType authType = default;
+            LinkerAuthType authType = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("authType"))
+                if (property.NameEquals("authType"u8))
                 {
-                    authType = new AuthType(property.Value.GetString());
+                    authType = new LinkerAuthType(property.Value.GetString());
                     continue;
                 }
             }

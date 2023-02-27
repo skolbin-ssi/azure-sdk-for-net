@@ -17,12 +17,9 @@ namespace Azure.ResourceManager.Network.Models
         /// <summary> Initializes a new instance of VpnClientRootCertificate. </summary>
         /// <param name="publicCertData"> The certificate public data. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="publicCertData"/> is null. </exception>
-        public VpnClientRootCertificate(string publicCertData)
+        public VpnClientRootCertificate(BinaryData publicCertData)
         {
-            if (publicCertData == null)
-            {
-                throw new ArgumentNullException(nameof(publicCertData));
-            }
+            Argument.AssertNotNull(publicCertData, nameof(publicCertData));
 
             PublicCertData = publicCertData;
         }
@@ -34,17 +31,46 @@ namespace Azure.ResourceManager.Network.Models
         /// <param name="etag"> A unique read-only string that changes whenever the resource is updated. </param>
         /// <param name="publicCertData"> The certificate public data. </param>
         /// <param name="provisioningState"> The provisioning state of the VPN client root certificate resource. </param>
-        internal VpnClientRootCertificate(ResourceIdentifier id, string name, ResourceType? resourceType, ETag? etag, string publicCertData, NetworkProvisioningState? provisioningState) : base(id, name, resourceType)
+        internal VpnClientRootCertificate(ResourceIdentifier id, string name, ResourceType? resourceType, ETag? etag, BinaryData publicCertData, NetworkProvisioningState? provisioningState) : base(id, name, resourceType)
         {
-            Etag = etag;
+            ETag = etag;
             PublicCertData = publicCertData;
             ProvisioningState = provisioningState;
         }
 
         /// <summary> A unique read-only string that changes whenever the resource is updated. </summary>
-        public ETag? Etag { get; }
-        /// <summary> The certificate public data. </summary>
-        public string PublicCertData { get; set; }
+        public ETag? ETag { get; }
+        /// <summary>
+        /// The certificate public data.
+        /// <para>
+        /// To assign an object to this property use <see cref="BinaryData.FromObjectAsJson{T}(T, System.Text.Json.JsonSerializerOptions?)"/>.
+        /// </para>
+        /// <para>
+        /// To assign an already formated json string to this property use <see cref="BinaryData.FromString(string)"/>.
+        /// </para>
+        /// <para>
+        /// Examples:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>BinaryData.FromObjectAsJson("foo")</term>
+        /// <description>Creates a payload of "foo".</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromString("\"foo\"")</term>
+        /// <description>Creates a payload of "foo".</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromObjectAsJson(new { key = "value" })</term>
+        /// <description>Creates a payload of { "key": "value" }.</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromString("{\"key\": \"value\"}")</term>
+        /// <description>Creates a payload of { "key": "value" }.</description>
+        /// </item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        public BinaryData PublicCertData { get; set; }
         /// <summary> The provisioning state of the VPN client root certificate resource. </summary>
         public NetworkProvisioningState? ProvisioningState { get; }
     }

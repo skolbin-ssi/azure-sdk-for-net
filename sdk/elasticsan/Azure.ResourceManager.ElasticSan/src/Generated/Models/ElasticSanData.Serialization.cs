@@ -18,26 +18,26 @@ namespace Azure.ResourceManager.ElasticSan
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("tags");
-            writer.WriteStartObject();
-            foreach (var item in Tags)
+            if (Optional.IsCollectionDefined(Tags))
             {
-                writer.WritePropertyName(item.Key);
-                writer.WriteStringValue(item.Value);
+                writer.WritePropertyName("tags"u8);
+                writer.WriteStartObject();
+                foreach (var item in Tags)
+                {
+                    writer.WritePropertyName(item.Key);
+                    writer.WriteStringValue(item.Value);
+                }
+                writer.WriteEndObject();
             }
-            writer.WriteEndObject();
-            writer.WritePropertyName("location");
+            writer.WritePropertyName("location"u8);
             writer.WriteStringValue(Location);
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
-            if (Optional.IsDefined(Sku))
-            {
-                writer.WritePropertyName("sku");
-                writer.WriteObjectValue(Sku);
-            }
+            writer.WritePropertyName("sku"u8);
+            writer.WriteObjectValue(Sku);
             if (Optional.IsCollectionDefined(AvailabilityZones))
             {
-                writer.WritePropertyName("availabilityZones");
+                writer.WritePropertyName("availabilityZones"u8);
                 writer.WriteStartArray();
                 foreach (var item in AvailabilityZones)
                 {
@@ -45,42 +45,41 @@ namespace Azure.ResourceManager.ElasticSan
                 }
                 writer.WriteEndArray();
             }
-            if (Optional.IsDefined(BaseSizeTiB))
-            {
-                writer.WritePropertyName("baseSizeTiB");
-                writer.WriteNumberValue(BaseSizeTiB.Value);
-            }
-            if (Optional.IsDefined(ExtendedCapacitySizeTiB))
-            {
-                writer.WritePropertyName("extendedCapacitySizeTiB");
-                writer.WriteNumberValue(ExtendedCapacitySizeTiB.Value);
-            }
+            writer.WritePropertyName("baseSizeTiB"u8);
+            writer.WriteNumberValue(BaseSizeTiB);
+            writer.WritePropertyName("extendedCapacitySizeTiB"u8);
+            writer.WriteNumberValue(ExtendedCapacitySizeTiB);
             writer.WriteEndObject();
             writer.WriteEndObject();
         }
 
         internal static ElasticSanData DeserializeElasticSanData(JsonElement element)
         {
-            IDictionary<string, string> tags = default;
+            Optional<IDictionary<string, string>> tags = default;
             AzureLocation location = default;
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
-            Optional<ElasticSanSku> sku = default;
+            Optional<SystemData> systemData = default;
+            ElasticSanSku sku = default;
             Optional<IList<string>> availabilityZones = default;
-            Optional<ProvisioningStates> provisioningState = default;
-            Optional<long> baseSizeTiB = default;
-            Optional<long> extendedCapacitySizeTiB = default;
+            Optional<ElasticSanProvisioningState> provisioningState = default;
+            long baseSizeTiB = default;
+            long extendedCapacitySizeTiB = default;
             Optional<long> totalVolumeSizeGiB = default;
             Optional<long> volumeGroupCount = default;
             Optional<long> totalIops = default;
-            Optional<long> totalMBps = default;
-            Optional<long> provisionedMBps = default;
+            Optional<long> totalMbps = default;
+            Optional<long> totalSizeTiB = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
@@ -89,32 +88,37 @@ namespace Azure.ResourceManager.ElasticSan
                     tags = dictionary;
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -123,17 +127,12 @@ namespace Azure.ResourceManager.ElasticSan
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("sku"))
+                        if (property0.NameEquals("sku"u8))
                         {
-                            if (property0.Value.ValueKind == JsonValueKind.Null)
-                            {
-                                property0.ThrowNonNullablePropertyIsNull();
-                                continue;
-                            }
                             sku = ElasticSanSku.DeserializeElasticSanSku(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("availabilityZones"))
+                        if (property0.NameEquals("availabilityZones"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -148,37 +147,27 @@ namespace Azure.ResourceManager.ElasticSan
                             availabilityZones = array;
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
                                 property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
-                            provisioningState = new ProvisioningStates(property0.Value.GetString());
+                            provisioningState = new ElasticSanProvisioningState(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("baseSizeTiB"))
+                        if (property0.NameEquals("baseSizeTiB"u8))
                         {
-                            if (property0.Value.ValueKind == JsonValueKind.Null)
-                            {
-                                property0.ThrowNonNullablePropertyIsNull();
-                                continue;
-                            }
                             baseSizeTiB = property0.Value.GetInt64();
                             continue;
                         }
-                        if (property0.NameEquals("extendedCapacitySizeTiB"))
+                        if (property0.NameEquals("extendedCapacitySizeTiB"u8))
                         {
-                            if (property0.Value.ValueKind == JsonValueKind.Null)
-                            {
-                                property0.ThrowNonNullablePropertyIsNull();
-                                continue;
-                            }
                             extendedCapacitySizeTiB = property0.Value.GetInt64();
                             continue;
                         }
-                        if (property0.NameEquals("totalVolumeSizeGiB"))
+                        if (property0.NameEquals("totalVolumeSizeGiB"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -188,7 +177,7 @@ namespace Azure.ResourceManager.ElasticSan
                             totalVolumeSizeGiB = property0.Value.GetInt64();
                             continue;
                         }
-                        if (property0.NameEquals("volumeGroupCount"))
+                        if (property0.NameEquals("volumeGroupCount"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -198,7 +187,7 @@ namespace Azure.ResourceManager.ElasticSan
                             volumeGroupCount = property0.Value.GetInt64();
                             continue;
                         }
-                        if (property0.NameEquals("totalIops"))
+                        if (property0.NameEquals("totalIops"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -208,31 +197,31 @@ namespace Azure.ResourceManager.ElasticSan
                             totalIops = property0.Value.GetInt64();
                             continue;
                         }
-                        if (property0.NameEquals("totalMBps"))
+                        if (property0.NameEquals("totalMBps"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
                                 property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
-                            totalMBps = property0.Value.GetInt64();
+                            totalMbps = property0.Value.GetInt64();
                             continue;
                         }
-                        if (property0.NameEquals("provisionedMBps"))
+                        if (property0.NameEquals("totalSizeTiB"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
                                 property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
-                            provisionedMBps = property0.Value.GetInt64();
+                            totalSizeTiB = property0.Value.GetInt64();
                             continue;
                         }
                     }
                     continue;
                 }
             }
-            return new ElasticSanData(id, name, type, systemData, tags, location, sku.Value, Optional.ToList(availabilityZones), Optional.ToNullable(provisioningState), Optional.ToNullable(baseSizeTiB), Optional.ToNullable(extendedCapacitySizeTiB), Optional.ToNullable(totalVolumeSizeGiB), Optional.ToNullable(volumeGroupCount), Optional.ToNullable(totalIops), Optional.ToNullable(totalMBps), Optional.ToNullable(provisionedMBps));
+            return new ElasticSanData(id, name, type, systemData.Value, Optional.ToDictionary(tags), location, sku, Optional.ToList(availabilityZones), Optional.ToNullable(provisioningState), baseSizeTiB, extendedCapacitySizeTiB, Optional.ToNullable(totalVolumeSizeGiB), Optional.ToNullable(volumeGroupCount), Optional.ToNullable(totalIops), Optional.ToNullable(totalMbps), Optional.ToNullable(totalSizeTiB));
         }
     }
 }

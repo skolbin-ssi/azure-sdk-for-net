@@ -23,10 +23,10 @@ namespace Azure.Analytics.Purview.Account
     }
     public partial class PurviewAccountClientOptions : Azure.Core.ClientOptions
     {
-        public PurviewAccountClientOptions(Azure.Analytics.Purview.Account.PurviewAccountClientOptions.ServiceVersion version = Azure.Analytics.Purview.Account.PurviewAccountClientOptions.ServiceVersion.V2019_11_01_preview) { }
+        public PurviewAccountClientOptions(Azure.Analytics.Purview.Account.PurviewAccountClientOptions.ServiceVersion version = Azure.Analytics.Purview.Account.PurviewAccountClientOptions.ServiceVersion.V2019_11_01_Preview) { }
         public enum ServiceVersion
         {
-            V2019_11_01_preview = 1,
+            V2019_11_01_Preview = 1,
         }
     }
     public partial class PurviewCollection
@@ -54,5 +54,13 @@ namespace Azure.Analytics.Purview.Account
         public virtual System.Threading.Tasks.Task<Azure.Response> DeleteResourceSetRuleAsync(Azure.RequestContext context = null) { throw null; }
         public virtual Azure.Response GetResourceSetRule(Azure.RequestContext context = null) { throw null; }
         public virtual System.Threading.Tasks.Task<Azure.Response> GetResourceSetRuleAsync(Azure.RequestContext context = null) { throw null; }
+    }
+}
+namespace Microsoft.Extensions.Azure
+{
+    public static partial class PurviewAccountClientBuilderExtensions
+    {
+        public static Azure.Core.Extensions.IAzureClientBuilder<Azure.Analytics.Purview.Account.PurviewAccountClient, Azure.Analytics.Purview.Account.PurviewAccountClientOptions> AddPurviewAccountClient<TBuilder>(this TBuilder builder, System.Uri endpoint) where TBuilder : Azure.Core.Extensions.IAzureClientFactoryBuilderWithCredential { throw null; }
+        public static Azure.Core.Extensions.IAzureClientBuilder<Azure.Analytics.Purview.Account.PurviewAccountClient, Azure.Analytics.Purview.Account.PurviewAccountClientOptions> AddPurviewAccountClient<TBuilder, TConfiguration>(this TBuilder builder, TConfiguration configuration) where TBuilder : Azure.Core.Extensions.IAzureClientFactoryBuilderWithConfiguration<TConfiguration> { throw null; }
     }
 }

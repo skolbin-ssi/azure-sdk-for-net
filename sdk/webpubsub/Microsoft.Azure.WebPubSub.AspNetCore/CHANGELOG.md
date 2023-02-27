@@ -1,14 +1,24 @@
 # Release History
 
-## 1.0.0-beta.4 (Unreleased)
+## 1.0.0 (2023-02-22)
 
 ### Features Added
 
+- Generally available of `Microsoft.Azure.WebPubSub.AspNetCore` package.
+
 ### Breaking Changes
+
+- Upgrade framework to .NET 6.0 LTS version.
+
+## 1.0.0-beta.4 (2022-11-11)
+
+### Features Added
+
+- Support `Headers` field in `ConnectEventRequest` to carry over client headers.
 
 ### Bugs Fixed
 
-### Other Changes
+- Fix the issue about `expiresAfter` with corner values.
 
 ## 1.0.0-beta.3 (2022-01-06)
 

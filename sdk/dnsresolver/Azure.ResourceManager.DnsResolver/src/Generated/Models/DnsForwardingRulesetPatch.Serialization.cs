@@ -15,9 +15,19 @@ namespace Azure.ResourceManager.DnsResolver.Models
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
+            if (Optional.IsCollectionDefined(DnsResolverOutboundEndpoints))
+            {
+                writer.WritePropertyName("dnsResolverOutboundEndpoints"u8);
+                writer.WriteStartArray();
+                foreach (var item in DnsResolverOutboundEndpoints)
+                {
+                    JsonSerializer.Serialize(writer, item);
+                }
+                writer.WriteEndArray();
+            }
             if (Optional.IsCollectionDefined(Tags))
             {
-                writer.WritePropertyName("tags");
+                writer.WritePropertyName("tags"u8);
                 writer.WriteStartObject();
                 foreach (var item in Tags)
                 {

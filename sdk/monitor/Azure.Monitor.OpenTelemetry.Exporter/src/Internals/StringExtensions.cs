@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Azure.Monitor.OpenTelemetry.Exporter
+namespace Azure.Monitor.OpenTelemetry.Exporter.Internals
 {
     internal static class StringExtensions
     {
@@ -16,12 +16,12 @@ namespace Azure.Monitor.OpenTelemetry.Exporter
         /// <param name="input">A string to be evaluated.</param>
         /// <param name="maxLength">A specified length which is used to evaluate the input string.</param>
         /// <returns>The input string if less than max length, or a substring that begins at 0.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public static string Truncate(this string input, int maxLength)
+        [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(input))]
+        public static string? Truncate(this string? input, int maxLength)
         {
             if (input == null)
             {
-                throw new ArgumentNullException(nameof(input));
+                return null;
             }
 
             if (maxLength <= 0)

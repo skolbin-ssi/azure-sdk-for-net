@@ -10,6 +10,7 @@ using System.Text.Json;
 using Azure.Core;
 using Azure.ResourceManager.ArcScVmm.Models;
 using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Resources.Models;
 
 namespace Azure.ResourceManager.ArcScVmm
 {
@@ -18,33 +19,35 @@ namespace Azure.ResourceManager.ArcScVmm
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("extendedLocation");
-            writer.WriteObjectValue(ExtendedLocation);
-            writer.WritePropertyName("tags");
-            writer.WriteStartObject();
-            foreach (var item in Tags)
+            writer.WritePropertyName("extendedLocation"u8);
+            JsonSerializer.Serialize(writer, ExtendedLocation); if (Optional.IsCollectionDefined(Tags))
             {
-                writer.WritePropertyName(item.Key);
-                writer.WriteStringValue(item.Value);
+                writer.WritePropertyName("tags"u8);
+                writer.WriteStartObject();
+                foreach (var item in Tags)
+                {
+                    writer.WritePropertyName(item.Key);
+                    writer.WriteStringValue(item.Value);
+                }
+                writer.WriteEndObject();
             }
-            writer.WriteEndObject();
-            writer.WritePropertyName("location");
+            writer.WritePropertyName("location"u8);
             writer.WriteStringValue(Location);
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(InventoryItemId))
             {
-                writer.WritePropertyName("inventoryItemId");
+                writer.WritePropertyName("inventoryItemId"u8);
                 writer.WriteStringValue(InventoryItemId);
             }
             if (Optional.IsDefined(Uuid))
             {
-                writer.WritePropertyName("uuid");
+                writer.WritePropertyName("uuid"u8);
                 writer.WriteStringValue(Uuid);
             }
             if (Optional.IsDefined(VmmServerId))
             {
-                writer.WritePropertyName("vmmServerId");
+                writer.WritePropertyName("vmmServerId"u8);
                 writer.WriteStringValue(VmmServerId);
             }
             writer.WriteEndObject();
@@ -54,12 +57,12 @@ namespace Azure.ResourceManager.ArcScVmm
         internal static ScVmmVirtualMachineTemplateData DeserializeScVmmVirtualMachineTemplateData(JsonElement element)
         {
             ExtendedLocation extendedLocation = default;
-            IDictionary<string, string> tags = default;
+            Optional<IDictionary<string, string>> tags = default;
             AzureLocation location = default;
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<string> inventoryItemId = default;
             Optional<string> uuid = default;
             Optional<string> vmmServerId = default;
@@ -80,13 +83,18 @@ namespace Azure.ResourceManager.ArcScVmm
             Optional<string> provisioningState = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("extendedLocation"))
+                if (property.NameEquals("extendedLocation"u8))
                 {
-                    extendedLocation = ExtendedLocation.DeserializeExtendedLocation(property.Value);
+                    extendedLocation = JsonSerializer.Deserialize<ExtendedLocation>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
@@ -95,32 +103,37 @@ namespace Azure.ResourceManager.ArcScVmm
                     tags = dictionary;
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -129,22 +142,22 @@ namespace Azure.ResourceManager.ArcScVmm
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("inventoryItemId"))
+                        if (property0.NameEquals("inventoryItemId"u8))
                         {
                             inventoryItemId = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("uuid"))
+                        if (property0.NameEquals("uuid"u8))
                         {
                             uuid = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("vmmServerId"))
+                        if (property0.NameEquals("vmmServerId"u8))
                         {
                             vmmServerId = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("osType"))
+                        if (property0.NameEquals("osType"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -154,17 +167,17 @@ namespace Azure.ResourceManager.ArcScVmm
                             osType = new OSType(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("osName"))
+                        if (property0.NameEquals("osName"u8))
                         {
                             osName = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("computerName"))
+                        if (property0.NameEquals("computerName"u8))
                         {
                             computerName = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("memoryMB"))
+                        if (property0.NameEquals("memoryMB"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -174,7 +187,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             memoryMB = property0.Value.GetInt32();
                             continue;
                         }
-                        if (property0.NameEquals("cpuCount"))
+                        if (property0.NameEquals("cpuCount"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -184,7 +197,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             cpuCount = property0.Value.GetInt32();
                             continue;
                         }
-                        if (property0.NameEquals("limitCpuForMigration"))
+                        if (property0.NameEquals("limitCpuForMigration"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -194,7 +207,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             limitCpuForMigration = new LimitCpuForMigration(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("dynamicMemoryEnabled"))
+                        if (property0.NameEquals("dynamicMemoryEnabled"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -204,7 +217,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             dynamicMemoryEnabled = new DynamicMemoryEnabled(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("isCustomizable"))
+                        if (property0.NameEquals("isCustomizable"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -214,7 +227,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             isCustomizable = new IsCustomizable(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("dynamicMemoryMaxMB"))
+                        if (property0.NameEquals("dynamicMemoryMaxMB"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -224,7 +237,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             dynamicMemoryMaxMB = property0.Value.GetInt32();
                             continue;
                         }
-                        if (property0.NameEquals("dynamicMemoryMinMB"))
+                        if (property0.NameEquals("dynamicMemoryMinMB"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -234,12 +247,12 @@ namespace Azure.ResourceManager.ArcScVmm
                             dynamicMemoryMinMB = property0.Value.GetInt32();
                             continue;
                         }
-                        if (property0.NameEquals("isHighlyAvailable"))
+                        if (property0.NameEquals("isHighlyAvailable"u8))
                         {
                             isHighlyAvailable = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("generation"))
+                        if (property0.NameEquals("generation"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -249,7 +262,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             generation = property0.Value.GetInt32();
                             continue;
                         }
-                        if (property0.NameEquals("networkInterfaces"))
+                        if (property0.NameEquals("networkInterfaces"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -264,7 +277,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             networkInterfaces = array;
                             continue;
                         }
-                        if (property0.NameEquals("disks"))
+                        if (property0.NameEquals("disks"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -279,7 +292,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             disks = array;
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             provisioningState = property0.Value.GetString();
                             continue;
@@ -288,7 +301,7 @@ namespace Azure.ResourceManager.ArcScVmm
                     continue;
                 }
             }
-            return new ScVmmVirtualMachineTemplateData(id, name, type, systemData, tags, location, extendedLocation, inventoryItemId.Value, uuid.Value, vmmServerId.Value, Optional.ToNullable(osType), osName.Value, computerName.Value, Optional.ToNullable(memoryMB), Optional.ToNullable(cpuCount), Optional.ToNullable(limitCpuForMigration), Optional.ToNullable(dynamicMemoryEnabled), Optional.ToNullable(isCustomizable), Optional.ToNullable(dynamicMemoryMaxMB), Optional.ToNullable(dynamicMemoryMinMB), isHighlyAvailable.Value, Optional.ToNullable(generation), Optional.ToList(networkInterfaces), Optional.ToList(disks), provisioningState.Value);
+            return new ScVmmVirtualMachineTemplateData(id, name, type, systemData.Value, Optional.ToDictionary(tags), location, extendedLocation, inventoryItemId.Value, uuid.Value, vmmServerId.Value, Optional.ToNullable(osType), osName.Value, computerName.Value, Optional.ToNullable(memoryMB), Optional.ToNullable(cpuCount), Optional.ToNullable(limitCpuForMigration), Optional.ToNullable(dynamicMemoryEnabled), Optional.ToNullable(isCustomizable), Optional.ToNullable(dynamicMemoryMaxMB), Optional.ToNullable(dynamicMemoryMinMB), isHighlyAvailable.Value, Optional.ToNullable(generation), Optional.ToList(networkInterfaces), Optional.ToList(disks), provisioningState.Value);
         }
     }
 }

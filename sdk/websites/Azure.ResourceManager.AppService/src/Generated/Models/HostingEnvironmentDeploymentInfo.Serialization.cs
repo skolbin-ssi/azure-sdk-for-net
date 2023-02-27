@@ -15,21 +15,26 @@ namespace Azure.ResourceManager.AppService.Models
         internal static HostingEnvironmentDeploymentInfo DeserializeHostingEnvironmentDeploymentInfo(JsonElement element)
         {
             Optional<string> name = default;
-            Optional<string> location = default;
+            Optional<AzureLocation> location = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
-                    location = property.Value.GetString();
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
             }
-            return new HostingEnvironmentDeploymentInfo(name.Value, location.Value);
+            return new HostingEnvironmentDeploymentInfo(name.Value, Optional.ToNullable(location));
         }
     }
 }

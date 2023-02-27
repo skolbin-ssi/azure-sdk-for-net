@@ -62,7 +62,10 @@ namespace Azure.ResourceManager.Resources
         public string Description { get { throw null; } set { } }
         public string DisplayName { get { throw null; } set { } }
         public bool? IsEnabled { get { throw null; } set { } }
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+        [System.ObsoleteAttribute("This property is obsolete and will be removed in a future release.", false)]
         public System.Collections.Generic.IList<string> LockingAllowedActions { get { throw null; } }
+        public Azure.ResourceManager.Resources.Models.ArmApplicationPackageLockingPolicy LockingPolicy { get { throw null; } set { } }
         public Azure.ResourceManager.Resources.Models.ArmApplicationLockLevel LockLevel { get { throw null; } set { } }
         public System.BinaryData MainTemplate { get { throw null; } set { } }
         public Azure.ResourceManager.Resources.Models.ArmApplicationManagementMode? ManagementMode { get { throw null; } set { } }
@@ -572,6 +575,12 @@ namespace Azure.ResourceManager.Resources.Models
         public string Email { get { throw null; } }
         public string Phone { get { throw null; } }
     }
+    public partial class ArmApplicationPackageLockingPolicy
+    {
+        public ArmApplicationPackageLockingPolicy() { }
+        public System.Collections.Generic.IList<string> AllowedActions { get { throw null; } }
+        public System.Collections.Generic.IList<string> AllowedDataActions { get { throw null; } }
+    }
     public partial class ArmApplicationPackageSupportUris
     {
         internal ArmApplicationPackageSupportUris() { }
@@ -1057,7 +1066,9 @@ namespace Azure.ResourceManager.Resources.Models
         public string ContainerInstanceId { get { throw null; } }
         public System.DateTimeOffset? EndOn { get { throw null; } }
         public Azure.ResponseError Error { get { throw null; } }
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
         public System.DateTimeOffset? ExpirationOn { get { throw null; } }
+        public System.DateTimeOffset? ExpireOn { get { throw null; } }
         public System.DateTimeOffset? StartOn { get { throw null; } }
         public string StorageAccountId { get { throw null; } }
     }

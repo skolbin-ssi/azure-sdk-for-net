@@ -18,24 +18,24 @@ namespace Azure.ResourceManager.Network.Models
             writer.WriteStartObject();
             if (Optional.IsDefined(Id))
             {
-                writer.WritePropertyName("id");
+                writer.WritePropertyName("id"u8);
                 writer.WriteStringValue(Id);
             }
             if (Optional.IsDefined(Name))
             {
-                writer.WritePropertyName("name");
+                writer.WritePropertyName("name"u8);
                 writer.WriteStringValue(Name);
             }
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(LinkedResourceType))
             {
-                writer.WritePropertyName("linkedResourceType");
-                writer.WriteStringValue(LinkedResourceType);
+                writer.WritePropertyName("linkedResourceType"u8);
+                writer.WriteStringValue(LinkedResourceType.Value);
             }
             if (Optional.IsDefined(Link))
             {
-                writer.WritePropertyName("link");
+                writer.WritePropertyName("link"u8);
                 writer.WriteStringValue(Link);
             }
             writer.WriteEndObject();
@@ -48,12 +48,12 @@ namespace Azure.ResourceManager.Network.Models
             Optional<ResourceIdentifier> id = default;
             Optional<string> name = default;
             Optional<ResourceType> type = default;
-            Optional<string> linkedResourceType = default;
-            Optional<string> link = default;
+            Optional<ResourceType> linkedResourceType = default;
+            Optional<ResourceIdentifier> link = default;
             Optional<NetworkProvisioningState> provisioningState = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("etag"))
+                if (property.NameEquals("etag"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -63,7 +63,7 @@ namespace Azure.ResourceManager.Network.Models
                     etag = new ETag(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -73,12 +73,12 @@ namespace Azure.ResourceManager.Network.Models
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -88,7 +88,7 @@ namespace Azure.ResourceManager.Network.Models
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -97,17 +97,27 @@ namespace Azure.ResourceManager.Network.Models
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("linkedResourceType"))
+                        if (property0.NameEquals("linkedResourceType"u8))
                         {
-                            linkedResourceType = property0.Value.GetString();
+                            if (property0.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                property0.ThrowNonNullablePropertyIsNull();
+                                continue;
+                            }
+                            linkedResourceType = new ResourceType(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("link"))
+                        if (property0.NameEquals("link"u8))
                         {
-                            link = property0.Value.GetString();
+                            if (property0.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                property0.ThrowNonNullablePropertyIsNull();
+                                continue;
+                            }
+                            link = new ResourceIdentifier(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -121,7 +131,7 @@ namespace Azure.ResourceManager.Network.Models
                     continue;
                 }
             }
-            return new ResourceNavigationLink(id.Value, name.Value, Optional.ToNullable(type), Optional.ToNullable(etag), linkedResourceType.Value, link.Value, Optional.ToNullable(provisioningState));
+            return new ResourceNavigationLink(id.Value, name.Value, Optional.ToNullable(type), Optional.ToNullable(etag), Optional.ToNullable(linkedResourceType), link.Value, Optional.ToNullable(provisioningState));
         }
     }
 }

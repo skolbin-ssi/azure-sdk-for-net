@@ -20,7 +20,7 @@ namespace Azure.ResourceManager.Resources
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<IReadOnlyList<string>> namespaces = default;
             Optional<string> policyMode = default;
             Optional<bool> isBuiltInOnly = default;
@@ -31,27 +31,32 @@ namespace Azure.ResourceManager.Resources
             Optional<IReadOnlyList<DataManifestCustomResourceFunctionDefinition>> custom = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -60,7 +65,7 @@ namespace Azure.ResourceManager.Resources
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("namespaces"))
+                        if (property0.NameEquals("namespaces"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -75,12 +80,12 @@ namespace Azure.ResourceManager.Resources
                             namespaces = array;
                             continue;
                         }
-                        if (property0.NameEquals("policyMode"))
+                        if (property0.NameEquals("policyMode"u8))
                         {
                             policyMode = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("isBuiltInOnly"))
+                        if (property0.NameEquals("isBuiltInOnly"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -90,7 +95,7 @@ namespace Azure.ResourceManager.Resources
                             isBuiltInOnly = property0.Value.GetBoolean();
                             continue;
                         }
-                        if (property0.NameEquals("resourceTypeAliases"))
+                        if (property0.NameEquals("resourceTypeAliases"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -105,7 +110,7 @@ namespace Azure.ResourceManager.Resources
                             resourceTypeAliases = array;
                             continue;
                         }
-                        if (property0.NameEquals("effects"))
+                        if (property0.NameEquals("effects"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -120,7 +125,7 @@ namespace Azure.ResourceManager.Resources
                             effects = array;
                             continue;
                         }
-                        if (property0.NameEquals("fieldValues"))
+                        if (property0.NameEquals("fieldValues"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -135,7 +140,7 @@ namespace Azure.ResourceManager.Resources
                             fieldValues = array;
                             continue;
                         }
-                        if (property0.NameEquals("resourceFunctions"))
+                        if (property0.NameEquals("resourceFunctions"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -144,7 +149,7 @@ namespace Azure.ResourceManager.Resources
                             }
                             foreach (var property1 in property0.Value.EnumerateObject())
                             {
-                                if (property1.NameEquals("standard"))
+                                if (property1.NameEquals("standard"u8))
                                 {
                                     if (property1.Value.ValueKind == JsonValueKind.Null)
                                     {
@@ -159,7 +164,7 @@ namespace Azure.ResourceManager.Resources
                                     standard = array;
                                     continue;
                                 }
-                                if (property1.NameEquals("custom"))
+                                if (property1.NameEquals("custom"u8))
                                 {
                                     if (property1.Value.ValueKind == JsonValueKind.Null)
                                     {
@@ -181,7 +186,7 @@ namespace Azure.ResourceManager.Resources
                     continue;
                 }
             }
-            return new DataPolicyManifestData(id, name, type, systemData, Optional.ToList(namespaces), policyMode.Value, Optional.ToNullable(isBuiltInOnly), Optional.ToList(resourceTypeAliases), Optional.ToList(effects), Optional.ToList(fieldValues), Optional.ToList(standard), Optional.ToList(custom));
+            return new DataPolicyManifestData(id, name, type, systemData.Value, Optional.ToList(namespaces), policyMode.Value, Optional.ToNullable(isBuiltInOnly), Optional.ToList(resourceTypeAliases), Optional.ToList(effects), Optional.ToList(fieldValues), Optional.ToList(standard), Optional.ToList(custom));
         }
     }
 }

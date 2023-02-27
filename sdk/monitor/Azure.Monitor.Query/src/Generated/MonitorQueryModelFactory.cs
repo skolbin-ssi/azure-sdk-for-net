@@ -9,15 +9,21 @@ using System;
 
 namespace Azure.Monitor.Query.Models
 {
-    /// <summary> Model factory for read-only models. </summary>
+    /// <summary> Model factory for models. </summary>
     public static partial class MonitorQueryModelFactory
     {
         /// <summary> Initializes a new instance of LogsTableColumn. </summary>
         /// <param name="name"> The name of this column. </param>
         /// <param name="type"> The data type of this column. </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="name"/> is null. </exception>
         /// <returns> A new <see cref="Models.LogsTableColumn"/> instance for mocking. </returns>
         public static LogsTableColumn LogsTableColumn(string name = null, LogsColumnType type = default)
         {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             return new LogsTableColumn(name, type);
         }
 

@@ -19,41 +19,44 @@ namespace Azure.ResourceManager.Workloads
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("tags");
-            writer.WriteStartObject();
-            foreach (var item in Tags)
+            if (Optional.IsCollectionDefined(Tags))
             {
-                writer.WritePropertyName(item.Key);
-                writer.WriteStringValue(item.Value);
+                writer.WritePropertyName("tags"u8);
+                writer.WriteStartObject();
+                foreach (var item in Tags)
+                {
+                    writer.WritePropertyName(item.Key);
+                    writer.WriteStringValue(item.Value);
+                }
+                writer.WriteEndObject();
             }
-            writer.WriteEndObject();
-            writer.WritePropertyName("location");
+            writer.WritePropertyName("location"u8);
             writer.WriteStringValue(Location);
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(AppLocation))
             {
-                writer.WritePropertyName("appLocation");
+                writer.WritePropertyName("appLocation"u8);
                 writer.WriteStringValue(AppLocation.Value);
             }
             if (Optional.IsDefined(RoutingPreference))
             {
-                writer.WritePropertyName("routingPreference");
+                writer.WritePropertyName("routingPreference"u8);
                 writer.WriteStringValue(RoutingPreference.Value.ToString());
             }
             if (Optional.IsDefined(ManagedResourceGroupConfiguration))
             {
-                writer.WritePropertyName("managedResourceGroupConfiguration");
+                writer.WritePropertyName("managedResourceGroupConfiguration"u8);
                 writer.WriteObjectValue(ManagedResourceGroupConfiguration);
             }
             if (Optional.IsDefined(LogAnalyticsWorkspaceArmId))
             {
-                writer.WritePropertyName("logAnalyticsWorkspaceArmId");
+                writer.WritePropertyName("logAnalyticsWorkspaceArmId"u8);
                 writer.WriteStringValue(LogAnalyticsWorkspaceArmId);
             }
             if (Optional.IsDefined(MonitorSubnetId))
             {
-                writer.WritePropertyName("monitorSubnet");
+                writer.WritePropertyName("monitorSubnet"u8);
                 writer.WriteStringValue(MonitorSubnetId);
             }
             writer.WriteEndObject();
@@ -62,12 +65,12 @@ namespace Azure.ResourceManager.Workloads
 
         internal static SapMonitorData DeserializeSapMonitorData(JsonElement element)
         {
-            IDictionary<string, string> tags = default;
+            Optional<IDictionary<string, string>> tags = default;
             AzureLocation location = default;
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<WorkloadMonitorProvisioningState> provisioningState = default;
             Optional<ResponseError> errors = default;
             Optional<AzureLocation> appLocation = default;
@@ -78,8 +81,13 @@ namespace Azure.ResourceManager.Workloads
             Optional<ResourceIdentifier> msiArmId = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
@@ -88,32 +96,37 @@ namespace Azure.ResourceManager.Workloads
                     tags = dictionary;
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -122,7 +135,7 @@ namespace Azure.ResourceManager.Workloads
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -132,17 +145,17 @@ namespace Azure.ResourceManager.Workloads
                             provisioningState = new WorkloadMonitorProvisioningState(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("errors"))
+                        if (property0.NameEquals("errors"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
                                 property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
-                            errors = JsonSerializer.Deserialize<ResponseError>(property0.Value.ToString());
+                            errors = JsonSerializer.Deserialize<ResponseError>(property0.Value.GetRawText());
                             continue;
                         }
-                        if (property0.NameEquals("appLocation"))
+                        if (property0.NameEquals("appLocation"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -152,7 +165,7 @@ namespace Azure.ResourceManager.Workloads
                             appLocation = new AzureLocation(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("routingPreference"))
+                        if (property0.NameEquals("routingPreference"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -162,7 +175,7 @@ namespace Azure.ResourceManager.Workloads
                             routingPreference = new RoutingPreference(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("managedResourceGroupConfiguration"))
+                        if (property0.NameEquals("managedResourceGroupConfiguration"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -172,7 +185,7 @@ namespace Azure.ResourceManager.Workloads
                             managedResourceGroupConfiguration = ManagedRGConfiguration.DeserializeManagedRGConfiguration(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("logAnalyticsWorkspaceArmId"))
+                        if (property0.NameEquals("logAnalyticsWorkspaceArmId"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -182,7 +195,7 @@ namespace Azure.ResourceManager.Workloads
                             logAnalyticsWorkspaceArmId = new ResourceIdentifier(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("monitorSubnet"))
+                        if (property0.NameEquals("monitorSubnet"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -192,7 +205,7 @@ namespace Azure.ResourceManager.Workloads
                             monitorSubnet = new ResourceIdentifier(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("msiArmId"))
+                        if (property0.NameEquals("msiArmId"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -206,7 +219,7 @@ namespace Azure.ResourceManager.Workloads
                     continue;
                 }
             }
-            return new SapMonitorData(id, name, type, systemData, tags, location, Optional.ToNullable(provisioningState), errors.Value, Optional.ToNullable(appLocation), Optional.ToNullable(routingPreference), managedResourceGroupConfiguration.Value, logAnalyticsWorkspaceArmId.Value, monitorSubnet.Value, msiArmId.Value);
+            return new SapMonitorData(id, name, type, systemData.Value, Optional.ToDictionary(tags), location, Optional.ToNullable(provisioningState), errors.Value, Optional.ToNullable(appLocation), Optional.ToNullable(routingPreference), managedResourceGroupConfiguration.Value, logAnalyticsWorkspaceArmId.Value, monitorSubnet.Value, msiArmId.Value);
         }
     }
 }

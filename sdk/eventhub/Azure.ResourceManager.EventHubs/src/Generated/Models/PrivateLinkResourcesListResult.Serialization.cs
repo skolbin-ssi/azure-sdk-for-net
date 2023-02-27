@@ -15,26 +15,26 @@ namespace Azure.ResourceManager.EventHubs.Models
     {
         internal static PrivateLinkResourcesListResult DeserializePrivateLinkResourcesListResult(JsonElement element)
         {
-            Optional<IReadOnlyList<EventHubsPrivateLinkResource>> value = default;
+            Optional<IReadOnlyList<EventHubsPrivateLinkResourceData>> value = default;
             Optional<string> nextLink = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("value"))
+                if (property.NameEquals("value"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    List<EventHubsPrivateLinkResource> array = new List<EventHubsPrivateLinkResource>();
+                    List<EventHubsPrivateLinkResourceData> array = new List<EventHubsPrivateLinkResourceData>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(EventHubsPrivateLinkResource.DeserializeEventHubsPrivateLinkResource(item));
+                        array.Add(EventHubsPrivateLinkResourceData.DeserializeEventHubsPrivateLinkResourceData(item));
                     }
                     value = array;
                     continue;
                 }
-                if (property.NameEquals("nextLink"))
+                if (property.NameEquals("nextLink"u8))
                 {
                     nextLink = property.Value.GetString();
                     continue;

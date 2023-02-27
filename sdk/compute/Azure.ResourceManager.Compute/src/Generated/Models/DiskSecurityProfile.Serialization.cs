@@ -17,12 +17,12 @@ namespace Azure.ResourceManager.Compute.Models
             writer.WriteStartObject();
             if (Optional.IsDefined(SecurityType))
             {
-                writer.WritePropertyName("securityType");
+                writer.WritePropertyName("securityType"u8);
                 writer.WriteStringValue(SecurityType.Value.ToString());
             }
             if (Optional.IsDefined(SecureVmDiskEncryptionSetId))
             {
-                writer.WritePropertyName("secureVMDiskEncryptionSetId");
+                writer.WritePropertyName("secureVMDiskEncryptionSetId"u8);
                 writer.WriteStringValue(SecureVmDiskEncryptionSetId);
             }
             writer.WriteEndObject();
@@ -30,32 +30,32 @@ namespace Azure.ResourceManager.Compute.Models
 
         internal static DiskSecurityProfile DeserializeDiskSecurityProfile(JsonElement element)
         {
-            Optional<DiskSecurityTypes> securityType = default;
-            Optional<ResourceIdentifier> secureVMDiskEncryptionSetId = default;
+            Optional<DiskSecurityType> securityType = default;
+            Optional<ResourceIdentifier> secureVmDiskEncryptionSetId = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("securityType"))
+                if (property.NameEquals("securityType"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    securityType = new DiskSecurityTypes(property.Value.GetString());
+                    securityType = new DiskSecurityType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("secureVMDiskEncryptionSetId"))
+                if (property.NameEquals("secureVMDiskEncryptionSetId"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    secureVMDiskEncryptionSetId = new ResourceIdentifier(property.Value.GetString());
+                    secureVmDiskEncryptionSetId = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
             }
-            return new DiskSecurityProfile(Optional.ToNullable(securityType), secureVMDiskEncryptionSetId.Value);
+            return new DiskSecurityProfile(Optional.ToNullable(securityType), secureVmDiskEncryptionSetId.Value);
         }
     }
 }

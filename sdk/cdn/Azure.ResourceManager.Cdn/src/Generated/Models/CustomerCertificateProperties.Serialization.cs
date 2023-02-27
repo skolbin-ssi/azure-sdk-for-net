@@ -5,6 +5,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core;
@@ -17,20 +18,20 @@ namespace Azure.ResourceManager.Cdn.Models
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("secretSource");
+            writer.WritePropertyName("secretSource"u8);
             JsonSerializer.Serialize(writer, SecretSource); if (Optional.IsDefined(SecretVersion))
             {
-                writer.WritePropertyName("secretVersion");
+                writer.WritePropertyName("secretVersion"u8);
                 writer.WriteStringValue(SecretVersion);
             }
             if (Optional.IsDefined(UseLatestVersion))
             {
-                writer.WritePropertyName("useLatestVersion");
+                writer.WritePropertyName("useLatestVersion"u8);
                 writer.WriteBooleanValue(UseLatestVersion.Value);
             }
             if (Optional.IsCollectionDefined(SubjectAlternativeNames))
             {
-                writer.WritePropertyName("subjectAlternativeNames");
+                writer.WritePropertyName("subjectAlternativeNames"u8);
                 writer.WriteStartArray();
                 foreach (var item in SubjectAlternativeNames)
                 {
@@ -38,7 +39,7 @@ namespace Azure.ResourceManager.Cdn.Models
                 }
                 writer.WriteEndArray();
             }
-            writer.WritePropertyName("type");
+            writer.WritePropertyName("type"u8);
             writer.WriteStringValue(SecretType.ToString());
             writer.WriteEndObject();
         }
@@ -49,24 +50,24 @@ namespace Azure.ResourceManager.Cdn.Models
             Optional<string> secretVersion = default;
             Optional<bool> useLatestVersion = default;
             Optional<string> subject = default;
-            Optional<string> expirationDate = default;
+            Optional<DateTimeOffset> expirationDate = default;
             Optional<string> certificateAuthority = default;
             Optional<IList<string>> subjectAlternativeNames = default;
             Optional<string> thumbprint = default;
             SecretType type = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("secretSource"))
+                if (property.NameEquals("secretSource"u8))
                 {
-                    secretSource = JsonSerializer.Deserialize<WritableSubResource>(property.Value.ToString());
+                    secretSource = JsonSerializer.Deserialize<WritableSubResource>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("secretVersion"))
+                if (property.NameEquals("secretVersion"u8))
                 {
                     secretVersion = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("useLatestVersion"))
+                if (property.NameEquals("useLatestVersion"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -76,22 +77,27 @@ namespace Azure.ResourceManager.Cdn.Models
                     useLatestVersion = property.Value.GetBoolean();
                     continue;
                 }
-                if (property.NameEquals("subject"))
+                if (property.NameEquals("subject"u8))
                 {
                     subject = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("expirationDate"))
+                if (property.NameEquals("expirationDate"u8))
                 {
-                    expirationDate = property.Value.GetString();
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    expirationDate = property.Value.GetDateTimeOffset("O");
                     continue;
                 }
-                if (property.NameEquals("certificateAuthority"))
+                if (property.NameEquals("certificateAuthority"u8))
                 {
                     certificateAuthority = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("subjectAlternativeNames"))
+                if (property.NameEquals("subjectAlternativeNames"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -106,18 +112,18 @@ namespace Azure.ResourceManager.Cdn.Models
                     subjectAlternativeNames = array;
                     continue;
                 }
-                if (property.NameEquals("thumbprint"))
+                if (property.NameEquals("thumbprint"u8))
                 {
                     thumbprint = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new SecretType(property.Value.GetString());
                     continue;
                 }
             }
-            return new CustomerCertificateProperties(type, secretSource, secretVersion.Value, Optional.ToNullable(useLatestVersion), subject.Value, expirationDate.Value, certificateAuthority.Value, Optional.ToList(subjectAlternativeNames), thumbprint.Value);
+            return new CustomerCertificateProperties(type, secretSource, secretVersion.Value, Optional.ToNullable(useLatestVersion), subject.Value, Optional.ToNullable(expirationDate), certificateAuthority.Value, Optional.ToList(subjectAlternativeNames), thumbprint.Value);
         }
     }
 }

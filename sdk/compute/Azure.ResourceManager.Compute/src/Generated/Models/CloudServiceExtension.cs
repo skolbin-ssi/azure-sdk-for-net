@@ -5,6 +5,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using Azure.Core;
 
@@ -27,7 +28,7 @@ namespace Azure.ResourceManager.Compute.Models
         /// <param name="autoUpgradeMinorVersion"> Explicitly specify whether platform can automatically upgrade typeHandlerVersion to higher minor versions when they become available. </param>
         /// <param name="settings"> Public settings for the extension. For JSON extensions, this is the JSON settings for the extension. For XML Extension (like RDP), this is the XML setting for the extension. </param>
         /// <param name="protectedSettings"> Protected settings for the extension which are encrypted before sent to the role instance. </param>
-        /// <param name="protectedSettingsFromKeyVault"></param>
+        /// <param name="protectedSettingsFromKeyVault"> Protected settings for the extension, referenced using KeyVault which are encrypted before sent to the role instance. </param>
         /// <param name="forceUpdateTag">
         /// Tag to force apply the provided public and protected settings.
         /// Changing the tag value allows for re-running the extension without changing any of the public or protected settings.
@@ -37,7 +38,7 @@ namespace Azure.ResourceManager.Compute.Models
         /// </param>
         /// <param name="provisioningState"> The provisioning state, which only appears in the response. </param>
         /// <param name="rolesAppliedTo"> Optional list of roles to apply this extension. If property is not specified or &apos;*&apos; is specified, extension is applied to all roles in the cloud service. </param>
-        internal CloudServiceExtension(string name, string publisher, string cloudServiceExtensionPropertiesType, string typeHandlerVersion, bool? autoUpgradeMinorVersion, string settings, string protectedSettings, CloudServiceVaultAndSecretReference protectedSettingsFromKeyVault, string forceUpdateTag, string provisioningState, IList<string> rolesAppliedTo)
+        internal CloudServiceExtension(string name, string publisher, string cloudServiceExtensionPropertiesType, string typeHandlerVersion, bool? autoUpgradeMinorVersion, BinaryData settings, BinaryData protectedSettings, CloudServiceVaultAndSecretReference protectedSettingsFromKeyVault, string forceUpdateTag, string provisioningState, IList<string> rolesAppliedTo)
         {
             Name = name;
             Publisher = publisher;
@@ -62,11 +63,69 @@ namespace Azure.ResourceManager.Compute.Models
         public string TypeHandlerVersion { get; set; }
         /// <summary> Explicitly specify whether platform can automatically upgrade typeHandlerVersion to higher minor versions when they become available. </summary>
         public bool? AutoUpgradeMinorVersion { get; set; }
-        /// <summary> Public settings for the extension. For JSON extensions, this is the JSON settings for the extension. For XML Extension (like RDP), this is the XML setting for the extension. </summary>
-        public string Settings { get; set; }
-        /// <summary> Protected settings for the extension which are encrypted before sent to the role instance. </summary>
-        public string ProtectedSettings { get; set; }
-        /// <summary> Gets or sets the protected settings from key vault. </summary>
+        /// <summary>
+        /// Public settings for the extension. For JSON extensions, this is the JSON settings for the extension. For XML Extension (like RDP), this is the XML setting for the extension.
+        /// <para>
+        /// To assign an object to this property use <see cref="BinaryData.FromObjectAsJson{T}(T, System.Text.Json.JsonSerializerOptions?)"/>.
+        /// </para>
+        /// <para>
+        /// To assign an already formated json string to this property use <see cref="BinaryData.FromString(string)"/>.
+        /// </para>
+        /// <para>
+        /// Examples:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>BinaryData.FromObjectAsJson("foo")</term>
+        /// <description>Creates a payload of "foo".</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromString("\"foo\"")</term>
+        /// <description>Creates a payload of "foo".</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromObjectAsJson(new { key = "value" })</term>
+        /// <description>Creates a payload of { "key": "value" }.</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromString("{\"key\": \"value\"}")</term>
+        /// <description>Creates a payload of { "key": "value" }.</description>
+        /// </item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        public BinaryData Settings { get; set; }
+        /// <summary>
+        /// Protected settings for the extension which are encrypted before sent to the role instance.
+        /// <para>
+        /// To assign an object to this property use <see cref="BinaryData.FromObjectAsJson{T}(T, System.Text.Json.JsonSerializerOptions?)"/>.
+        /// </para>
+        /// <para>
+        /// To assign an already formated json string to this property use <see cref="BinaryData.FromString(string)"/>.
+        /// </para>
+        /// <para>
+        /// Examples:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>BinaryData.FromObjectAsJson("foo")</term>
+        /// <description>Creates a payload of "foo".</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromString("\"foo\"")</term>
+        /// <description>Creates a payload of "foo".</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromObjectAsJson(new { key = "value" })</term>
+        /// <description>Creates a payload of { "key": "value" }.</description>
+        /// </item>
+        /// <item>
+        /// <term>BinaryData.FromString("{\"key\": \"value\"}")</term>
+        /// <description>Creates a payload of { "key": "value" }.</description>
+        /// </item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        public BinaryData ProtectedSettings { get; set; }
+        /// <summary> Protected settings for the extension, referenced using KeyVault which are encrypted before sent to the role instance. </summary>
         public CloudServiceVaultAndSecretReference ProtectedSettingsFromKeyVault { get; set; }
         /// <summary>
         /// Tag to force apply the provided public and protected settings.

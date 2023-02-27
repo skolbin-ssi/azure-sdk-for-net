@@ -19,15 +19,15 @@ namespace Azure.ResourceManager.DeviceUpdate
             writer.WriteStartObject();
             if (Optional.IsDefined(RemotePrivateEndpoint))
             {
-                writer.WritePropertyName("remotePrivateEndpoint");
+                writer.WritePropertyName("remotePrivateEndpoint"u8);
                 writer.WriteObjectValue(RemotePrivateEndpoint);
             }
             if (Optional.IsDefined(Status))
             {
-                writer.WritePropertyName("status");
+                writer.WritePropertyName("status"u8);
                 writer.WriteStringValue(Status);
             }
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             writer.WriteEndObject();
             writer.WriteEndObject();
@@ -41,16 +41,16 @@ namespace Azure.ResourceManager.DeviceUpdate
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<PrivateEndpointConnectionProxyProvisioningState> provisioningState = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("eTag"))
+                if (property.NameEquals("eTag"u8))
                 {
                     eTag = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("remotePrivateEndpoint"))
+                if (property.NameEquals("remotePrivateEndpoint"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -60,32 +60,37 @@ namespace Azure.ResourceManager.DeviceUpdate
                     remotePrivateEndpoint = RemotePrivateEndpoint.DeserializeRemotePrivateEndpoint(property.Value);
                     continue;
                 }
-                if (property.NameEquals("status"))
+                if (property.NameEquals("status"u8))
                 {
                     status = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -94,7 +99,7 @@ namespace Azure.ResourceManager.DeviceUpdate
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -108,7 +113,7 @@ namespace Azure.ResourceManager.DeviceUpdate
                     continue;
                 }
             }
-            return new PrivateEndpointConnectionProxyData(id, name, type, systemData, Optional.ToNullable(provisioningState), eTag.Value, remotePrivateEndpoint.Value, status.Value);
+            return new PrivateEndpointConnectionProxyData(id, name, type, systemData.Value, Optional.ToNullable(provisioningState), eTag.Value, remotePrivateEndpoint.Value, status.Value);
         }
     }
 }

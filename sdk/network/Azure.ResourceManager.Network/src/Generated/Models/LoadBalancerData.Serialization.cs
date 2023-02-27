@@ -11,6 +11,7 @@ using System.Text.Json;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager.Network.Models;
+using Azure.ResourceManager.Resources.Models;
 
 namespace Azure.ResourceManager.Network
 {
@@ -21,27 +22,27 @@ namespace Azure.ResourceManager.Network
             writer.WriteStartObject();
             if (Optional.IsDefined(ExtendedLocation))
             {
-                writer.WritePropertyName("extendedLocation");
-                writer.WriteObjectValue(ExtendedLocation);
+                writer.WritePropertyName("extendedLocation"u8);
+                JsonSerializer.Serialize(writer, ExtendedLocation);
             }
             if (Optional.IsDefined(Sku))
             {
-                writer.WritePropertyName("sku");
+                writer.WritePropertyName("sku"u8);
                 writer.WriteObjectValue(Sku);
             }
             if (Optional.IsDefined(Id))
             {
-                writer.WritePropertyName("id");
+                writer.WritePropertyName("id"u8);
                 writer.WriteStringValue(Id);
             }
             if (Optional.IsDefined(Location))
             {
-                writer.WritePropertyName("location");
+                writer.WritePropertyName("location"u8);
                 writer.WriteStringValue(Location.Value);
             }
             if (Optional.IsCollectionDefined(Tags))
             {
-                writer.WritePropertyName("tags");
+                writer.WritePropertyName("tags"u8);
                 writer.WriteStartObject();
                 foreach (var item in Tags)
                 {
@@ -50,11 +51,11 @@ namespace Azure.ResourceManager.Network
                 }
                 writer.WriteEndObject();
             }
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsCollectionDefined(FrontendIPConfigurations))
             {
-                writer.WritePropertyName("frontendIPConfigurations");
+                writer.WritePropertyName("frontendIPConfigurations"u8);
                 writer.WriteStartArray();
                 foreach (var item in FrontendIPConfigurations)
                 {
@@ -64,7 +65,7 @@ namespace Azure.ResourceManager.Network
             }
             if (Optional.IsCollectionDefined(BackendAddressPools))
             {
-                writer.WritePropertyName("backendAddressPools");
+                writer.WritePropertyName("backendAddressPools"u8);
                 writer.WriteStartArray();
                 foreach (var item in BackendAddressPools)
                 {
@@ -74,7 +75,7 @@ namespace Azure.ResourceManager.Network
             }
             if (Optional.IsCollectionDefined(LoadBalancingRules))
             {
-                writer.WritePropertyName("loadBalancingRules");
+                writer.WritePropertyName("loadBalancingRules"u8);
                 writer.WriteStartArray();
                 foreach (var item in LoadBalancingRules)
                 {
@@ -84,7 +85,7 @@ namespace Azure.ResourceManager.Network
             }
             if (Optional.IsCollectionDefined(Probes))
             {
-                writer.WritePropertyName("probes");
+                writer.WritePropertyName("probes"u8);
                 writer.WriteStartArray();
                 foreach (var item in Probes)
                 {
@@ -94,7 +95,7 @@ namespace Azure.ResourceManager.Network
             }
             if (Optional.IsCollectionDefined(InboundNatRules))
             {
-                writer.WritePropertyName("inboundNatRules");
+                writer.WritePropertyName("inboundNatRules"u8);
                 writer.WriteStartArray();
                 foreach (var item in InboundNatRules)
                 {
@@ -104,7 +105,7 @@ namespace Azure.ResourceManager.Network
             }
             if (Optional.IsCollectionDefined(InboundNatPools))
             {
-                writer.WritePropertyName("inboundNatPools");
+                writer.WritePropertyName("inboundNatPools"u8);
                 writer.WriteStartArray();
                 foreach (var item in InboundNatPools)
                 {
@@ -114,7 +115,7 @@ namespace Azure.ResourceManager.Network
             }
             if (Optional.IsCollectionDefined(OutboundRules))
             {
-                writer.WritePropertyName("outboundRules");
+                writer.WritePropertyName("outboundRules"u8);
                 writer.WriteStartArray();
                 foreach (var item in OutboundRules)
                 {
@@ -141,23 +142,23 @@ namespace Azure.ResourceManager.Network
             Optional<IList<LoadBalancingRuleData>> loadBalancingRules = default;
             Optional<IList<ProbeData>> probes = default;
             Optional<IList<InboundNatRuleData>> inboundNatRules = default;
-            Optional<IList<InboundNatPool>> inboundNatPools = default;
+            Optional<IList<LoadBalancerInboundNatPool>> inboundNatPools = default;
             Optional<IList<OutboundRuleData>> outboundRules = default;
             Optional<Guid> resourceGuid = default;
             Optional<NetworkProvisioningState> provisioningState = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("extendedLocation"))
+                if (property.NameEquals("extendedLocation"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    extendedLocation = ExtendedLocation.DeserializeExtendedLocation(property.Value);
+                    extendedLocation = JsonSerializer.Deserialize<ExtendedLocation>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("sku"))
+                if (property.NameEquals("sku"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -167,7 +168,7 @@ namespace Azure.ResourceManager.Network
                     sku = LoadBalancerSku.DeserializeLoadBalancerSku(property.Value);
                     continue;
                 }
-                if (property.NameEquals("etag"))
+                if (property.NameEquals("etag"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -177,7 +178,7 @@ namespace Azure.ResourceManager.Network
                     etag = new ETag(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -187,12 +188,12 @@ namespace Azure.ResourceManager.Network
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -202,7 +203,7 @@ namespace Azure.ResourceManager.Network
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -212,7 +213,7 @@ namespace Azure.ResourceManager.Network
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -227,7 +228,7 @@ namespace Azure.ResourceManager.Network
                     tags = dictionary;
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -236,7 +237,7 @@ namespace Azure.ResourceManager.Network
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("frontendIPConfigurations"))
+                        if (property0.NameEquals("frontendIPConfigurations"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -251,7 +252,7 @@ namespace Azure.ResourceManager.Network
                             frontendIPConfigurations = array;
                             continue;
                         }
-                        if (property0.NameEquals("backendAddressPools"))
+                        if (property0.NameEquals("backendAddressPools"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -266,7 +267,7 @@ namespace Azure.ResourceManager.Network
                             backendAddressPools = array;
                             continue;
                         }
-                        if (property0.NameEquals("loadBalancingRules"))
+                        if (property0.NameEquals("loadBalancingRules"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -281,7 +282,7 @@ namespace Azure.ResourceManager.Network
                             loadBalancingRules = array;
                             continue;
                         }
-                        if (property0.NameEquals("probes"))
+                        if (property0.NameEquals("probes"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -296,7 +297,7 @@ namespace Azure.ResourceManager.Network
                             probes = array;
                             continue;
                         }
-                        if (property0.NameEquals("inboundNatRules"))
+                        if (property0.NameEquals("inboundNatRules"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -311,22 +312,22 @@ namespace Azure.ResourceManager.Network
                             inboundNatRules = array;
                             continue;
                         }
-                        if (property0.NameEquals("inboundNatPools"))
+                        if (property0.NameEquals("inboundNatPools"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
                                 property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
-                            List<InboundNatPool> array = new List<InboundNatPool>();
+                            List<LoadBalancerInboundNatPool> array = new List<LoadBalancerInboundNatPool>();
                             foreach (var item in property0.Value.EnumerateArray())
                             {
-                                array.Add(InboundNatPool.DeserializeInboundNatPool(item));
+                                array.Add(LoadBalancerInboundNatPool.DeserializeLoadBalancerInboundNatPool(item));
                             }
                             inboundNatPools = array;
                             continue;
                         }
-                        if (property0.NameEquals("outboundRules"))
+                        if (property0.NameEquals("outboundRules"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -341,7 +342,7 @@ namespace Azure.ResourceManager.Network
                             outboundRules = array;
                             continue;
                         }
-                        if (property0.NameEquals("resourceGuid"))
+                        if (property0.NameEquals("resourceGuid"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -351,7 +352,7 @@ namespace Azure.ResourceManager.Network
                             resourceGuid = property0.Value.GetGuid();
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -365,7 +366,7 @@ namespace Azure.ResourceManager.Network
                     continue;
                 }
             }
-            return new LoadBalancerData(id.Value, name.Value, Optional.ToNullable(type), Optional.ToNullable(location), Optional.ToDictionary(tags), extendedLocation.Value, sku.Value, Optional.ToNullable(etag), Optional.ToList(frontendIPConfigurations), Optional.ToList(backendAddressPools), Optional.ToList(loadBalancingRules), Optional.ToList(probes), Optional.ToList(inboundNatRules), Optional.ToList(inboundNatPools), Optional.ToList(outboundRules), Optional.ToNullable(resourceGuid), Optional.ToNullable(provisioningState));
+            return new LoadBalancerData(id.Value, name.Value, Optional.ToNullable(type), Optional.ToNullable(location), Optional.ToDictionary(tags), extendedLocation, sku.Value, Optional.ToNullable(etag), Optional.ToList(frontendIPConfigurations), Optional.ToList(backendAddressPools), Optional.ToList(loadBalancingRules), Optional.ToList(probes), Optional.ToList(inboundNatRules), Optional.ToList(inboundNatPools), Optional.ToList(outboundRules), Optional.ToNullable(resourceGuid), Optional.ToNullable(provisioningState));
         }
     }
 }

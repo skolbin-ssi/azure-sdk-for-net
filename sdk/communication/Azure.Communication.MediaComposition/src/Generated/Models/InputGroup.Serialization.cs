@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Communication.MediaComposition.Models;
 using Azure.Core;
 
 namespace Azure.Communication.MediaComposition
@@ -16,114 +15,47 @@ namespace Azure.Communication.MediaComposition
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("inputIds");
-            writer.WriteObjectValue(InputIds);
+            writer.WritePropertyName("kind"u8);
+            writer.WriteStringValue(Kind.ToString());
             if (Optional.IsDefined(Position))
             {
-                writer.WritePropertyName("position");
+                writer.WritePropertyName("position"u8);
                 writer.WriteObjectValue(Position);
             }
             if (Optional.IsDefined(Width))
             {
-                writer.WritePropertyName("width");
-                writer.WriteObjectValue(Width);
+                writer.WritePropertyName("width"u8);
+                writer.WriteStringValue(Width);
             }
             if (Optional.IsDefined(Height))
             {
-                writer.WritePropertyName("height");
-                writer.WriteObjectValue(Height);
-            }
-            if (Optional.IsDefined(Rows))
-            {
-                writer.WritePropertyName("rows");
-                writer.WriteNumberValue(Rows.Value);
-            }
-            if (Optional.IsDefined(Columns))
-            {
-                writer.WritePropertyName("columns");
-                writer.WriteNumberValue(Columns.Value);
+                writer.WritePropertyName("height"u8);
+                writer.WriteStringValue(Height);
             }
             if (Optional.IsDefined(Layer))
             {
-                writer.WritePropertyName("layer");
+                writer.WritePropertyName("layer"u8);
                 writer.WriteStringValue(Layer);
+            }
+            if (Optional.IsDefined(ScalingMode))
+            {
+                writer.WritePropertyName("scalingMode"u8);
+                writer.WriteStringValue(ScalingMode.Value.ToString());
             }
             writer.WriteEndObject();
         }
 
         internal static InputGroup DeserializeInputGroup(JsonElement element)
         {
-            object inputIds = default;
-            Optional<InputPosition> position = default;
-            Optional<object> width = default;
-            Optional<object> height = default;
-            Optional<int> rows = default;
-            Optional<int> columns = default;
-            Optional<string> layer = default;
-            foreach (var property in element.EnumerateObject())
+            if (element.TryGetProperty("kind", out JsonElement discriminator))
             {
-                if (property.NameEquals("inputIds"))
+                switch (discriminator.GetString())
                 {
-                    inputIds = property.Value.GetObject();
-                    continue;
-                }
-                if (property.NameEquals("position"))
-                {
-                    if (property.Value.ValueKind == JsonValueKind.Null)
-                    {
-                        property.ThrowNonNullablePropertyIsNull();
-                        continue;
-                    }
-                    position = InputPosition.DeserializeInputPosition(property.Value);
-                    continue;
-                }
-                if (property.NameEquals("width"))
-                {
-                    if (property.Value.ValueKind == JsonValueKind.Null)
-                    {
-                        property.ThrowNonNullablePropertyIsNull();
-                        continue;
-                    }
-                    width = property.Value.GetObject();
-                    continue;
-                }
-                if (property.NameEquals("height"))
-                {
-                    if (property.Value.ValueKind == JsonValueKind.Null)
-                    {
-                        property.ThrowNonNullablePropertyIsNull();
-                        continue;
-                    }
-                    height = property.Value.GetObject();
-                    continue;
-                }
-                if (property.NameEquals("rows"))
-                {
-                    if (property.Value.ValueKind == JsonValueKind.Null)
-                    {
-                        property.ThrowNonNullablePropertyIsNull();
-                        continue;
-                    }
-                    rows = property.Value.GetInt32();
-                    continue;
-                }
-                if (property.NameEquals("columns"))
-                {
-                    if (property.Value.ValueKind == JsonValueKind.Null)
-                    {
-                        property.ThrowNonNullablePropertyIsNull();
-                        continue;
-                    }
-                    columns = property.Value.GetInt32();
-                    continue;
-                }
-                if (property.NameEquals("layer"))
-                {
-                    layer = property.Value.GetString();
-                    continue;
+                    case "autoGridBased": return AutoGridInputGroup.DeserializeAutoGridInputGroup(element);
+                    case "gridBased": return GridInputGroup.DeserializeGridInputGroup(element);
                 }
             }
-            return new InputGroup(inputIds, position.Value, width.Value, height.Value, Optional.ToNullable(rows), Optional.ToNullable(columns), layer.Value);
+            return UnknownInputGroup.DeserializeUnknownInputGroup(element);
         }
     }
 }

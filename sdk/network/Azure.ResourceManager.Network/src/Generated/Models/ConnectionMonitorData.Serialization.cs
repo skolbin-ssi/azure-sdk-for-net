@@ -25,7 +25,7 @@ namespace Azure.ResourceManager.Network
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<ConnectionMonitorSource> source = default;
             Optional<ConnectionMonitorDestination> destination = default;
             Optional<bool> autoStart = default;
@@ -41,7 +41,7 @@ namespace Azure.ResourceManager.Network
             Optional<ConnectionMonitorType> connectionMonitorType = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("etag"))
+                if (property.NameEquals("etag"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -51,7 +51,7 @@ namespace Azure.ResourceManager.Network
                     etag = new ETag(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -61,7 +61,7 @@ namespace Azure.ResourceManager.Network
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -76,27 +76,32 @@ namespace Azure.ResourceManager.Network
                     tags = dictionary;
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -105,7 +110,7 @@ namespace Azure.ResourceManager.Network
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("source"))
+                        if (property0.NameEquals("source"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -115,7 +120,7 @@ namespace Azure.ResourceManager.Network
                             source = ConnectionMonitorSource.DeserializeConnectionMonitorSource(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("destination"))
+                        if (property0.NameEquals("destination"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -125,7 +130,7 @@ namespace Azure.ResourceManager.Network
                             destination = ConnectionMonitorDestination.DeserializeConnectionMonitorDestination(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("autoStart"))
+                        if (property0.NameEquals("autoStart"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -135,7 +140,7 @@ namespace Azure.ResourceManager.Network
                             autoStart = property0.Value.GetBoolean();
                             continue;
                         }
-                        if (property0.NameEquals("monitoringIntervalInSeconds"))
+                        if (property0.NameEquals("monitoringIntervalInSeconds"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -145,7 +150,7 @@ namespace Azure.ResourceManager.Network
                             monitoringIntervalInSeconds = property0.Value.GetInt32();
                             continue;
                         }
-                        if (property0.NameEquals("endpoints"))
+                        if (property0.NameEquals("endpoints"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -160,7 +165,7 @@ namespace Azure.ResourceManager.Network
                             endpoints = array;
                             continue;
                         }
-                        if (property0.NameEquals("testConfigurations"))
+                        if (property0.NameEquals("testConfigurations"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -175,7 +180,7 @@ namespace Azure.ResourceManager.Network
                             testConfigurations = array;
                             continue;
                         }
-                        if (property0.NameEquals("testGroups"))
+                        if (property0.NameEquals("testGroups"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -190,7 +195,7 @@ namespace Azure.ResourceManager.Network
                             testGroups = array;
                             continue;
                         }
-                        if (property0.NameEquals("outputs"))
+                        if (property0.NameEquals("outputs"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -205,12 +210,12 @@ namespace Azure.ResourceManager.Network
                             outputs = array;
                             continue;
                         }
-                        if (property0.NameEquals("notes"))
+                        if (property0.NameEquals("notes"u8))
                         {
                             notes = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -220,7 +225,7 @@ namespace Azure.ResourceManager.Network
                             provisioningState = new NetworkProvisioningState(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("startTime"))
+                        if (property0.NameEquals("startTime"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -230,12 +235,12 @@ namespace Azure.ResourceManager.Network
                             startTime = property0.Value.GetDateTimeOffset("O");
                             continue;
                         }
-                        if (property0.NameEquals("monitoringStatus"))
+                        if (property0.NameEquals("monitoringStatus"u8))
                         {
                             monitoringStatus = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("connectionMonitorType"))
+                        if (property0.NameEquals("connectionMonitorType"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -249,7 +254,7 @@ namespace Azure.ResourceManager.Network
                     continue;
                 }
             }
-            return new ConnectionMonitorData(id, name, type, systemData, Optional.ToNullable(etag), Optional.ToNullable(location), Optional.ToDictionary(tags), source.Value, destination.Value, Optional.ToNullable(autoStart), Optional.ToNullable(monitoringIntervalInSeconds), Optional.ToList(endpoints), Optional.ToList(testConfigurations), Optional.ToList(testGroups), Optional.ToList(outputs), notes.Value, Optional.ToNullable(provisioningState), Optional.ToNullable(startTime), monitoringStatus.Value, Optional.ToNullable(connectionMonitorType));
+            return new ConnectionMonitorData(id, name, type, systemData.Value, Optional.ToNullable(etag), Optional.ToNullable(location), Optional.ToDictionary(tags), source.Value, destination.Value, Optional.ToNullable(autoStart), Optional.ToNullable(monitoringIntervalInSeconds), Optional.ToList(endpoints), Optional.ToList(testConfigurations), Optional.ToList(testGroups), Optional.ToList(outputs), notes.Value, Optional.ToNullable(provisioningState), Optional.ToNullable(startTime), monitoringStatus.Value, Optional.ToNullable(connectionMonitorType));
         }
     }
 }

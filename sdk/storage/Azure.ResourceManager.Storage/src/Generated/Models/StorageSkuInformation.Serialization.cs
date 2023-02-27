@@ -20,16 +20,16 @@ namespace Azure.ResourceManager.Storage.Models
             Optional<string> resourceType = default;
             Optional<StorageKind> kind = default;
             Optional<IReadOnlyList<string>> locations = default;
-            Optional<IReadOnlyList<SKUCapability>> capabilities = default;
-            Optional<IReadOnlyList<Restriction>> restrictions = default;
+            Optional<IReadOnlyList<StorageSkuCapability>> capabilities = default;
+            Optional<IReadOnlyList<StorageSkuRestriction>> restrictions = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = new StorageSkuName(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("tier"))
+                if (property.NameEquals("tier"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -39,12 +39,12 @@ namespace Azure.ResourceManager.Storage.Models
                     tier = property.Value.GetString().ToStorageSkuTier();
                     continue;
                 }
-                if (property.NameEquals("resourceType"))
+                if (property.NameEquals("resourceType"u8))
                 {
                     resourceType = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("kind"))
+                if (property.NameEquals("kind"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -54,7 +54,7 @@ namespace Azure.ResourceManager.Storage.Models
                     kind = new StorageKind(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("locations"))
+                if (property.NameEquals("locations"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -69,32 +69,32 @@ namespace Azure.ResourceManager.Storage.Models
                     locations = array;
                     continue;
                 }
-                if (property.NameEquals("capabilities"))
+                if (property.NameEquals("capabilities"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    List<SKUCapability> array = new List<SKUCapability>();
+                    List<StorageSkuCapability> array = new List<StorageSkuCapability>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(SKUCapability.DeserializeSKUCapability(item));
+                        array.Add(StorageSkuCapability.DeserializeStorageSkuCapability(item));
                     }
                     capabilities = array;
                     continue;
                 }
-                if (property.NameEquals("restrictions"))
+                if (property.NameEquals("restrictions"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    List<Restriction> array = new List<Restriction>();
+                    List<StorageSkuRestriction> array = new List<StorageSkuRestriction>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(Restriction.DeserializeRestriction(item));
+                        array.Add(StorageSkuRestriction.DeserializeStorageSkuRestriction(item));
                     }
                     restrictions = array;
                     continue;

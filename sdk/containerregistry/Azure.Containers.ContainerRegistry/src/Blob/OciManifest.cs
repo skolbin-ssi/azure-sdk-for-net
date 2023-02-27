@@ -5,16 +5,14 @@ using Azure.Core;
 
 namespace Azure.Containers.ContainerRegistry.Specialized
 {
-    /// <summary>
-    /// A manifest for an OCI (Open Container Initiative) artifact.
-    /// </summary>
     [CodeGenModel("OCIManifest")]
     public partial class OciManifest
     {
-        /// <summary> Additional information provided through arbitrary metadata. </summary>
-        public OciAnnotations Annotations { get; }
-
-        /// <summary> Schema version. </summary>
-        public int? SchemaVersion { get; set; }
+        /// <summary> Initializes a new instance of OciManifest. </summary>
+        public OciManifest()
+        {
+            Layers = new ChangeTrackingList<OciBlobDescriptor>();
+            SchemaVersion = 2;
+        }
     }
 }

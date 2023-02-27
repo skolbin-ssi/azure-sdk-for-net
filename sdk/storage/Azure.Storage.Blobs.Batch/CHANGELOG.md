@@ -1,6 +1,25 @@
 # Release History
 
-## 12.10.0-beta.1 (Unreleased)
+## 12.13.0-beta.1 (Unreleased)
+- Added support for service version 2022-11-02.
+- `BlobBatch` is made explicitly resilient to multiple dispose
+
+## 12.12.0 (2023-02-21)
+- Includes all features from 12.12.0-beta.1.
+
+## 12.12.0-beta.1 (2023-02-07)
+- Added support for service version 2021-12-02.
+
+## 12.11.0 (2022-10-12)
+- Includes all features from 12.11.0-beta.1.
+
+## 12.11.0-beta.1 (2022-08-23)
+- Added support for service version 2021-10-04.
+
+## 12.10.0 (2022-07-07)
+- Includes all features from 12.10.0-beta.1.
+
+## 12.10.0-beta.1 (2022-06-15)
 - Added support for service version 2021-08-06.
 
 ## 12.9.0 (2022-05-02)

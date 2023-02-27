@@ -17,17 +17,17 @@ namespace Azure.ResourceManager.ConnectedVMwarevSphere.Models
             writer.WriteStartObject();
             if (Optional.IsDefined(MemorySizeMB))
             {
-                writer.WritePropertyName("memorySizeMB");
+                writer.WritePropertyName("memorySizeMB"u8);
                 writer.WriteNumberValue(MemorySizeMB.Value);
             }
             if (Optional.IsDefined(NumCpus))
             {
-                writer.WritePropertyName("numCPUs");
+                writer.WritePropertyName("numCPUs"u8);
                 writer.WriteNumberValue(NumCpus.Value);
             }
             if (Optional.IsDefined(NumCoresPerSocket))
             {
-                writer.WritePropertyName("numCoresPerSocket");
+                writer.WritePropertyName("numCoresPerSocket"u8);
                 writer.WriteNumberValue(NumCoresPerSocket.Value);
             }
             writer.WriteEndObject();
@@ -36,14 +36,14 @@ namespace Azure.ResourceManager.ConnectedVMwarevSphere.Models
         internal static HardwareProfile DeserializeHardwareProfile(JsonElement element)
         {
             Optional<int> memorySizeMB = default;
-            Optional<int> numCPUs = default;
+            Optional<int> numCpus = default;
             Optional<int> numCoresPerSocket = default;
             Optional<bool> cpuHotAddEnabled = default;
             Optional<bool> cpuHotRemoveEnabled = default;
             Optional<bool> memoryHotAddEnabled = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("memorySizeMB"))
+                if (property.NameEquals("memorySizeMB"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -53,17 +53,17 @@ namespace Azure.ResourceManager.ConnectedVMwarevSphere.Models
                     memorySizeMB = property.Value.GetInt32();
                     continue;
                 }
-                if (property.NameEquals("numCPUs"))
+                if (property.NameEquals("numCPUs"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    numCPUs = property.Value.GetInt32();
+                    numCpus = property.Value.GetInt32();
                     continue;
                 }
-                if (property.NameEquals("numCoresPerSocket"))
+                if (property.NameEquals("numCoresPerSocket"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -73,7 +73,7 @@ namespace Azure.ResourceManager.ConnectedVMwarevSphere.Models
                     numCoresPerSocket = property.Value.GetInt32();
                     continue;
                 }
-                if (property.NameEquals("cpuHotAddEnabled"))
+                if (property.NameEquals("cpuHotAddEnabled"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -83,7 +83,7 @@ namespace Azure.ResourceManager.ConnectedVMwarevSphere.Models
                     cpuHotAddEnabled = property.Value.GetBoolean();
                     continue;
                 }
-                if (property.NameEquals("cpuHotRemoveEnabled"))
+                if (property.NameEquals("cpuHotRemoveEnabled"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -93,7 +93,7 @@ namespace Azure.ResourceManager.ConnectedVMwarevSphere.Models
                     cpuHotRemoveEnabled = property.Value.GetBoolean();
                     continue;
                 }
-                if (property.NameEquals("memoryHotAddEnabled"))
+                if (property.NameEquals("memoryHotAddEnabled"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -104,7 +104,7 @@ namespace Azure.ResourceManager.ConnectedVMwarevSphere.Models
                     continue;
                 }
             }
-            return new HardwareProfile(Optional.ToNullable(memorySizeMB), Optional.ToNullable(numCPUs), Optional.ToNullable(numCoresPerSocket), Optional.ToNullable(cpuHotAddEnabled), Optional.ToNullable(cpuHotRemoveEnabled), Optional.ToNullable(memoryHotAddEnabled));
+            return new HardwareProfile(Optional.ToNullable(memorySizeMB), Optional.ToNullable(numCpus), Optional.ToNullable(numCoresPerSocket), Optional.ToNullable(cpuHotAddEnabled), Optional.ToNullable(cpuHotRemoveEnabled), Optional.ToNullable(memoryHotAddEnabled));
         }
     }
 }

@@ -17,17 +17,17 @@ namespace Azure.ResourceManager.KeyVault.Models
             writer.WriteStartObject();
             if (Optional.IsDefined(Status))
             {
-                writer.WritePropertyName("status");
+                writer.WritePropertyName("status"u8);
                 writer.WriteStringValue(Status.Value.ToString());
             }
             if (Optional.IsDefined(Description))
             {
-                writer.WritePropertyName("description");
+                writer.WritePropertyName("description"u8);
                 writer.WriteStringValue(Description);
             }
             if (Optional.IsDefined(ActionsRequired))
             {
-                writer.WritePropertyName("actionsRequired");
+                writer.WritePropertyName("actionsRequired"u8);
                 writer.WriteStringValue(ActionsRequired.Value.ToString());
             }
             writer.WriteEndObject();
@@ -35,34 +35,34 @@ namespace Azure.ResourceManager.KeyVault.Models
 
         internal static ManagedHsmPrivateLinkServiceConnectionState DeserializeManagedHsmPrivateLinkServiceConnectionState(JsonElement element)
         {
-            Optional<KeyVaultPrivateEndpointServiceConnectionStatus> status = default;
+            Optional<ManagedHsmPrivateEndpointServiceConnectionStatus> status = default;
             Optional<string> description = default;
-            Optional<ActionsRequired> actionsRequired = default;
+            Optional<ManagedHsmActionsRequiredMessage> actionsRequired = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("status"))
+                if (property.NameEquals("status"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    status = new KeyVaultPrivateEndpointServiceConnectionStatus(property.Value.GetString());
+                    status = new ManagedHsmPrivateEndpointServiceConnectionStatus(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("description"))
+                if (property.NameEquals("description"u8))
                 {
                     description = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("actionsRequired"))
+                if (property.NameEquals("actionsRequired"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    actionsRequired = new ActionsRequired(property.Value.GetString());
+                    actionsRequired = new ManagedHsmActionsRequiredMessage(property.Value.GetString());
                     continue;
                 }
             }

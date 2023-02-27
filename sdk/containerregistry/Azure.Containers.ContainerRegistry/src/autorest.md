@@ -9,8 +9,6 @@ input-file:
  
 model-namespace: false
 generation1-convenience-client: true
-modelerfour:
-    seal-single-value-enum-by-default: true
 ```
 
 ## Customizations for Code Generator
@@ -69,7 +67,7 @@ directive:
       delete $.properties.configMediaType
 ```
 
-# Add content-type parameter
+# Add content-type parameter to upload manifest
 ``` yaml
 directive:
     from: swagger-document
@@ -82,6 +80,26 @@ directive:
             "description": "The manifest's Content-Type."
         });
         delete $.responses["201"].schema;
+```
+
+# Add content-range and content-length parameters to upload chunk
+``` yaml
+directive:
+    from: swagger-document
+    where: $.paths["/{nextBlobUuidLink}"].patch
+    transform: >
+        $.parameters.push({
+            "name": "Content-Range",
+            "in": "header",
+            "type": "string",
+            "description": "Range of bytes identifying the desired block of content represented by the body. Start must the end offset retrieved via status check plus one. Note that this is a non-standard use of the Content-Range header."
+        });
+        $.parameters.push({
+            "name": "Content-Length",
+            "in": "header",
+            "type": "string",
+            "description": "Length of the chunk being uploaded, corresponding the length of the request body."
+        });
 ```
 
 # Change NextLink client name to nextLink
@@ -137,4 +155,48 @@ directive:
   where: $.definitions.Annotations
   transform: >
     delete $["x-accessibility"]
+```
+
+# Add OciMediaType extensible enum
+``` yaml
+directive:
+  from: swagger-document
+  where: $.definitions
+  transform: >
+    $["OciMediaType"] = {
+        "type": "string",
+        "enum": [
+            "application/vnd.oci.descriptor.v1+json",
+            "application/vnd.oci.image.manifest.v1+json",
+            "application/vnd.oci.image.config.v1+json",
+            "application/vnd.oci.image.layer.v1.tar",
+        ],
+        "x-ms-enum": {
+            "name": "OciMediaType",
+            "modelAsString": true,
+            "values": [
+            {
+                "value": "application/vnd.oci.descriptor.v1+json",
+                "name": "ContentDescriptor",
+                "description": ""
+            },
+            {
+                "value": "application/vnd.oci.image.manifest.v1+json",
+                "name": "ImageManifest",
+                "description": ""
+            },
+            {
+                "value": "application/vnd.oci.image.config.v1+json",
+                "name": "ImageConfig",
+                "description": ""
+            },
+            {
+                "value": "application/vnd.oci.image.layer.v1.tar",
+                "name": "ImageLayer",
+                "description": ""
+            }
+            ]
+        },
+        "x-accessibility": "public"
+        };
 ```

@@ -16,7 +16,7 @@ namespace Azure.ResourceManager.KeyVault.Models
     {
         internal static DeletedManagedHsmProperties DeserializeDeletedManagedHsmProperties(JsonElement element)
         {
-            Optional<ResourceIdentifier> mhsmId = default;
+            Optional<ResourceIdentifier> managedHsmId = default;
             Optional<AzureLocation> location = default;
             Optional<DateTimeOffset> deletionDate = default;
             Optional<DateTimeOffset> scheduledPurgeDate = default;
@@ -24,17 +24,17 @@ namespace Azure.ResourceManager.KeyVault.Models
             Optional<IReadOnlyDictionary<string, string>> tags = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("mhsmId"))
+                if (property.NameEquals("mhsmId"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    mhsmId = new ResourceIdentifier(property.Value.GetString());
+                    managedHsmId = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -44,7 +44,7 @@ namespace Azure.ResourceManager.KeyVault.Models
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("deletionDate"))
+                if (property.NameEquals("deletionDate"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -54,7 +54,7 @@ namespace Azure.ResourceManager.KeyVault.Models
                     deletionDate = property.Value.GetDateTimeOffset("O");
                     continue;
                 }
-                if (property.NameEquals("scheduledPurgeDate"))
+                if (property.NameEquals("scheduledPurgeDate"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -64,7 +64,7 @@ namespace Azure.ResourceManager.KeyVault.Models
                     scheduledPurgeDate = property.Value.GetDateTimeOffset("O");
                     continue;
                 }
-                if (property.NameEquals("purgeProtectionEnabled"))
+                if (property.NameEquals("purgeProtectionEnabled"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -74,7 +74,7 @@ namespace Azure.ResourceManager.KeyVault.Models
                     purgeProtectionEnabled = property.Value.GetBoolean();
                     continue;
                 }
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -90,7 +90,7 @@ namespace Azure.ResourceManager.KeyVault.Models
                     continue;
                 }
             }
-            return new DeletedManagedHsmProperties(mhsmId.Value, Optional.ToNullable(location), Optional.ToNullable(deletionDate), Optional.ToNullable(scheduledPurgeDate), Optional.ToNullable(purgeProtectionEnabled), Optional.ToDictionary(tags));
+            return new DeletedManagedHsmProperties(managedHsmId.Value, Optional.ToNullable(location), Optional.ToNullable(deletionDate), Optional.ToNullable(scheduledPurgeDate), Optional.ToNullable(purgeProtectionEnabled), Optional.ToDictionary(tags));
         }
     }
 }

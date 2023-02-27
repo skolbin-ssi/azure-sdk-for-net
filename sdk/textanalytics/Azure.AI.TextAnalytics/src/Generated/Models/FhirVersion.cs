@@ -8,7 +8,7 @@
 using System;
 using System.ComponentModel;
 
-namespace Azure.AI.TextAnalytics.Models
+namespace Azure.AI.TextAnalytics
 {
     /// <summary> The FHIR Spec version that the result will use to format the fhirBundle. For additional information see https://www.hl7.org/fhir/overview.html. </summary>
     public readonly partial struct FhirVersion : IEquatable<FhirVersion>
@@ -21,11 +21,6 @@ namespace Azure.AI.TextAnalytics.Models
         {
             _value = value ?? throw new ArgumentNullException(nameof(value));
         }
-
-        private const string Four01Value = "4.0.1";
-
-        /// <summary> 4.0.1. </summary>
-        public static FhirVersion Four01 { get; } = new FhirVersion(Four01Value);
         /// <summary> Determines if two <see cref="FhirVersion"/> values are the same. </summary>
         public static bool operator ==(FhirVersion left, FhirVersion right) => left.Equals(right);
         /// <summary> Determines if two <see cref="FhirVersion"/> values are not the same. </summary>

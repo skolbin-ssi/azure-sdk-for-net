@@ -13,11 +13,6 @@ namespace Azure.Containers.ContainerRegistry.Specialized
     /// <summary> Returns the requested OCI Manifest file. </summary>
     public partial class OciManifest
     {
-        /// <summary> Initializes a new instance of OciManifest. </summary>
-        public OciManifest()
-        {
-            Layers = new ChangeTrackingList<OciBlobDescriptor>();
-        }
 
         /// <summary> Initializes a new instance of OciManifest. </summary>
         /// <param name="config"> V2 image config descriptor. </param>
@@ -36,5 +31,9 @@ namespace Azure.Containers.ContainerRegistry.Specialized
         public OciBlobDescriptor Config { get; set; }
         /// <summary> List of V2 image layer information. </summary>
         public IList<OciBlobDescriptor> Layers { get; }
+        /// <summary> Additional information provided through arbitrary metadata. </summary>
+        public OciAnnotations Annotations { get; set; }
+        /// <summary> Schema version. </summary>
+        public int? SchemaVersion { get; set; }
     }
 }

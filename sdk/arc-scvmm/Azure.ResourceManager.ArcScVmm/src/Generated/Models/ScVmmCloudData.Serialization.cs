@@ -10,6 +10,7 @@ using System.Text.Json;
 using Azure.Core;
 using Azure.ResourceManager.ArcScVmm.Models;
 using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Resources.Models;
 
 namespace Azure.ResourceManager.ArcScVmm
 {
@@ -18,33 +19,35 @@ namespace Azure.ResourceManager.ArcScVmm
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("extendedLocation");
-            writer.WriteObjectValue(ExtendedLocation);
-            writer.WritePropertyName("tags");
-            writer.WriteStartObject();
-            foreach (var item in Tags)
+            writer.WritePropertyName("extendedLocation"u8);
+            JsonSerializer.Serialize(writer, ExtendedLocation); if (Optional.IsCollectionDefined(Tags))
             {
-                writer.WritePropertyName(item.Key);
-                writer.WriteStringValue(item.Value);
+                writer.WritePropertyName("tags"u8);
+                writer.WriteStartObject();
+                foreach (var item in Tags)
+                {
+                    writer.WritePropertyName(item.Key);
+                    writer.WriteStringValue(item.Value);
+                }
+                writer.WriteEndObject();
             }
-            writer.WriteEndObject();
-            writer.WritePropertyName("location");
+            writer.WritePropertyName("location"u8);
             writer.WriteStringValue(Location);
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(InventoryItemId))
             {
-                writer.WritePropertyName("inventoryItemId");
+                writer.WritePropertyName("inventoryItemId"u8);
                 writer.WriteStringValue(InventoryItemId);
             }
             if (Optional.IsDefined(Uuid))
             {
-                writer.WritePropertyName("uuid");
+                writer.WritePropertyName("uuid"u8);
                 writer.WriteStringValue(Uuid);
             }
             if (Optional.IsDefined(VmmServerId))
             {
-                writer.WritePropertyName("vmmServerId");
+                writer.WritePropertyName("vmmServerId"u8);
                 writer.WriteStringValue(VmmServerId);
             }
             writer.WriteEndObject();
@@ -54,12 +57,12 @@ namespace Azure.ResourceManager.ArcScVmm
         internal static ScVmmCloudData DeserializeScVmmCloudData(JsonElement element)
         {
             ExtendedLocation extendedLocation = default;
-            IDictionary<string, string> tags = default;
+            Optional<IDictionary<string, string>> tags = default;
             AzureLocation location = default;
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<string> inventoryItemId = default;
             Optional<string> uuid = default;
             Optional<string> vmmServerId = default;
@@ -69,13 +72,18 @@ namespace Azure.ResourceManager.ArcScVmm
             Optional<string> provisioningState = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("extendedLocation"))
+                if (property.NameEquals("extendedLocation"u8))
                 {
-                    extendedLocation = ExtendedLocation.DeserializeExtendedLocation(property.Value);
+                    extendedLocation = JsonSerializer.Deserialize<ExtendedLocation>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
@@ -84,32 +92,37 @@ namespace Azure.ResourceManager.ArcScVmm
                     tags = dictionary;
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -118,27 +131,27 @@ namespace Azure.ResourceManager.ArcScVmm
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("inventoryItemId"))
+                        if (property0.NameEquals("inventoryItemId"u8))
                         {
                             inventoryItemId = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("uuid"))
+                        if (property0.NameEquals("uuid"u8))
                         {
                             uuid = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("vmmServerId"))
+                        if (property0.NameEquals("vmmServerId"u8))
                         {
                             vmmServerId = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("cloudName"))
+                        if (property0.NameEquals("cloudName"u8))
                         {
                             cloudName = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("cloudCapacity"))
+                        if (property0.NameEquals("cloudCapacity"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -148,7 +161,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             cloudCapacity = CloudCapacity.DeserializeCloudCapacity(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("storageQoSPolicies"))
+                        if (property0.NameEquals("storageQoSPolicies"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -163,7 +176,7 @@ namespace Azure.ResourceManager.ArcScVmm
                             storageQoSPolicies = array;
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             provisioningState = property0.Value.GetString();
                             continue;
@@ -172,7 +185,7 @@ namespace Azure.ResourceManager.ArcScVmm
                     continue;
                 }
             }
-            return new ScVmmCloudData(id, name, type, systemData, tags, location, extendedLocation, inventoryItemId.Value, uuid.Value, vmmServerId.Value, cloudName.Value, cloudCapacity.Value, Optional.ToList(storageQoSPolicies), provisioningState.Value);
+            return new ScVmmCloudData(id, name, type, systemData.Value, Optional.ToDictionary(tags), location, extendedLocation, inventoryItemId.Value, uuid.Value, vmmServerId.Value, cloudName.Value, cloudCapacity.Value, Optional.ToList(storageQoSPolicies), provisioningState.Value);
         }
     }
 }

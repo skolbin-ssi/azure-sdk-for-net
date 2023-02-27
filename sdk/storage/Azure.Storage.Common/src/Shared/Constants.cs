@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 
 namespace Azure.Storage
@@ -24,7 +25,12 @@ namespace Azure.Storage
         /// Gets the default service version to use when building shared access
         /// signatures.
         /// </summary>
-        public const string DefaultSasVersion = "2021-08-06";
+        public const string DefaultSasVersion = "2022-11-02";
+
+        /// <summary>
+        /// Max download range size while requesting a transactional hash.
+        /// </summary>
+        public const int MaxHashRequestDownloadRange = 4 * Constants.MB;
 
         /// <summary>
         /// The default size of staged blocks when uploading small blobs.
@@ -59,6 +65,11 @@ namespace Azure.Storage
         /// </summary>
         public const int DefaultDownloadCopyBufferSize = 16384;
 
+        /// <summary>
+        /// Backwards compatible default value for trimming slashes on object name.
+        /// </summary>
+        public const bool DefaultTrimBlobNameSlashes = true;
+
         public const string CloseAllHandles = "*";
         public const string Wildcard = "*";
 
@@ -84,6 +95,8 @@ namespace Azure.Storage
 
         public const string PercentSign = "%";
         public const string EncodedPercentSign = "%25";
+        public const string QueryDelimiter = "?";
+        public const string PathBackSlashDelimiter = "/";
 
         public const string FalseName = "false";
         public const string TrueName = "true";
@@ -219,6 +232,7 @@ namespace Azure.Storage
             internal static class Page
             {
                 public const int PageSizeBytes = 512;
+                public const int MaxPageBlockBytes = 4 * Constants.MB; // 4MB
             }
 
             internal static class Container
@@ -364,6 +378,8 @@ namespace Azure.Storage
             public const string DeletionId = "deletionid";
 
             public const string DirectoryResourceType = "directory";
+
+            public const string EncryptionContextHeaderName = "x-ms-encryption-context";
         }
 
         /// <summary>
@@ -626,15 +642,11 @@ namespace Azure.Storage
 
         internal static class ClientSideEncryption
         {
-            public const ClientSideEncryptionVersion CurrentVersion = ClientSideEncryptionVersion.V1_0;
-
             public const string AgentMetadataKey = "EncryptionLibrary";
 
             public const string AesCbcPkcs5Padding = "AES/CBC/PKCS5Padding";
 
             public const string AesCbcNoPadding = "AES/CBC/NoPadding";
-
-            public const string Aes = "AES";
 
             public const string EncryptionDataKey = "encryptiondata";
 
@@ -645,6 +657,16 @@ namespace Azure.Storage
             public const int EncryptionKeySizeBits = 256;
 
             public const string XMsRange = "x-ms-range";
+
+            internal static class V2
+            {
+                public const int EncryptionRegionDataSize = 4 * MB;
+                public const int NonceSize = 12;
+                public const int TagSize = 16;
+                public const int EncryptionRegionTotalSize = NonceSize + EncryptionRegionDataSize + TagSize;
+
+                public const int WrappedDataVersionLength = 8;
+            }
 
             public const string BCRYPT_AES_ALGORITHM = "AES";
 

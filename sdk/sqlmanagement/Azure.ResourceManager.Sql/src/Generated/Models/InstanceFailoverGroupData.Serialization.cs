@@ -18,21 +18,21 @@ namespace Azure.ResourceManager.Sql
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(ReadWriteEndpoint))
             {
-                writer.WritePropertyName("readWriteEndpoint");
+                writer.WritePropertyName("readWriteEndpoint"u8);
                 writer.WriteObjectValue(ReadWriteEndpoint);
             }
             if (Optional.IsDefined(ReadOnlyEndpoint))
             {
-                writer.WritePropertyName("readOnlyEndpoint");
+                writer.WritePropertyName("readOnlyEndpoint"u8);
                 writer.WriteObjectValue(ReadOnlyEndpoint);
             }
             if (Optional.IsCollectionDefined(PartnerRegions))
             {
-                writer.WritePropertyName("partnerRegions");
+                writer.WritePropertyName("partnerRegions"u8);
                 writer.WriteStartArray();
                 foreach (var item in PartnerRegions)
                 {
@@ -42,7 +42,7 @@ namespace Azure.ResourceManager.Sql
             }
             if (Optional.IsCollectionDefined(ManagedInstancePairs))
             {
-                writer.WritePropertyName("managedInstancePairs");
+                writer.WritePropertyName("managedInstancePairs"u8);
                 writer.WriteStartArray();
                 foreach (var item in ManagedInstancePairs)
                 {
@@ -59,7 +59,7 @@ namespace Azure.ResourceManager.Sql
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<InstanceFailoverGroupReadWriteEndpoint> readWriteEndpoint = default;
             Optional<InstanceFailoverGroupReadOnlyEndpoint> readOnlyEndpoint = default;
             Optional<InstanceFailoverGroupReplicationRole> replicationRole = default;
@@ -68,27 +68,32 @@ namespace Azure.ResourceManager.Sql
             Optional<IList<ManagedInstancePairInfo>> managedInstancePairs = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -97,7 +102,7 @@ namespace Azure.ResourceManager.Sql
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("readWriteEndpoint"))
+                        if (property0.NameEquals("readWriteEndpoint"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -107,7 +112,7 @@ namespace Azure.ResourceManager.Sql
                             readWriteEndpoint = InstanceFailoverGroupReadWriteEndpoint.DeserializeInstanceFailoverGroupReadWriteEndpoint(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("readOnlyEndpoint"))
+                        if (property0.NameEquals("readOnlyEndpoint"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -117,7 +122,7 @@ namespace Azure.ResourceManager.Sql
                             readOnlyEndpoint = InstanceFailoverGroupReadOnlyEndpoint.DeserializeInstanceFailoverGroupReadOnlyEndpoint(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("replicationRole"))
+                        if (property0.NameEquals("replicationRole"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -127,12 +132,12 @@ namespace Azure.ResourceManager.Sql
                             replicationRole = new InstanceFailoverGroupReplicationRole(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("replicationState"))
+                        if (property0.NameEquals("replicationState"u8))
                         {
                             replicationState = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("partnerRegions"))
+                        if (property0.NameEquals("partnerRegions"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -147,7 +152,7 @@ namespace Azure.ResourceManager.Sql
                             partnerRegions = array;
                             continue;
                         }
-                        if (property0.NameEquals("managedInstancePairs"))
+                        if (property0.NameEquals("managedInstancePairs"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -166,7 +171,7 @@ namespace Azure.ResourceManager.Sql
                     continue;
                 }
             }
-            return new InstanceFailoverGroupData(id, name, type, systemData, readWriteEndpoint.Value, readOnlyEndpoint.Value, Optional.ToNullable(replicationRole), replicationState.Value, Optional.ToList(partnerRegions), Optional.ToList(managedInstancePairs));
+            return new InstanceFailoverGroupData(id, name, type, systemData.Value, readWriteEndpoint.Value, readOnlyEndpoint.Value, Optional.ToNullable(replicationRole), replicationState.Value, Optional.ToList(partnerRegions), Optional.ToList(managedInstancePairs));
         }
     }
 }

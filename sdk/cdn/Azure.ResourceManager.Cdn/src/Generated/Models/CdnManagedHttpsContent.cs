@@ -6,6 +6,7 @@
 #nullable disable
 
 using System;
+using Azure.Core;
 
 namespace Azure.ResourceManager.Cdn.Models
 {
@@ -16,12 +17,9 @@ namespace Azure.ResourceManager.Cdn.Models
         /// <param name="protocolType"> Defines the TLS extension protocol that is used for secure delivery. </param>
         /// <param name="certificateSourceParameters"> Defines the certificate source parameters using CDN managed certificate for enabling SSL. </param>
         /// <exception cref="ArgumentNullException"> <paramref name="certificateSourceParameters"/> is null. </exception>
-        public CdnManagedHttpsContent(ProtocolType protocolType, CdnCertificateSource certificateSourceParameters) : base(protocolType)
+        public CdnManagedHttpsContent(SecureDeliveryProtocolType protocolType, CdnCertificateSource certificateSourceParameters) : base(protocolType)
         {
-            if (certificateSourceParameters == null)
-            {
-                throw new ArgumentNullException(nameof(certificateSourceParameters));
-            }
+            Argument.AssertNotNull(certificateSourceParameters, nameof(certificateSourceParameters));
 
             CertificateSourceParameters = certificateSourceParameters;
             CertificateSource = CertificateSource.Cdn;
@@ -32,7 +30,7 @@ namespace Azure.ResourceManager.Cdn.Models
         /// <param name="protocolType"> Defines the TLS extension protocol that is used for secure delivery. </param>
         /// <param name="minimumTlsVersion"> TLS protocol version that will be used for Https. </param>
         /// <param name="certificateSourceParameters"> Defines the certificate source parameters using CDN managed certificate for enabling SSL. </param>
-        internal CdnManagedHttpsContent(CertificateSource certificateSource, ProtocolType protocolType, MinimumTlsVersion? minimumTlsVersion, CdnCertificateSource certificateSourceParameters) : base(certificateSource, protocolType, minimumTlsVersion)
+        internal CdnManagedHttpsContent(CertificateSource certificateSource, SecureDeliveryProtocolType protocolType, CdnMinimumTlsVersion? minimumTlsVersion, CdnCertificateSource certificateSourceParameters) : base(certificateSource, protocolType, minimumTlsVersion)
         {
             CertificateSourceParameters = certificateSourceParameters;
             CertificateSource = certificateSource;

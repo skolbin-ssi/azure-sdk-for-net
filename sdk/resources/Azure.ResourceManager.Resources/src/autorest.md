@@ -4,6 +4,7 @@ Run `dotnet build /t:GenerateCode` to generate code.
 
 ``` yaml
 azure-arm: true
+generate-model-factory: false
 library-name: Resources
 namespace: Azure.ResourceManager.Resources
 title: ResourceManagementClient
@@ -14,6 +15,12 @@ skip-csproj: true
 model-namespace: true
 public-clients: false
 head-as-boolean: false
+modelerfour:
+  lenient-model-deduplication: true
+
+patch-initializer-customization:
+  ArmDeploymentContent:
+    Properties: 'new ArmDeploymentProperties(current.Properties.Mode.HasValue ? current.Properties.Mode.Value : ArmDeploymentMode.Incremental)'
 
 request-path-to-parent:
   # setting these to the same parent will automatically merge these operations
@@ -45,10 +52,20 @@ override-operation-name:
   Deployments_WhatIfAtTenantScope: WhatIf
   Deployments_CheckExistenceAtScope: CheckExistence
   jitRequests_ListBySubscription: GetJitRequestDefinitions
-  Deployments_CalculateTemplateHash: CalculateDeploymentTemplateHash 
+  Deployments_CalculateTemplateHash: CalculateDeploymentTemplateHash
 
 operation-groups-to-omit:
    Providers;ProviderResourceTypes;Resources;ResourceGroups;Tags;Subscriptions;Tenants
+
+format-by-name-rules:
+  'tenantId': 'uuid'
+  'etag': 'etag'
+  'location': 'azure-location'
+  '*Uri': 'Uri'
+  '*Uris': 'Uri'
+
+keep-plural-enums:
+  - ScriptCleanupOptions
 
 rename-rules:
   CPU: Cpu
@@ -143,12 +160,10 @@ directive:
     where: $.definitions
     transform: >
       $.ManagedServiceIdentity['x-ms-client-name'] = 'ArmDeploymentScriptManagedIdentity';
-      $.ManagedServiceIdentity.properties.tenantId['format'] = 'uuid';
       $.AzureResourceBase['x-ms-client-name'] = 'ArmDeploymentScriptResourceBase';
       $.DeploymentScriptPropertiesBase['x-ms-client-name'] = 'ArmDeploymentScriptPropertiesBase';
       $.DeploymentScriptsError['x-ms-client-name'] = 'ArmDeploymentScriptsError';
       $.DeploymentScript['x-ms-client-name'] = 'ArmDeploymentScript';
-      $.DeploymentScript.properties.location['x-ms-format'] = 'azure-location';
       $.DeploymentScriptListResult['x-ms-client-name'] = 'ArmDeploymentScriptListResult';
       $.DeploymentScriptPropertiesBase.properties.cleanupPreference['x-ms-enum'].name = 'scriptCleanupOptions';
       $.EnvironmentVariable['x-ms-client-name'] = 'ScriptEnvironmentVariable';
@@ -160,15 +175,12 @@ directive:
       $.Identity['x-ms-client-name'] = 'ArmApplicationManagedIdentity';
       $.Identity.properties.type['x-ms-enum']['name'] = 'ArmApplicationManagedIdentityType';
       $.Identity.properties.principalId['format'] = 'uuid';
-      $.Identity.properties.tenantId['format'] = 'uuid';
       $.JitRequestProperties.properties.publisherTenantId['format'] = 'uuid';
       $.ApplicationProperties.properties.publisherTenantId['format'] = 'uuid';
       $.GenericResource['x-ms-client-name'] = 'ArmApplicationResourceData';
       $.Resource['x-ms-client-name'] = 'ArmApplicationResourceBase';
       $.Plan['x-ms-client-name'] = 'ArmApplicationPlan';
       $.Sku['x-ms-client-name'] = 'ArmApplicationSku';
-      $.ErrorResponse['x-ms-client-name'] = 'ArmApplicationErrorResponse';
-      $.OperationListResult['x-ms-client-name'] = 'ArmApplicationOperationListResult';
       $.Operation['x-ms-client-name'] = 'ArmApplicationOperation';
       $.Operation.properties.displayOfApplication = $.Operation.properties.display;
       $.Operation.properties['display'] = undefined;
@@ -215,7 +227,6 @@ directive:
       $.ProvisioningState['x-ms-enum'].name = 'ResourcesProvisioningState';
       $.ProvisioningState['x-ms-client-name'] = 'ResourcesProvisioningState';
       $.userAssignedResourceIdentity.properties.principalId.format = 'uuid';
-      $.userAssignedResourceIdentity.properties.tenantId.format = 'uuid';
       $.userAssignedResourceIdentity['x-ms-client-name'] = 'ArmApplicationUserAssignedIdentity';
       $.ApplicationProperties.properties.applicationDefinitionId['x-ms-format'] = 'arm-id';
       $.ApplicationProperties.properties.managedResourceGroupId['x-ms-format'] = 'arm-id';
@@ -227,9 +238,7 @@ directive:
       $.DeploymentProperties.properties.mode['x-ms-enum'].name = 'ArmDeploymentMode';
       $.DeploymentPropertiesExtended.properties.mode['x-ms-enum'].name = 'ArmDeploymentMode';
       $.DeploymentExtended['x-ms-client-name'] = 'ArmDeployment';
-      $.DeploymentExtended.properties.location['x-ms-format'] = 'azure-location';
       $.Deployment['x-ms-client-name'] = 'ArmDeploymentContent';
-      $.Deployment.properties.location['x-ms-format'] = 'azure-location';
       $.DeploymentExportResult['x-ms-client-name'] = 'ArmDeploymentExportResult';
       $.DeploymentExtendedFilter['x-ms-client-name'] = 'ArmDeploymentExtendedFilter';
       $.DeploymentListResult['x-ms-client-name'] = 'ArmDeploymentListResult';
@@ -239,7 +248,6 @@ directive:
       $.DeploymentOperationsListResult['x-ms-client-name'] = 'ArmDeploymentOperationsListResult';
       $.DeploymentValidateResult['x-ms-client-name'] = 'ArmDeploymentValidateResult';
       $.DeploymentWhatIf['x-ms-client-name'] = 'ArmDeploymentWhatIfContent';
-      $.DeploymentWhatIf.properties.location['x-ms-format'] = 'azure-location';
       $.DeploymentWhatIfSettings['x-ms-client-name'] = 'ArmDeploymentWhatIfSettings';
       $.DeploymentWhatIfProperties['x-ms-client-name'] = 'ArmDeploymentWhatIfProperties';
       $.DeploymentProperties['x-ms-client-name'] = 'ArmDeploymentProperties';
@@ -303,11 +311,6 @@ directive:
     where: $.definitions.Alias.properties.type['x-ms-enum']
     transform:
       $['name'] = 'ResourceTypeAliasType';
-  - from: templateSpecs.json
-    where: $.definitions
-    transform: >
-      $.TemplateSpec.properties.location['x-ms-format'] = 'azure-location';
-      $.TemplateSpecVersion.properties.location['x-ms-format'] = 'azure-location';
   - from: resources.json
     where: $.definitions.DeploymentProperties.properties.expressionEvaluationOptions
     transform: >
@@ -328,8 +331,8 @@ These settings apply only when `--tag=package-resources-2022-04` is specified on
 
 ```yaml $(tag) == 'package-resources-2022-04'
 input-file:
-    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/91ac14531f0d05b3d6fcf4a817ea0defde59fe63/specification/resources/resource-manager/Microsoft.Resources/stable/2021-04-01/resources.json
-    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/91ac14531f0d05b3d6fcf4a817ea0defde59fe63/specification/resources/resource-manager/Microsoft.Solutions/stable/2019-07-01/managedapplications.json
-    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/91ac14531f0d05b3d6fcf4a817ea0defde59fe63/specification/resources/resource-manager/Microsoft.Resources/stable/2020-10-01/deploymentScripts.json
-    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/91ac14531f0d05b3d6fcf4a817ea0defde59fe63/specification/resources/resource-manager/Microsoft.Resources/stable/2021-05-01/templateSpecs.json
+    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/639376b2bf9f0f36debfd7fce7debdf7b72578af/specification/resources/resource-manager/Microsoft.Resources/stable/2022-09-01/resources.json
+    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/639376b2bf9f0f36debfd7fce7debdf7b72578af/specification/resources/resource-manager/Microsoft.Solutions/stable/2019-07-01/managedapplications.json
+    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/639376b2bf9f0f36debfd7fce7debdf7b72578af/specification/resources/resource-manager/Microsoft.Resources/stable/2020-10-01/deploymentScripts.json
+    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/639376b2bf9f0f36debfd7fce7debdf7b72578af/specification/resources/resource-manager/Microsoft.Resources/stable/2021-05-01/templateSpecs.json
 ```

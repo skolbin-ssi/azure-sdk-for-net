@@ -29,10 +29,10 @@ namespace Azure.Analytics.Purview.Catalog
     }
     public partial class PurviewCatalogClientOptions : Azure.Core.ClientOptions
     {
-        public PurviewCatalogClientOptions(Azure.Analytics.Purview.Catalog.PurviewCatalogClientOptions.ServiceVersion version = Azure.Analytics.Purview.Catalog.PurviewCatalogClientOptions.ServiceVersion.V2022_03_01_preview) { }
+        public PurviewCatalogClientOptions(Azure.Analytics.Purview.Catalog.PurviewCatalogClientOptions.ServiceVersion version = Azure.Analytics.Purview.Catalog.PurviewCatalogClientOptions.ServiceVersion.V2022_03_01_Preview) { }
         public enum ServiceVersion
         {
-            V2022_03_01_preview = 1,
+            V2022_03_01_Preview = 1,
         }
     }
     public partial class PurviewCollections
@@ -266,5 +266,13 @@ namespace Azure.Analytics.Purview.Catalog
         public virtual System.Threading.Tasks.Task<Azure.Response> GetTypeDefinitionHeadersAsync(bool? includeTermTemplate = default(bool?), string type = null, Azure.RequestContext context = null) { throw null; }
         public virtual Azure.Response UpdateAtlasTypeDefinitions(Azure.Core.RequestContent content, Azure.RequestContext context = null) { throw null; }
         public virtual System.Threading.Tasks.Task<Azure.Response> UpdateAtlasTypeDefinitionsAsync(Azure.Core.RequestContent content, Azure.RequestContext context = null) { throw null; }
+    }
+}
+namespace Microsoft.Extensions.Azure
+{
+    public static partial class PurviewCatalogClientBuilderExtensions
+    {
+        public static Azure.Core.Extensions.IAzureClientBuilder<Azure.Analytics.Purview.Catalog.PurviewCatalogClient, Azure.Analytics.Purview.Catalog.PurviewCatalogClientOptions> AddPurviewCatalogClient<TBuilder>(this TBuilder builder, System.Uri endpoint) where TBuilder : Azure.Core.Extensions.IAzureClientFactoryBuilderWithCredential { throw null; }
+        public static Azure.Core.Extensions.IAzureClientBuilder<Azure.Analytics.Purview.Catalog.PurviewCatalogClient, Azure.Analytics.Purview.Catalog.PurviewCatalogClientOptions> AddPurviewCatalogClient<TBuilder, TConfiguration>(this TBuilder builder, TConfiguration configuration) where TBuilder : Azure.Core.Extensions.IAzureClientFactoryBuilderWithConfiguration<TConfiguration> { throw null; }
     }
 }

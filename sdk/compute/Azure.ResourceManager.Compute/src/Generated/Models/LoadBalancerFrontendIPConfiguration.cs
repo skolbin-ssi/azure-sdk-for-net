@@ -11,7 +11,7 @@ using Azure.ResourceManager.Resources.Models;
 
 namespace Azure.ResourceManager.Compute.Models
 {
-    /// <summary> The LoadBalancerFrontendIPConfiguration. </summary>
+    /// <summary> Specifies the frontend IP to be used for the load balancer. Only IPv4 frontend IP address is supported. Each load balancer configuration must have exactly one frontend IP configuration. </summary>
     public partial class LoadBalancerFrontendIPConfiguration
     {
         /// <summary> Initializes a new instance of LoadBalancerFrontendIPConfiguration. </summary>
@@ -19,10 +19,7 @@ namespace Azure.ResourceManager.Compute.Models
         /// <exception cref="ArgumentNullException"> <paramref name="name"/> is null. </exception>
         public LoadBalancerFrontendIPConfiguration(string name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            Argument.AssertNotNull(name, nameof(name));
 
             Name = name;
         }

@@ -43,12 +43,12 @@
       }
     },
     {
-      "RequestUri": "https://management.azure.com/subscriptions/db1ab6f0-4769-4b27-930e-01e2ef9c123c/resourcegroups/sdktestrg-kv-379?api-version=2021-04-01",
+      "RequestUri": "https://management.azure.com/subscriptions/db1ab6f0-4769-4b27-930e-01e2ef9c123c/resourcegroups/sdktestrg-kv-379?api-version=**",
       "RequestMethod": "PUT",
       "RequestHeaders": {
         "Accept": "application/json",
         "Authorization": "Sanitized",
-        "Content-Length": "38",
+        "Content-Length": "27",
         "Content-Type": "application/json",
         "traceparent": "00-03a96bbab4a7d142a92882a64f4b5143-6237d82c1963984b-00",
         "User-Agent": "azsdk-net-ResourceManager/1.0.0 (.NET Core 3.1.24; Microsoft Windows 10.0.19044)",
@@ -56,7 +56,6 @@
         "x-ms-return-client-request-id": "true"
       },
       "RequestBody": {
-        "tags": {},
         "location": "canadacentral"
       },
       "StatusCode": 201,
@@ -1244,7 +1243,7 @@
   ],
   "Variables": {
     "CLIENT_ID": "8e6d47e0-7969-4fde-a62c-4fea4f165e98",
-    "ObjectId": "761b08c6-7367-4ecf-8375-4f785b103d63",
+    "OBJECT_ID": "761b08c6-7367-4ecf-8375-4f785b103d63",
     "RandomSeed": "820177231",
     "RESOURCE_MANAGER_URL": null,
     "SUBSCRIPTION_ID": "db1ab6f0-4769-4b27-930e-01e2ef9c123c",

@@ -18,24 +18,24 @@ namespace Azure.ResourceManager.AppService.Models
             writer.WriteStartObject();
             if (Optional.IsDefined(Kind))
             {
-                writer.WritePropertyName("kind");
+                writer.WritePropertyName("kind"u8);
                 writer.WriteStringValue(Kind);
             }
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(KeySize))
             {
-                writer.WritePropertyName("keySize");
+                writer.WritePropertyName("keySize"u8);
                 writer.WriteNumberValue(KeySize.Value);
             }
             if (Optional.IsDefined(Csr))
             {
-                writer.WritePropertyName("csr");
+                writer.WritePropertyName("csr"u8);
                 writer.WriteStringValue(Csr);
             }
             if (Optional.IsDefined(IsPrivateKeyExternal))
             {
-                writer.WritePropertyName("isPrivateKeyExternal");
+                writer.WritePropertyName("isPrivateKeyExternal"u8);
                 writer.WriteBooleanValue(IsPrivateKeyExternal.Value);
             }
             writer.WriteEndObject();
@@ -48,38 +48,43 @@ namespace Azure.ResourceManager.AppService.Models
             ResourceIdentifier id = default;
             string name = default;
             ResourceType type = default;
-            SystemData systemData = default;
+            Optional<SystemData> systemData = default;
             Optional<int> keySize = default;
             Optional<string> csr = default;
             Optional<bool> isPrivateKeyExternal = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("kind"))
+                if (property.NameEquals("kind"u8))
                 {
                     kind = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -88,7 +93,7 @@ namespace Azure.ResourceManager.AppService.Models
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("keySize"))
+                        if (property0.NameEquals("keySize"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -98,12 +103,12 @@ namespace Azure.ResourceManager.AppService.Models
                             keySize = property0.Value.GetInt32();
                             continue;
                         }
-                        if (property0.NameEquals("csr"))
+                        if (property0.NameEquals("csr"u8))
                         {
                             csr = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("isPrivateKeyExternal"))
+                        if (property0.NameEquals("isPrivateKeyExternal"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -117,7 +122,7 @@ namespace Azure.ResourceManager.AppService.Models
                     continue;
                 }
             }
-            return new RenewCertificateOrderContent(id, name, type, systemData, kind.Value, Optional.ToNullable(keySize), csr.Value, Optional.ToNullable(isPrivateKeyExternal));
+            return new RenewCertificateOrderContent(id, name, type, systemData.Value, Optional.ToNullable(keySize), csr.Value, Optional.ToNullable(isPrivateKeyExternal), kind.Value);
         }
     }
 }

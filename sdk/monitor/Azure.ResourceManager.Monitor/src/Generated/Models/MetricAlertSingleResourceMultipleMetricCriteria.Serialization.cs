@@ -19,7 +19,7 @@ namespace Azure.ResourceManager.Monitor.Models
             writer.WriteStartObject();
             if (Optional.IsCollectionDefined(AllOf))
             {
-                writer.WritePropertyName("allOf");
+                writer.WritePropertyName("allOf"u8);
                 writer.WriteStartArray();
                 foreach (var item in AllOf)
                 {
@@ -27,7 +27,7 @@ namespace Azure.ResourceManager.Monitor.Models
                 }
                 writer.WriteEndArray();
             }
-            writer.WritePropertyName("odata.type");
+            writer.WritePropertyName("odata.type"u8);
             writer.WriteStringValue(OdataType.ToString());
             foreach (var item in AdditionalProperties)
             {
@@ -44,12 +44,12 @@ namespace Azure.ResourceManager.Monitor.Models
         internal static MetricAlertSingleResourceMultipleMetricCriteria DeserializeMetricAlertSingleResourceMultipleMetricCriteria(JsonElement element)
         {
             Optional<IList<MetricCriteria>> allOf = default;
-            Odatatype odataType = default;
+            MonitorOdataType odataType = default;
             IDictionary<string, BinaryData> additionalProperties = default;
             Dictionary<string, BinaryData> additionalPropertiesDictionary = new Dictionary<string, BinaryData>();
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("allOf"))
+                if (property.NameEquals("allOf"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -64,9 +64,9 @@ namespace Azure.ResourceManager.Monitor.Models
                     allOf = array;
                     continue;
                 }
-                if (property.NameEquals("odata.type"))
+                if (property.NameEquals("odata.type"u8))
                 {
-                    odataType = new Odatatype(property.Value.GetString());
+                    odataType = new MonitorOdataType(property.Value.GetString());
                     continue;
                 }
                 additionalPropertiesDictionary.Add(property.Name, BinaryData.FromString(property.Value.GetRawText()));

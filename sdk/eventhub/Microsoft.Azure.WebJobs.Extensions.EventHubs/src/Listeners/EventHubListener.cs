@@ -12,6 +12,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Primitives;
 using Azure.Messaging.EventHubs.Processor;
 using Microsoft.Azure.WebJobs.EventHubs.Processor;
+using Microsoft.Azure.WebJobs.Extensions.EventHubs.Listeners;
 using Microsoft.Azure.WebJobs.Host.Executors;
 using Microsoft.Azure.WebJobs.Host.Listeners;
 using Microsoft.Azure.WebJobs.Host.Scale;
@@ -20,7 +21,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Azure.WebJobs.EventHubs.Listeners
 {
-    internal sealed class EventHubListener : IListener, IEventProcessorFactory, IScaleMonitorProvider
+    internal sealed class EventHubListener : IListener, IEventProcessorFactory, IScaleMonitorProvider, ITargetScalerProvider
     {
         private readonly ITriggeredFunctionExecutor _executor;
         private readonly EventProcessorHost _eventProcessorHost;
@@ -29,6 +30,7 @@ namespace Microsoft.Azure.WebJobs.EventHubs.Listeners
         private readonly EventHubOptions _options;
 
         private Lazy<EventHubsScaleMonitor> _scaleMonitor;
+        private Lazy<EventHubsTargetScaler> _targetScaler;
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private string _details;
@@ -51,12 +53,22 @@ namespace Microsoft.Azure.WebJobs.EventHubs.Listeners
             _options = options;
             _logger = _loggerFactory.CreateLogger<EventHubListener>();
 
+            EventHubMetricsProvider metricsProvider = new EventHubMetricsProvider(functionId, consumerClient, checkpointStore, _loggerFactory.CreateLogger<EventHubMetricsProvider>());
+
             _scaleMonitor = new Lazy<EventHubsScaleMonitor>(
                 () => new EventHubsScaleMonitor(
                     functionId,
                     consumerClient,
                     checkpointStore,
                     _loggerFactory.CreateLogger<EventHubsScaleMonitor>()));
+
+            _targetScaler = new Lazy<EventHubsTargetScaler>(
+                () => new EventHubsTargetScaler(
+                    functionId,
+                    consumerClient,
+                    options,
+                    metricsProvider,
+                    _loggerFactory.CreateLogger<EventHubsTargetScaler>()));
 
             _details = $"'namespace='{eventProcessorHost?.FullyQualifiedNamespace}', eventHub='{eventProcessorHost?.EventHubName}', " +
                 $"consumerGroup='{eventProcessorHost?.ConsumerGroup}', functionId='{functionId}', singleDispatch='{singleDispatch}'";
@@ -102,6 +114,11 @@ namespace Microsoft.Azure.WebJobs.EventHubs.Listeners
         public IScaleMonitor GetMonitor()
         {
             return _scaleMonitor.Value;
+        }
+
+        public ITargetScaler GetTargetScaler()
+        {
+            return _targetScaler.Value;
         }
 
         // We get a new instance each time Start() is called.
@@ -162,6 +179,8 @@ namespace Microsoft.Azure.WebJobs.EventHubs.Listeners
                         ProcessorPartition = context
                     };
 
+                    UpdateCheckpointContext(events, context);
+
                     if (_singleDispatch)
                     {
                         // Single dispatch
@@ -212,26 +231,39 @@ namespace Microsoft.Azure.WebJobs.EventHubs.Listeners
                 }
             }
 
-            private async Task CheckpointAsync(EventData checkpointEvent, EventProcessorHostPartition context)
+            private void UpdateCheckpointContext(EventData[] events, EventProcessorHostPartition context)
             {
-                bool checkpointed = false;
-                if (_batchCheckpointFrequency == 1)
+                var isCheckpointingAfterInvocation = false;
+
+                if (events != null && events.Length > 0)
                 {
-                    await context.CheckpointAsync(checkpointEvent).ConfigureAwait(false);
-                    checkpointed = true;
-                }
-                else
-                {
-                    // only checkpoint every N batches
-                    if (++_batchCounter >= _batchCheckpointFrequency)
+                    if (_batchCheckpointFrequency == 1)
                     {
-                        _batchCounter = 0;
-                        await context.CheckpointAsync(checkpointEvent).ConfigureAwait(false);
-                        checkpointed = true;
+                        isCheckpointingAfterInvocation = true;
+                    }
+                    else
+                    {
+                        // only checkpoint every N batches
+                        if (_batchCounter + 1 >= _batchCheckpointFrequency)
+                        {
+                            isCheckpointingAfterInvocation = true;
+                        }
                     }
                 }
-                if (checkpointed)
+
+                context.PartitionContext.IsCheckpointingAfterInvocation = isCheckpointingAfterInvocation;
+            }
+
+            private async Task CheckpointAsync(EventData checkpointEvent, EventProcessorHostPartition context)
+            {
+                _batchCounter++;
+
+                if (context.PartitionContext.IsCheckpointingAfterInvocation)
                 {
+                    await context.CheckpointAsync(checkpointEvent).ConfigureAwait(false);
+
+                    _batchCounter = 0;
+
                     _logger.LogDebug(GetOperationDetails(context, "CheckpointAsync"));
                 }
             }

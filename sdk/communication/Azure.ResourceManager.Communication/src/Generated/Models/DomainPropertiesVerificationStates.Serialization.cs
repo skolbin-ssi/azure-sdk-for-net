@@ -14,61 +14,61 @@ namespace Azure.ResourceManager.Communication.Models
     {
         internal static DomainPropertiesVerificationStates DeserializeDomainPropertiesVerificationStates(JsonElement element)
         {
-            Optional<VerificationStatusRecord> domain = default;
-            Optional<VerificationStatusRecord> spf = default;
-            Optional<VerificationStatusRecord> dkim = default;
-            Optional<VerificationStatusRecord> dkiM2 = default;
-            Optional<VerificationStatusRecord> dmarc = default;
+            Optional<DomainVerificationStatusRecord> domain = default;
+            Optional<DomainVerificationStatusRecord> spf = default;
+            Optional<DomainVerificationStatusRecord> dkim = default;
+            Optional<DomainVerificationStatusRecord> dkiM2 = default;
+            Optional<DomainVerificationStatusRecord> dmarc = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("Domain"))
+                if (property.NameEquals("Domain"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    domain = VerificationStatusRecord.DeserializeVerificationStatusRecord(property.Value);
+                    domain = DomainVerificationStatusRecord.DeserializeDomainVerificationStatusRecord(property.Value);
                     continue;
                 }
-                if (property.NameEquals("SPF"))
+                if (property.NameEquals("SPF"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    spf = VerificationStatusRecord.DeserializeVerificationStatusRecord(property.Value);
+                    spf = DomainVerificationStatusRecord.DeserializeDomainVerificationStatusRecord(property.Value);
                     continue;
                 }
-                if (property.NameEquals("DKIM"))
+                if (property.NameEquals("DKIM"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    dkim = VerificationStatusRecord.DeserializeVerificationStatusRecord(property.Value);
+                    dkim = DomainVerificationStatusRecord.DeserializeDomainVerificationStatusRecord(property.Value);
                     continue;
                 }
-                if (property.NameEquals("DKIM2"))
+                if (property.NameEquals("DKIM2"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    dkiM2 = VerificationStatusRecord.DeserializeVerificationStatusRecord(property.Value);
+                    dkiM2 = DomainVerificationStatusRecord.DeserializeDomainVerificationStatusRecord(property.Value);
                     continue;
                 }
-                if (property.NameEquals("DMARC"))
+                if (property.NameEquals("DMARC"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    dmarc = VerificationStatusRecord.DeserializeVerificationStatusRecord(property.Value);
+                    dmarc = DomainVerificationStatusRecord.DeserializeDomainVerificationStatusRecord(property.Value);
                     continue;
                 }
             }

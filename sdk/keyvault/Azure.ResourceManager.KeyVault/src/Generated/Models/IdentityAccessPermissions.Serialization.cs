@@ -18,7 +18,7 @@ namespace Azure.ResourceManager.KeyVault.Models
             writer.WriteStartObject();
             if (Optional.IsCollectionDefined(Keys))
             {
-                writer.WritePropertyName("keys");
+                writer.WritePropertyName("keys"u8);
                 writer.WriteStartArray();
                 foreach (var item in Keys)
                 {
@@ -28,7 +28,7 @@ namespace Azure.ResourceManager.KeyVault.Models
             }
             if (Optional.IsCollectionDefined(Secrets))
             {
-                writer.WritePropertyName("secrets");
+                writer.WritePropertyName("secrets"u8);
                 writer.WriteStartArray();
                 foreach (var item in Secrets)
                 {
@@ -38,7 +38,7 @@ namespace Azure.ResourceManager.KeyVault.Models
             }
             if (Optional.IsCollectionDefined(Certificates))
             {
-                writer.WritePropertyName("certificates");
+                writer.WritePropertyName("certificates"u8);
                 writer.WriteStartArray();
                 foreach (var item in Certificates)
                 {
@@ -48,7 +48,7 @@ namespace Azure.ResourceManager.KeyVault.Models
             }
             if (Optional.IsCollectionDefined(Storage))
             {
-                writer.WritePropertyName("storage");
+                writer.WritePropertyName("storage"u8);
                 writer.WriteStartArray();
                 foreach (var item in Storage)
                 {
@@ -61,68 +61,68 @@ namespace Azure.ResourceManager.KeyVault.Models
 
         internal static IdentityAccessPermissions DeserializeIdentityAccessPermissions(JsonElement element)
         {
-            Optional<IList<KeyPermission>> keys = default;
-            Optional<IList<SecretPermission>> secrets = default;
-            Optional<IList<CertificatePermission>> certificates = default;
-            Optional<IList<StoragePermission>> storage = default;
+            Optional<IList<IdentityAccessKeyPermission>> keys = default;
+            Optional<IList<IdentityAccessSecretPermission>> secrets = default;
+            Optional<IList<IdentityAccessCertificatePermission>> certificates = default;
+            Optional<IList<IdentityAccessStoragePermission>> storage = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("keys"))
+                if (property.NameEquals("keys"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    List<KeyPermission> array = new List<KeyPermission>();
+                    List<IdentityAccessKeyPermission> array = new List<IdentityAccessKeyPermission>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(new KeyPermission(item.GetString()));
+                        array.Add(new IdentityAccessKeyPermission(item.GetString()));
                     }
                     keys = array;
                     continue;
                 }
-                if (property.NameEquals("secrets"))
+                if (property.NameEquals("secrets"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    List<SecretPermission> array = new List<SecretPermission>();
+                    List<IdentityAccessSecretPermission> array = new List<IdentityAccessSecretPermission>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(new SecretPermission(item.GetString()));
+                        array.Add(new IdentityAccessSecretPermission(item.GetString()));
                     }
                     secrets = array;
                     continue;
                 }
-                if (property.NameEquals("certificates"))
+                if (property.NameEquals("certificates"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    List<CertificatePermission> array = new List<CertificatePermission>();
+                    List<IdentityAccessCertificatePermission> array = new List<IdentityAccessCertificatePermission>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(new CertificatePermission(item.GetString()));
+                        array.Add(new IdentityAccessCertificatePermission(item.GetString()));
                     }
                     certificates = array;
                     continue;
                 }
-                if (property.NameEquals("storage"))
+                if (property.NameEquals("storage"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    List<StoragePermission> array = new List<StoragePermission>();
+                    List<IdentityAccessStoragePermission> array = new List<IdentityAccessStoragePermission>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(new StoragePermission(item.GetString()));
+                        array.Add(new IdentityAccessStoragePermission(item.GetString()));
                     }
                     storage = array;
                     continue;

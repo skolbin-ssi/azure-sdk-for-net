@@ -17,17 +17,23 @@ namespace Azure.ResourceManager.Compute
     {
         internal static CloudServiceOSFamilyData DeserializeCloudServiceOSFamilyData(JsonElement element)
         {
+            Optional<string> name = default;
             Optional<AzureLocation> location = default;
             ResourceIdentifier id = default;
-            string name = default;
+            string name0 = default;
             ResourceType type = default;
-            SystemData systemData = default;
-            Optional<string> name0 = default;
+            Optional<SystemData> systemData = default;
+            Optional<string> name1 = default;
             Optional<string> label = default;
             Optional<IReadOnlyList<OSVersionPropertiesBase>> versions = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("location"))
+                if (property.NameEquals("name"u8))
+                {
+                    name = property.Value.GetString();
+                    continue;
+                }
+                if (property.NameEquals("location"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -37,27 +43,32 @@ namespace Azure.ResourceManager.Compute
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
-                    name = property.Value.GetString();
+                    name0 = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("systemData"))
+                if (property.NameEquals("systemData"u8))
                 {
-                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.ToString());
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        property.ThrowNonNullablePropertyIsNull();
+                        continue;
+                    }
+                    systemData = JsonSerializer.Deserialize<SystemData>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -66,17 +77,17 @@ namespace Azure.ResourceManager.Compute
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("name"))
+                        if (property0.NameEquals("name"u8))
                         {
-                            name0 = property0.Value.GetString();
+                            name1 = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("label"))
+                        if (property0.NameEquals("label"u8))
                         {
                             label = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("versions"))
+                        if (property0.NameEquals("versions"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -95,7 +106,7 @@ namespace Azure.ResourceManager.Compute
                     continue;
                 }
             }
-            return new CloudServiceOSFamilyData(id, name, type, systemData, Optional.ToNullable(location), name0.Value, label.Value, Optional.ToList(versions));
+            return new CloudServiceOSFamilyData(id, name0, type, systemData.Value, name.Value, Optional.ToNullable(location), name1.Value, label.Value, Optional.ToList(versions));
         }
     }
 }

@@ -14,27 +14,18 @@ namespace Azure.ResourceManager.Sql.Tests.Scenario
     public class VirtualClusterTests : SqlManagementClientBase
     {
         private ResourceGroupResource _resourceGroup;
-        private ResourceIdentifier _resourceGroupIdentifier;
 
         public VirtualClusterTests(bool isAsync)
             : base(isAsync)
         {
         }
 
-        [OneTimeSetUp]
-        public async Task GlobalSetUp()
-        {
-            var rgLro = await GlobalClient.GetDefaultSubscriptionAsync().Result.GetResourceGroups().CreateOrUpdateAsync(WaitUntil.Completed, SessionRecording.GenerateAssetName("Sql-RG-"), new ResourceGroupData(AzureLocation.WestUS2));
-            ResourceGroupResource rg = rgLro.Value;
-            _resourceGroupIdentifier = rg.Id;
-            await StopSessionRecordingAsync();
-        }
-
         [SetUp]
         public async Task TestSetUp()
         {
             var client = GetArmClient();
-            _resourceGroup = await client.GetResourceGroupResource(_resourceGroupIdentifier).GetAsync();
+            var lro = await client.GetDefaultSubscriptionAsync().Result.GetResourceGroups().CreateOrUpdateAsync(WaitUntil.Completed, Recording.GenerateAssetName("Sql-RG-"), new ResourceGroupData(AzureLocation.WestUS2));
+            _resourceGroup = lro.Value;
         }
 
         [TearDown]
@@ -49,7 +40,6 @@ namespace Azure.ResourceManager.Sql.Tests.Scenario
 
         [Test]
         [RecordedTest]
-        [Ignore("Re-record before GA")]
         public async Task VirtualClusterApiTests()
         {
             //Because MangedInstance deployment takes a lot of time(more than 4.5 hours), the test cases are not separated separately

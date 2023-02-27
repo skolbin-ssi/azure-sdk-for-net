@@ -20,13 +20,18 @@ namespace Azure.ResourceManager.Tests
     {
         protected ArmClient Client { get; private set; }
 
+        protected ResourceManagerTestBase(bool isAsync, ResourceType resourceType, string apiVersion, RecordedTestMode? mode = null)
+            : base(isAsync, resourceType, apiVersion, mode, ignoreArmCoreDependencyVersions: false)
+        {
+        }
+
         protected ResourceManagerTestBase(bool isAsync, RecordedTestMode mode)
-        : base(isAsync, mode)
+        : base(isAsync, mode, ignoreArmCoreDependencyVersions: false)
         {
         }
 
         protected ResourceManagerTestBase(bool isAsync)
-            : base(isAsync)
+            : base(isAsync, ignoreArmCoreDependencyVersions: false)
         {
         }
 
@@ -38,15 +43,19 @@ namespace Azure.ResourceManager.Tests
 
         protected static GenericResourceData ConstructGenericAvailabilitySet()
         {
-            var data = new GenericResourceData(AzureLocation.WestUS2);
-            data.Sku = new ResourcesSku()
+            var data = new GenericResourceData(AzureLocation.WestUS2)
             {
-                Name = "Aligned"
+                Tags = { },
+                Sku = new ResourcesSku()
+                {
+                    Name = "Aligned"
+                },
+                Properties = BinaryData.FromObjectAsJson(new Dictionary<string, object>()
+                    {
+                        {"platformUpdateDomainCount", 5},
+                        {"platformFaultDomainCount", 2}
+                    })
             };
-            var propertyBag = new Dictionary<string, object>();
-            propertyBag.Add("platformUpdateDomainCount", 5);
-            propertyBag.Add("platformFaultDomainCount", 2);
-            data.Properties = BinaryData.FromObjectAsJson(propertyBag);
             return data;
         }
 

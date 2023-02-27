@@ -9,10 +9,12 @@ using System.Threading;
 
 using Azure.Core.Pipeline;
 using Azure.Core.TestFramework;
+
 using Azure.Monitor.OpenTelemetry.Exporter.Internals;
+using Azure.Monitor.OpenTelemetry.Exporter.Internals.PersistentStorage;
 using Azure.Monitor.OpenTelemetry.Exporter.Models;
 
-using OpenTelemetry.Contrib.Extensions.PersistentStorage;
+using OpenTelemetry.Extensions.PersistentStorage.Abstractions;
 
 using Xunit;
 
@@ -55,7 +57,8 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Tests
             transmitter.TrackAsync(telemetryItems, false, CancellationToken.None).EnsureCompleted();
 
             //Assert
-            Assert.Empty(transmitter._storage.GetBlobs());
+            Assert.NotNull(transmitter._fileBlobProvider);
+            Assert.Empty(transmitter._fileBlobProvider.GetBlobs());
         }
 
         [Fact]
@@ -72,7 +75,8 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Tests
             transmitter.TrackAsync(telemetryItems, false, CancellationToken.None).EnsureCompleted();
 
             //Assert
-            Assert.Single(transmitter._storage.GetBlobs());
+            Assert.NotNull(transmitter._fileBlobProvider);
+            Assert.Single(transmitter._fileBlobProvider.GetBlobs());
         }
 
         [Fact]
@@ -91,7 +95,8 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Tests
             transmitter.TrackAsync(telemetryItems, false, CancellationToken.None).EnsureCompleted();
 
             //Assert
-            Assert.Single(transmitter._storage.GetBlobs());
+            Assert.NotNull(transmitter._fileBlobProvider);
+            Assert.Single(transmitter._fileBlobProvider.GetBlobs());
         }
 
         [Fact]
@@ -116,9 +121,14 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Tests
             transmitter.TrackAsync(telemetryItems, false, CancellationToken.None).EnsureCompleted();
 
             //Assert
-            Assert.Single(transmitter._storage.GetBlobs());
+            Assert.NotNull(transmitter._fileBlobProvider);
+            Assert.Single(transmitter._fileBlobProvider.GetBlobs());
+            Assert.True(transmitter._fileBlobProvider.TryGetBlob(out var blob));
+            blob.TryRead(out var content);
 
-            var failedData = System.Text.Encoding.UTF8.GetString(transmitter._storage.GetBlob().Read());
+            Assert.NotNull(content);
+
+            var failedData = System.Text.Encoding.UTF8.GetString(content);
 
             string[] items = failedData.Split('\n');
 
@@ -134,36 +144,44 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Tests
             List<TelemetryItem> telemetryItems = new List<TelemetryItem>();
             telemetryItems.Add(telemetryItem);
 
+            //Even though we are using different transmitter instances
+            // we need to use the same instance of fileProvider for this test.
+            var mockFileProvider = new MockFileProvider();
             // Transmit
             var mockResponse = new MockResponse(500).SetContent("Internal Server Error");
             var transmitter = GetTransmitter(mockResponse);
+            transmitter._fileBlobProvider = mockFileProvider;
             transmitter.TrackAsync(telemetryItems, false, CancellationToken.None).EnsureCompleted();
 
             //Assert
-            Assert.Single(transmitter._storage.GetBlobs());
+            Assert.Single(transmitter._fileBlobProvider.GetBlobs());
 
             // reset server logic to return 200
             mockResponse = new MockResponse(200).SetContent("{\"itemsReceived\": 1,\"itemsAccepted\": 1,\"errors\":[]}");
             transmitter = GetTransmitter(mockResponse);
+            transmitter._fileBlobProvider = mockFileProvider;
 
             transmitter.TransmitFromStorage(1, false, CancellationToken.None).EnsureCompleted();
 
             // Assert
             // Blob will be deleted on successful transmission
-            Assert.Empty(transmitter._storage.GetBlobs());
+            Assert.Empty(transmitter._fileBlobProvider.GetBlobs());
         }
 
         private static AzureMonitorTransmitter GetTransmitter(MockResponse mockResponse)
         {
             MockTransport mockTransport = new MockTransport(mockResponse);
-            AzureMonitorExporterOptions options = new AzureMonitorExporterOptions();
-            options.ConnectionString = $"InstrumentationKey={testIkey};IngestionEndpoint={testEndpoint}";
-            options.StorageDirectory = StorageHelper.GetDefaultStorageDirectory() + "\\test";
-            options.Transport = mockTransport;
+            AzureMonitorExporterOptions options = new AzureMonitorExporterOptions
+            {
+                ConnectionString = $"InstrumentationKey={testIkey};IngestionEndpoint={testEndpoint}",
+                StorageDirectory = StorageHelper.GetDefaultStorageDirectory() + "\\test",
+                Transport = mockTransport,
+                EnableStatsbeat = false, // disabled in tests.
+            };
             AzureMonitorTransmitter transmitter = new AzureMonitorTransmitter(options);
 
             // Overwrite storage with mock
-            transmitter._storage = new MockFileStorage();
+            transmitter._fileBlobProvider = new MockFileProvider();
 
             return transmitter;
         }
@@ -177,46 +195,90 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Tests
                 parentContext: default,
                 startTime: DateTime.UtcNow);
 
+            Assert.NotNull(activity);
             return activity;
         }
 
         private static TelemetryItem CreateTelemetryItem(Activity activity)
         {
             var monitorTags = TraceHelper.EnumerateActivityTags(activity);
-
-            return new TelemetryItem(activity, ref monitorTags, null, null, null);
+            return new TelemetryItem(activity, ref monitorTags, null, string.Empty);
         }
 
-        private class MockFileStorage : IPersistentStorage
+        private class MockFileProvider : PersistentBlobProvider
         {
-            private readonly List<IPersistentBlob> _mockStorage = new();
+            private readonly List<PersistentBlob> _mockStorage = new();
 
-            public IEnumerable<IPersistentBlob> GetBlobs() => this._mockStorage.AsEnumerable();
+            public IEnumerable<PersistentBlob> TryGetBlobs() => this._mockStorage.AsEnumerable();
 
-            public IPersistentBlob GetBlob() => this.GetBlobs().FirstOrDefault();
-
-            public IPersistentBlob CreateBlob(byte[] buffer, int leasePeriodMilliseconds = 0)
+            protected override IEnumerable<PersistentBlob> OnGetBlobs()
             {
-                var blob = new MockFileBlob().Write(buffer);
-                this._mockStorage.Add(blob);
-                return blob;
+                return this._mockStorage.AsEnumerable();
+            }
+
+            protected override bool OnTryCreateBlob(byte[] buffer, int leasePeriodMilliseconds, out PersistentBlob blob)
+            {
+                blob = new MockFileBlob(_mockStorage);
+                return blob.TryWrite(buffer);
+            }
+
+            protected override bool OnTryCreateBlob(byte[] buffer, out PersistentBlob blob)
+            {
+                blob = new MockFileBlob(_mockStorage);
+                return blob.TryWrite(buffer);
+            }
+
+            protected override bool OnTryGetBlob(out PersistentBlob blob)
+            {
+                blob = this.GetBlobs().First();
+
+                return true;
             }
         }
 
-        private class MockFileBlob : IPersistentBlob
+        private class MockFileBlob : PersistentBlob
         {
-            private byte[] _buffer;
+            private byte[] _buffer = Array.Empty<byte>();
 
-            public void Delete() { }
+            private readonly List<PersistentBlob> _mockStorage;
 
-            public IPersistentBlob Lease(int leasePeriodMilliseconds) => this;
+            public MockFileBlob(List<PersistentBlob> mockStorage)
+            {
+                _mockStorage = mockStorage;
+            }
 
-            public byte[] Read() => this._buffer;
+            protected override bool OnTryRead(out byte[] buffer)
+            {
+                buffer = this._buffer;
 
-            public IPersistentBlob Write(byte[] buffer, int leasePeriodMilliseconds = 0)
+                return true;
+            }
+
+            protected override bool OnTryWrite(byte[] buffer, int leasePeriodMilliseconds = 0)
             {
                 this._buffer = buffer;
-                return this;
+                _mockStorage.Add(this);
+
+                return true;
+            }
+
+            protected override bool OnTryLease(int leasePeriodMilliseconds)
+            {
+                return true;
+            }
+
+            protected override bool OnTryDelete()
+            {
+                try
+                {
+                    _mockStorage.Remove(this);
+                }
+                catch
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
     }

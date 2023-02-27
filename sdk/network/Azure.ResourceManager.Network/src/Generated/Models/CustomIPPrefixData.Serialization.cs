@@ -22,12 +22,12 @@ namespace Azure.ResourceManager.Network
             writer.WriteStartObject();
             if (Optional.IsDefined(ExtendedLocation))
             {
-                writer.WritePropertyName("extendedLocation");
-                writer.WriteObjectValue(ExtendedLocation);
+                writer.WritePropertyName("extendedLocation"u8);
+                JsonSerializer.Serialize(writer, ExtendedLocation);
             }
             if (Optional.IsCollectionDefined(Zones))
             {
-                writer.WritePropertyName("zones");
+                writer.WritePropertyName("zones"u8);
                 writer.WriteStartArray();
                 foreach (var item in Zones)
                 {
@@ -37,17 +37,17 @@ namespace Azure.ResourceManager.Network
             }
             if (Optional.IsDefined(Id))
             {
-                writer.WritePropertyName("id");
+                writer.WritePropertyName("id"u8);
                 writer.WriteStringValue(Id);
             }
             if (Optional.IsDefined(Location))
             {
-                writer.WritePropertyName("location");
+                writer.WritePropertyName("location"u8);
                 writer.WriteStringValue(Location.Value);
             }
             if (Optional.IsCollectionDefined(Tags))
             {
-                writer.WritePropertyName("tags");
+                writer.WritePropertyName("tags"u8);
                 writer.WriteStartObject();
                 foreach (var item in Tags)
                 {
@@ -56,31 +56,31 @@ namespace Azure.ResourceManager.Network
                 }
                 writer.WriteEndObject();
             }
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(Cidr))
             {
-                writer.WritePropertyName("cidr");
+                writer.WritePropertyName("cidr"u8);
                 writer.WriteStringValue(Cidr);
             }
             if (Optional.IsDefined(SignedMessage))
             {
-                writer.WritePropertyName("signedMessage");
+                writer.WritePropertyName("signedMessage"u8);
                 writer.WriteStringValue(SignedMessage);
             }
             if (Optional.IsDefined(AuthorizationMessage))
             {
-                writer.WritePropertyName("authorizationMessage");
+                writer.WritePropertyName("authorizationMessage"u8);
                 writer.WriteStringValue(AuthorizationMessage);
             }
             if (Optional.IsDefined(CustomIPPrefixParent))
             {
-                writer.WritePropertyName("customIpPrefixParent");
+                writer.WritePropertyName("customIpPrefixParent"u8);
                 writer.WriteObjectValue(CustomIPPrefixParent);
             }
             if (Optional.IsDefined(CommissionedState))
             {
-                writer.WritePropertyName("commissionedState");
+                writer.WritePropertyName("commissionedState"u8);
                 writer.WriteStringValue(CommissionedState.Value.ToString());
             }
             writer.WriteEndObject();
@@ -89,7 +89,7 @@ namespace Azure.ResourceManager.Network
 
         internal static CustomIPPrefixData DeserializeCustomIPPrefixData(JsonElement element)
         {
-            Optional<Models.ExtendedLocation> extendedLocation = default;
+            Optional<ExtendedLocation> extendedLocation = default;
             Optional<ETag> etag = default;
             Optional<IList<string>> zones = default;
             Optional<ResourceIdentifier> id = default;
@@ -100,26 +100,26 @@ namespace Azure.ResourceManager.Network
             Optional<string> cidr = default;
             Optional<string> signedMessage = default;
             Optional<string> authorizationMessage = default;
-            Optional<CustomIPPrefixData> customIpPrefixParent = default;
-            Optional<IReadOnlyList<CustomIPPrefixData>> childCustomIpPrefixes = default;
+            Optional<CustomIPPrefixData> customIPPrefixParent = default;
+            Optional<IReadOnlyList<CustomIPPrefixData>> childCustomIPPrefixes = default;
             Optional<CommissionedState> commissionedState = default;
-            Optional<IReadOnlyList<WritableSubResource>> publicIpPrefixes = default;
+            Optional<IReadOnlyList<WritableSubResource>> publicIPPrefixes = default;
             Optional<Guid> resourceGuid = default;
             Optional<string> failedReason = default;
             Optional<NetworkProvisioningState> provisioningState = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("extendedLocation"))
+                if (property.NameEquals("extendedLocation"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
                         property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    extendedLocation = Models.ExtendedLocation.DeserializeExtendedLocation(property.Value);
+                    extendedLocation = JsonSerializer.Deserialize<ExtendedLocation>(property.Value.GetRawText());
                     continue;
                 }
-                if (property.NameEquals("etag"))
+                if (property.NameEquals("etag"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -129,7 +129,7 @@ namespace Azure.ResourceManager.Network
                     etag = new ETag(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("zones"))
+                if (property.NameEquals("zones"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -144,7 +144,7 @@ namespace Azure.ResourceManager.Network
                     zones = array;
                     continue;
                 }
-                if (property.NameEquals("id"))
+                if (property.NameEquals("id"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -154,12 +154,12 @@ namespace Azure.ResourceManager.Network
                     id = new ResourceIdentifier(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("type"))
+                if (property.NameEquals("type"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -169,7 +169,7 @@ namespace Azure.ResourceManager.Network
                     type = new ResourceType(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("location"))
+                if (property.NameEquals("location"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -179,7 +179,7 @@ namespace Azure.ResourceManager.Network
                     location = new AzureLocation(property.Value.GetString());
                     continue;
                 }
-                if (property.NameEquals("tags"))
+                if (property.NameEquals("tags"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -194,7 +194,7 @@ namespace Azure.ResourceManager.Network
                     tags = dictionary;
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -203,32 +203,32 @@ namespace Azure.ResourceManager.Network
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("cidr"))
+                        if (property0.NameEquals("cidr"u8))
                         {
                             cidr = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("signedMessage"))
+                        if (property0.NameEquals("signedMessage"u8))
                         {
                             signedMessage = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("authorizationMessage"))
+                        if (property0.NameEquals("authorizationMessage"u8))
                         {
                             authorizationMessage = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("customIpPrefixParent"))
+                        if (property0.NameEquals("customIpPrefixParent"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
                                 property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
-                            customIpPrefixParent = DeserializeCustomIPPrefixData(property0.Value);
+                            customIPPrefixParent = DeserializeCustomIPPrefixData(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("childCustomIpPrefixes"))
+                        if (property0.NameEquals("childCustomIpPrefixes"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -240,10 +240,10 @@ namespace Azure.ResourceManager.Network
                             {
                                 array.Add(DeserializeCustomIPPrefixData(item));
                             }
-                            childCustomIpPrefixes = array;
+                            childCustomIPPrefixes = array;
                             continue;
                         }
-                        if (property0.NameEquals("commissionedState"))
+                        if (property0.NameEquals("commissionedState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -253,7 +253,7 @@ namespace Azure.ResourceManager.Network
                             commissionedState = new CommissionedState(property0.Value.GetString());
                             continue;
                         }
-                        if (property0.NameEquals("publicIpPrefixes"))
+                        if (property0.NameEquals("publicIpPrefixes"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -263,12 +263,12 @@ namespace Azure.ResourceManager.Network
                             List<WritableSubResource> array = new List<WritableSubResource>();
                             foreach (var item in property0.Value.EnumerateArray())
                             {
-                                array.Add(JsonSerializer.Deserialize<WritableSubResource>(item.ToString()));
+                                array.Add(JsonSerializer.Deserialize<WritableSubResource>(item.GetRawText()));
                             }
-                            publicIpPrefixes = array;
+                            publicIPPrefixes = array;
                             continue;
                         }
-                        if (property0.NameEquals("resourceGuid"))
+                        if (property0.NameEquals("resourceGuid"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -278,12 +278,12 @@ namespace Azure.ResourceManager.Network
                             resourceGuid = property0.Value.GetGuid();
                             continue;
                         }
-                        if (property0.NameEquals("failedReason"))
+                        if (property0.NameEquals("failedReason"u8))
                         {
                             failedReason = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -297,7 +297,7 @@ namespace Azure.ResourceManager.Network
                     continue;
                 }
             }
-            return new CustomIPPrefixData(id.Value, name.Value, Optional.ToNullable(type), Optional.ToNullable(location), Optional.ToDictionary(tags), extendedLocation.Value, Optional.ToNullable(etag), Optional.ToList(zones), cidr.Value, signedMessage.Value, authorizationMessage.Value, customIpPrefixParent.Value, Optional.ToList(childCustomIpPrefixes), Optional.ToNullable(commissionedState), Optional.ToList(publicIpPrefixes), Optional.ToNullable(resourceGuid), failedReason.Value, Optional.ToNullable(provisioningState));
+            return new CustomIPPrefixData(id.Value, name.Value, Optional.ToNullable(type), Optional.ToNullable(location), Optional.ToDictionary(tags), extendedLocation, Optional.ToNullable(etag), Optional.ToList(zones), cidr.Value, signedMessage.Value, authorizationMessage.Value, customIPPrefixParent.Value, Optional.ToList(childCustomIPPrefixes), Optional.ToNullable(commissionedState), Optional.ToList(publicIPPrefixes), Optional.ToNullable(resourceGuid), failedReason.Value, Optional.ToNullable(provisioningState));
         }
     }
 }

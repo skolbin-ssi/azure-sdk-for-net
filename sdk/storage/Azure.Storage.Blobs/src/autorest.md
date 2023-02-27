@@ -4,12 +4,18 @@ Run `dotnet build /t:GenerateCode` to generate code.
 
 ``` yaml
 input-file:
-    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/e515b6251fdc21015282d2e84b85beec7c091763/specification/storage/data-plane/Microsoft.BlobStorage/preview/2021-04-10/blob.json
+    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/3e6f238a1f74d77ba6970f297c77995a9f1f374e/specification/storage/data-plane/Microsoft.BlobStorage/preview/2021-12-02/blob.json
 generation1-convenience-client: true
 # https://github.com/Azure/autorest/issues/4075
 skip-semantics-validation: true
 modelerfour:
     seal-single-value-enum-by-default: true
+```
+
+### Setup DPG Methods
+``` yaml
+protocol-method-list:
+  - Blob_GetProperties
 ```
 
 ### Don't include container name or blob in path - we have direct URIs.

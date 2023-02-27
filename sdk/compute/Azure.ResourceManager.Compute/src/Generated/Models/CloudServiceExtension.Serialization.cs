@@ -5,6 +5,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core;
@@ -18,54 +19,62 @@ namespace Azure.ResourceManager.Compute.Models
             writer.WriteStartObject();
             if (Optional.IsDefined(Name))
             {
-                writer.WritePropertyName("name");
+                writer.WritePropertyName("name"u8);
                 writer.WriteStringValue(Name);
             }
-            writer.WritePropertyName("properties");
+            writer.WritePropertyName("properties"u8);
             writer.WriteStartObject();
             if (Optional.IsDefined(Publisher))
             {
-                writer.WritePropertyName("publisher");
+                writer.WritePropertyName("publisher"u8);
                 writer.WriteStringValue(Publisher);
             }
             if (Optional.IsDefined(CloudServiceExtensionPropertiesType))
             {
-                writer.WritePropertyName("type");
+                writer.WritePropertyName("type"u8);
                 writer.WriteStringValue(CloudServiceExtensionPropertiesType);
             }
             if (Optional.IsDefined(TypeHandlerVersion))
             {
-                writer.WritePropertyName("typeHandlerVersion");
+                writer.WritePropertyName("typeHandlerVersion"u8);
                 writer.WriteStringValue(TypeHandlerVersion);
             }
             if (Optional.IsDefined(AutoUpgradeMinorVersion))
             {
-                writer.WritePropertyName("autoUpgradeMinorVersion");
+                writer.WritePropertyName("autoUpgradeMinorVersion"u8);
                 writer.WriteBooleanValue(AutoUpgradeMinorVersion.Value);
             }
             if (Optional.IsDefined(Settings))
             {
-                writer.WritePropertyName("settings");
-                writer.WriteStringValue(Settings);
+                writer.WritePropertyName("settings"u8);
+#if NET6_0_OR_GREATER
+				writer.WriteRawValue(Settings);
+#else
+                JsonSerializer.Serialize(writer, JsonDocument.Parse(Settings.ToString()).RootElement);
+#endif
             }
             if (Optional.IsDefined(ProtectedSettings))
             {
-                writer.WritePropertyName("protectedSettings");
-                writer.WriteStringValue(ProtectedSettings);
+                writer.WritePropertyName("protectedSettings"u8);
+#if NET6_0_OR_GREATER
+				writer.WriteRawValue(ProtectedSettings);
+#else
+                JsonSerializer.Serialize(writer, JsonDocument.Parse(ProtectedSettings.ToString()).RootElement);
+#endif
             }
             if (Optional.IsDefined(ProtectedSettingsFromKeyVault))
             {
-                writer.WritePropertyName("protectedSettingsFromKeyVault");
+                writer.WritePropertyName("protectedSettingsFromKeyVault"u8);
                 writer.WriteObjectValue(ProtectedSettingsFromKeyVault);
             }
             if (Optional.IsDefined(ForceUpdateTag))
             {
-                writer.WritePropertyName("forceUpdateTag");
+                writer.WritePropertyName("forceUpdateTag"u8);
                 writer.WriteStringValue(ForceUpdateTag);
             }
             if (Optional.IsCollectionDefined(RolesAppliedTo))
             {
-                writer.WritePropertyName("rolesAppliedTo");
+                writer.WritePropertyName("rolesAppliedTo"u8);
                 writer.WriteStartArray();
                 foreach (var item in RolesAppliedTo)
                 {
@@ -84,20 +93,20 @@ namespace Azure.ResourceManager.Compute.Models
             Optional<string> type = default;
             Optional<string> typeHandlerVersion = default;
             Optional<bool> autoUpgradeMinorVersion = default;
-            Optional<string> settings = default;
-            Optional<string> protectedSettings = default;
+            Optional<BinaryData> settings = default;
+            Optional<BinaryData> protectedSettings = default;
             Optional<CloudServiceVaultAndSecretReference> protectedSettingsFromKeyVault = default;
             Optional<string> forceUpdateTag = default;
             Optional<string> provisioningState = default;
             Optional<IList<string>> rolesAppliedTo = default;
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("name"))
+                if (property.NameEquals("name"u8))
                 {
                     name = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("properties"))
+                if (property.NameEquals("properties"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
@@ -106,22 +115,22 @@ namespace Azure.ResourceManager.Compute.Models
                     }
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.NameEquals("publisher"))
+                        if (property0.NameEquals("publisher"u8))
                         {
                             publisher = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("type"))
+                        if (property0.NameEquals("type"u8))
                         {
                             type = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("typeHandlerVersion"))
+                        if (property0.NameEquals("typeHandlerVersion"u8))
                         {
                             typeHandlerVersion = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("autoUpgradeMinorVersion"))
+                        if (property0.NameEquals("autoUpgradeMinorVersion"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -131,17 +140,27 @@ namespace Azure.ResourceManager.Compute.Models
                             autoUpgradeMinorVersion = property0.Value.GetBoolean();
                             continue;
                         }
-                        if (property0.NameEquals("settings"))
+                        if (property0.NameEquals("settings"u8))
                         {
-                            settings = property0.Value.GetString();
+                            if (property0.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                property0.ThrowNonNullablePropertyIsNull();
+                                continue;
+                            }
+                            settings = BinaryData.FromString(property0.Value.GetRawText());
                             continue;
                         }
-                        if (property0.NameEquals("protectedSettings"))
+                        if (property0.NameEquals("protectedSettings"u8))
                         {
-                            protectedSettings = property0.Value.GetString();
+                            if (property0.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                property0.ThrowNonNullablePropertyIsNull();
+                                continue;
+                            }
+                            protectedSettings = BinaryData.FromString(property0.Value.GetRawText());
                             continue;
                         }
-                        if (property0.NameEquals("protectedSettingsFromKeyVault"))
+                        if (property0.NameEquals("protectedSettingsFromKeyVault"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
@@ -151,17 +170,17 @@ namespace Azure.ResourceManager.Compute.Models
                             protectedSettingsFromKeyVault = CloudServiceVaultAndSecretReference.DeserializeCloudServiceVaultAndSecretReference(property0.Value);
                             continue;
                         }
-                        if (property0.NameEquals("forceUpdateTag"))
+                        if (property0.NameEquals("forceUpdateTag"u8))
                         {
                             forceUpdateTag = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("provisioningState"))
+                        if (property0.NameEquals("provisioningState"u8))
                         {
                             provisioningState = property0.Value.GetString();
                             continue;
                         }
-                        if (property0.NameEquals("rolesAppliedTo"))
+                        if (property0.NameEquals("rolesAppliedTo"u8))
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {

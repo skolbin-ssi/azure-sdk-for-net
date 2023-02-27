@@ -10,18 +10,18 @@ using Azure.Core;
 
 namespace Azure.ResourceManager.AppService.Models
 {
-    internal partial class ResourceNameAvailabilityContent : IUtf8JsonSerializable
+    public partial class ResourceNameAvailabilityContent : IUtf8JsonSerializable
     {
         void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("name");
+            writer.WritePropertyName("name"u8);
             writer.WriteStringValue(Name);
-            writer.WritePropertyName("type");
+            writer.WritePropertyName("type"u8);
             writer.WriteStringValue(ResourceType.ToString());
             if (Optional.IsDefined(IsFqdn))
             {
-                writer.WritePropertyName("isFqdn");
+                writer.WritePropertyName("isFqdn"u8);
                 writer.WriteBooleanValue(IsFqdn.Value);
             }
             writer.WriteEndObject();

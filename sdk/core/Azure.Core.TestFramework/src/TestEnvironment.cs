@@ -213,7 +213,7 @@ namespace Azure.Core.TestFramework
                         GetVariable("CLIENT_SECRET"),
                         new ClientSecretCredentialOptions()
                         {
-                             AuthorityHost = new Uri(GetVariable("AZURE_AUTHORITY_HOST"))
+                             AuthorityHost = new Uri(AuthorityHostUrl)
                         }
                     );
                 }
@@ -309,7 +309,7 @@ namespace Azure.Core.TestFramework
             string clientSecret = GetOptionalVariable("CLIENT_SECRET");
             string authorityHost = GetOptionalVariable("AZURE_AUTHORITY_HOST");
 
-            if (tenantId == null || clientId == null || clientSecret == null || authorityHost == null)
+            if (tenantId == null || clientId == null || clientSecret == null || authorityHost == null || ResourceManagerUrl == null)
             {
                 return;
             }
@@ -334,9 +334,10 @@ namespace Azure.Core.TestFramework
             // send the GET request
             Response response = await pipeline.SendRequestAsync(request, CancellationToken.None);
 
-            // resource group not found - nothing we can do here
-            if (response.Status == 404)
+            // resource group not valid - prompt to create new resources
+            if (response.Status is 403 or 404)
             {
+                BootStrapTestResources();
                 return;
             }
 

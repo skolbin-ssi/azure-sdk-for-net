@@ -12,7 +12,7 @@ using Azure.ResourceManager.Resources.Models;
 namespace Azure.ResourceManager.Cdn.Models
 {
     /// <summary> Url signing key parameters. </summary>
-    public partial class UriSigningKeyProperties : SecretProperties
+    public partial class UriSigningKeyProperties : FrontDoorSecretProperties
     {
         /// <summary> Initializes a new instance of UriSigningKeyProperties. </summary>
         /// <param name="keyId"> Defines the customer defined key Id. This id will exist in the incoming request to indicate the key used to form the hash. </param>
@@ -20,14 +20,8 @@ namespace Azure.ResourceManager.Cdn.Models
         /// <exception cref="ArgumentNullException"> <paramref name="keyId"/> or <paramref name="secretSource"/> is null. </exception>
         public UriSigningKeyProperties(string keyId, WritableSubResource secretSource)
         {
-            if (keyId == null)
-            {
-                throw new ArgumentNullException(nameof(keyId));
-            }
-            if (secretSource == null)
-            {
-                throw new ArgumentNullException(nameof(secretSource));
-            }
+            Argument.AssertNotNull(keyId, nameof(keyId));
+            Argument.AssertNotNull(secretSource, nameof(secretSource));
 
             KeyId = keyId;
             SecretSource = secretSource;

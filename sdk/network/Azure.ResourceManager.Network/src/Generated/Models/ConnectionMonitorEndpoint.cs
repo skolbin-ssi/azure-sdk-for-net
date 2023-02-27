@@ -18,10 +18,7 @@ namespace Azure.ResourceManager.Network.Models
         /// <exception cref="ArgumentNullException"> <paramref name="name"/> is null. </exception>
         public ConnectionMonitorEndpoint(string name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            Argument.AssertNotNull(name, nameof(name));
 
             Name = name;
         }
@@ -34,7 +31,7 @@ namespace Azure.ResourceManager.Network.Models
         /// <param name="filter"> Filter for sub-items within the endpoint. </param>
         /// <param name="scope"> Endpoint scope. </param>
         /// <param name="coverageLevel"> Test coverage for the endpoint. </param>
-        internal ConnectionMonitorEndpoint(string name, EndpointType? endpointType, ResourceIdentifier resourceId, string address, ConnectionMonitorEndpointFilter filter, ConnectionMonitorEndpointScope scope, CoverageLevel? coverageLevel)
+        internal ConnectionMonitorEndpoint(string name, ConnectionMonitorEndpointType? endpointType, ResourceIdentifier resourceId, string address, ConnectionMonitorEndpointFilter filter, ConnectionMonitorEndpointScope scope, CoverageLevel? coverageLevel)
         {
             Name = name;
             EndpointType = endpointType;
@@ -48,7 +45,7 @@ namespace Azure.ResourceManager.Network.Models
         /// <summary> The name of the connection monitor endpoint. </summary>
         public string Name { get; set; }
         /// <summary> The endpoint type. </summary>
-        public EndpointType? EndpointType { get; set; }
+        public ConnectionMonitorEndpointType? EndpointType { get; set; }
         /// <summary> Resource ID of the connection monitor endpoint. </summary>
         public ResourceIdentifier ResourceId { get; set; }
         /// <summary> Address of the connection monitor endpoint (IP or domain name). </summary>
