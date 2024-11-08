@@ -10,6 +10,30 @@
 
 ### Other Changes
 
+## 1.3.4 (2024-04-16)
+
+### Bugs Fixed
+
+- Correct unit mismatch in backoff calculation.
+
+## 1.3.3 (2024-02-12)
+
+### Bugs Fixed
+
+- Fix several issues related to ThreadPool starvation for synchronous scenarios
+
+## 1.3.2 (2023-03-11)
+
+### Other Changes
+
+- Upgraded dependent `Azure.Core` to `1.30.0`.
+
+## 1.3.1 (2023-03-07)
+
+### Other Changes
+
+- Updating additional dependencies to mitigate [CVE-2021-24112](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-24112).  Note that the vulnerability only exists in a dependency referenced by the `netcoreapp3.0` target, which reach end-of-life in December, 2019.
+
 ## 1.3.0 (2023-02-07)
 
 ### Acknowledgments

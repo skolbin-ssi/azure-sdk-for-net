@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Analytics.Synapse.Spark.Models
 {
@@ -15,8 +14,12 @@ namespace Azure.Analytics.Synapse.Spark.Models
     {
         internal static SparkStatementCollection DeserializeSparkStatementCollection(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             int totalStatements = default;
-            Optional<IReadOnlyList<SparkStatement>> statements = default;
+            IReadOnlyList<SparkStatement> statements = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("total_statements"u8))
@@ -28,7 +31,6 @@ namespace Azure.Analytics.Synapse.Spark.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<SparkStatement> array = new List<SparkStatement>();
@@ -40,7 +42,15 @@ namespace Azure.Analytics.Synapse.Spark.Models
                     continue;
                 }
             }
-            return new SparkStatementCollection(totalStatements, Optional.ToList(statements));
+            return new SparkStatementCollection(totalStatements, statements ?? new ChangeTrackingList<SparkStatement>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SparkStatementCollection FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSparkStatementCollection(document.RootElement);
         }
     }
 }

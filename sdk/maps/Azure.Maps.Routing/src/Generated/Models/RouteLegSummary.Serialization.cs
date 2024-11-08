@@ -7,7 +7,7 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
+using Azure.Maps.Common;
 
 namespace Azure.Maps.Routing.Models
 {
@@ -15,23 +15,26 @@ namespace Azure.Maps.Routing.Models
     {
         internal static RouteLegSummary DeserializeRouteLegSummary(JsonElement element)
         {
-            Optional<int> lengthInMeters = default;
-            Optional<int> travelTimeInSeconds = default;
-            Optional<int> trafficDelayInSeconds = default;
-            Optional<DateTimeOffset> departureTime = default;
-            Optional<DateTimeOffset> arrivalTime = default;
-            Optional<int> noTrafficTravelTimeInSeconds = default;
-            Optional<int> historicTrafficTravelTimeInSeconds = default;
-            Optional<int> liveTrafficIncidentsTravelTimeInSeconds = default;
-            Optional<double> fuelConsumptionInLiters = default;
-            Optional<double> batteryConsumptionInkWh = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? lengthInMeters = default;
+            int? travelTimeInSeconds = default;
+            int? trafficDelayInSeconds = default;
+            DateTimeOffset? departureTime = default;
+            DateTimeOffset? arrivalTime = default;
+            int? noTrafficTravelTimeInSeconds = default;
+            int? historicTrafficTravelTimeInSeconds = default;
+            int? liveTrafficIncidentsTravelTimeInSeconds = default;
+            double? fuelConsumptionInLiters = default;
+            double? batteryConsumptionInkWh = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("lengthInMeters"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     lengthInMeters = property.Value.GetInt32();
@@ -41,7 +44,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     travelTimeInSeconds = property.Value.GetInt32();
@@ -51,7 +53,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     trafficDelayInSeconds = property.Value.GetInt32();
@@ -61,7 +62,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     departureTime = property.Value.GetDateTimeOffset("O");
@@ -71,7 +71,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     arrivalTime = property.Value.GetDateTimeOffset("O");
@@ -81,7 +80,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     noTrafficTravelTimeInSeconds = property.Value.GetInt32();
@@ -91,7 +89,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     historicTrafficTravelTimeInSeconds = property.Value.GetInt32();
@@ -101,7 +98,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     liveTrafficIncidentsTravelTimeInSeconds = property.Value.GetInt32();
@@ -111,7 +107,6 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     fuelConsumptionInLiters = property.Value.GetDouble();
@@ -121,14 +116,31 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     batteryConsumptionInkWh = property.Value.GetDouble();
                     continue;
                 }
             }
-            return new RouteLegSummary(Optional.ToNullable(lengthInMeters), Optional.ToNullable(travelTimeInSeconds), Optional.ToNullable(trafficDelayInSeconds), Optional.ToNullable(departureTime), Optional.ToNullable(arrivalTime), Optional.ToNullable(noTrafficTravelTimeInSeconds), Optional.ToNullable(historicTrafficTravelTimeInSeconds), Optional.ToNullable(liveTrafficIncidentsTravelTimeInSeconds), Optional.ToNullable(fuelConsumptionInLiters), Optional.ToNullable(batteryConsumptionInkWh));
+            return new RouteLegSummary(
+                lengthInMeters,
+                travelTimeInSeconds,
+                trafficDelayInSeconds,
+                departureTime,
+                arrivalTime,
+                noTrafficTravelTimeInSeconds,
+                historicTrafficTravelTimeInSeconds,
+                liveTrafficIncidentsTravelTimeInSeconds,
+                fuelConsumptionInLiters,
+                batteryConsumptionInkWh);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static RouteLegSummary FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeRouteLegSummary(document.RootElement);
         }
     }
 }

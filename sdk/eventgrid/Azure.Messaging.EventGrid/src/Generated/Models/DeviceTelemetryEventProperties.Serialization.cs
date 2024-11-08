@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -15,16 +14,19 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static DeviceTelemetryEventProperties DeserializeDeviceTelemetryEventProperties(JsonElement element)
         {
-            Optional<object> body = default;
-            Optional<IReadOnlyDictionary<string, string>> properties = default;
-            Optional<IReadOnlyDictionary<string, string>> systemProperties = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            object body = default;
+            IReadOnlyDictionary<string, string> properties = default;
+            IReadOnlyDictionary<string, string> systemProperties = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("body"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     body = property.Value.GetObject();
@@ -34,7 +36,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
@@ -49,7 +50,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
@@ -61,7 +61,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new DeviceTelemetryEventProperties(body.Value, Optional.ToDictionary(properties), Optional.ToDictionary(systemProperties));
+            return new DeviceTelemetryEventProperties(body, properties ?? new ChangeTrackingDictionary<string, string>(), systemProperties ?? new ChangeTrackingDictionary<string, string>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DeviceTelemetryEventProperties FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDeviceTelemetryEventProperties(document.RootElement);
         }
     }
 }

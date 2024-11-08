@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.IoT.Hub.Service.Models
 {
@@ -14,11 +13,15 @@ namespace Azure.IoT.Hub.Service.Models
     {
         internal static DeviceRegistryOperationError DeserializeDeviceRegistryOperationError(JsonElement element)
         {
-            Optional<string> deviceId = default;
-            Optional<DeviceRegistryOperationErrorCode> errorCode = default;
-            Optional<string> errorStatus = default;
-            Optional<string> moduleId = default;
-            Optional<string> operation = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string deviceId = default;
+            DeviceRegistryOperationErrorCode? errorCode = default;
+            string errorStatus = default;
+            string moduleId = default;
+            string operation = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("deviceId"u8))
@@ -30,7 +33,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     errorCode = new DeviceRegistryOperationErrorCode(property.Value.GetString());
@@ -52,7 +54,15 @@ namespace Azure.IoT.Hub.Service.Models
                     continue;
                 }
             }
-            return new DeviceRegistryOperationError(deviceId.Value, Optional.ToNullable(errorCode), errorStatus.Value, moduleId.Value, operation.Value);
+            return new DeviceRegistryOperationError(deviceId, errorCode, errorStatus, moduleId, operation);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DeviceRegistryOperationError FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDeviceRegistryOperationError(document.RootElement);
         }
     }
 }

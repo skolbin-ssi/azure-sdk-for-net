@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Analytics.Synapse.Artifacts.Models
 {
@@ -18,15 +17,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
     {
         internal static DataFlowDebugSessionInfo DeserializeDataFlowDebugSessionInfo(JsonElement element)
         {
-            Optional<string> dataFlowName = default;
-            Optional<string> computeType = default;
-            Optional<int> coreCount = default;
-            Optional<int> nodeCount = default;
-            Optional<string> integrationRuntimeName = default;
-            Optional<string> sessionId = default;
-            Optional<string> startTime = default;
-            Optional<int> timeToLiveInMinutes = default;
-            Optional<string> lastActivityTime = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string dataFlowName = default;
+            string computeType = default;
+            int? coreCount = default;
+            int? nodeCount = default;
+            string integrationRuntimeName = default;
+            string sessionId = default;
+            string startTime = default;
+            int? timeToLiveInMinutes = default;
+            string lastActivityTime = default;
             IReadOnlyDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -45,7 +48,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     coreCount = property.Value.GetInt32();
@@ -55,7 +57,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     nodeCount = property.Value.GetInt32();
@@ -80,7 +81,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     timeToLiveInMinutes = property.Value.GetInt32();
@@ -94,7 +94,25 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new DataFlowDebugSessionInfo(dataFlowName.Value, computeType.Value, Optional.ToNullable(coreCount), Optional.ToNullable(nodeCount), integrationRuntimeName.Value, sessionId.Value, startTime.Value, Optional.ToNullable(timeToLiveInMinutes), lastActivityTime.Value, additionalProperties);
+            return new DataFlowDebugSessionInfo(
+                dataFlowName,
+                computeType,
+                coreCount,
+                nodeCount,
+                integrationRuntimeName,
+                sessionId,
+                startTime,
+                timeToLiveInMinutes,
+                lastActivityTime,
+                additionalProperties);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DataFlowDebugSessionInfo FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDataFlowDebugSessionInfo(document.RootElement);
         }
 
         internal partial class DataFlowDebugSessionInfoConverter : JsonConverter<DataFlowDebugSessionInfo>
@@ -103,6 +121,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 throw new NotImplementedException();
             }
+
             public override DataFlowDebugSessionInfo Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

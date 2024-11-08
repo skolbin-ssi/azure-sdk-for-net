@@ -48,20 +48,25 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WriteStartArray();
                 foreach (var item in Annotations)
                 {
-                    writer.WriteObjectValue(item);
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item);
                 }
                 writer.WriteEndArray();
             }
             writer.WritePropertyName("typeProperties"u8);
             writer.WriteStartObject();
             writer.WritePropertyName("server"u8);
-            writer.WriteObjectValue(Server);
+            writer.WriteObjectValue<object>(Server);
             writer.WritePropertyName("database"u8);
-            writer.WriteObjectValue(Database);
+            writer.WriteObjectValue<object>(Database);
             if (Optional.IsDefined(Schema))
             {
                 writer.WritePropertyName("schema"u8);
-                writer.WriteObjectValue(Schema);
+                writer.WriteObjectValue<object>(Schema);
             }
             if (Optional.IsDefined(AuthenticationType))
             {
@@ -71,7 +76,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(Username))
             {
                 writer.WritePropertyName("username"u8);
-                writer.WriteObjectValue(Username);
+                writer.WriteObjectValue<object>(Username);
             }
             if (Optional.IsDefined(Password))
             {
@@ -81,31 +86,35 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(EncryptedCredential))
             {
                 writer.WritePropertyName("encryptedCredential"u8);
-                writer.WriteObjectValue(EncryptedCredential);
+                writer.WriteObjectValue<object>(EncryptedCredential);
             }
             writer.WriteEndObject();
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static SybaseLinkedService DeserializeSybaseLinkedService(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = default;
-            Optional<IntegrationRuntimeReference> connectVia = default;
-            Optional<string> description = default;
-            Optional<IDictionary<string, ParameterSpecification>> parameters = default;
-            Optional<IList<object>> annotations = default;
+            IntegrationRuntimeReference connectVia = default;
+            string description = default;
+            IDictionary<string, ParameterSpecification> parameters = default;
+            IList<object> annotations = default;
             object server = default;
             object database = default;
-            Optional<object> schema = default;
-            Optional<SybaseAuthenticationType> authenticationType = default;
-            Optional<object> username = default;
-            Optional<SecretBase> password = default;
-            Optional<object> encryptedCredential = default;
+            object schema = default;
+            SybaseAuthenticationType? authenticationType = default;
+            object username = default;
+            SecretBase password = default;
+            object encryptedCredential = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -119,7 +128,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     connectVia = IntegrationRuntimeReference.DeserializeIntegrationRuntimeReference(property.Value);
@@ -134,7 +142,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, ParameterSpecification> dictionary = new Dictionary<string, ParameterSpecification>();
@@ -149,13 +156,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<object> array = new List<object>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(item.GetObject());
+                        if (item.ValueKind == JsonValueKind.Null)
+                        {
+                            array.Add(null);
+                        }
+                        else
+                        {
+                            array.Add(item.GetObject());
+                        }
                     }
                     annotations = array;
                     continue;
@@ -183,7 +196,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             schema = property0.Value.GetObject();
@@ -193,7 +205,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             authenticationType = new SybaseAuthenticationType(property0.Value.GetString());
@@ -203,7 +214,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             username = property0.Value.GetObject();
@@ -213,7 +223,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             password = SecretBase.DeserializeSecretBase(property0.Value);
@@ -223,7 +232,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             encryptedCredential = property0.Value.GetObject();
@@ -235,7 +243,36 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new SybaseLinkedService(type, connectVia.Value, description.Value, Optional.ToDictionary(parameters), Optional.ToList(annotations), additionalProperties, server, database, schema.Value, Optional.ToNullable(authenticationType), username.Value, password.Value, encryptedCredential.Value);
+            return new SybaseLinkedService(
+                type,
+                connectVia,
+                description,
+                parameters ?? new ChangeTrackingDictionary<string, ParameterSpecification>(),
+                annotations ?? new ChangeTrackingList<object>(),
+                additionalProperties,
+                server,
+                database,
+                schema,
+                authenticationType,
+                username,
+                password,
+                encryptedCredential);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new SybaseLinkedService FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSybaseLinkedService(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class SybaseLinkedServiceConverter : JsonConverter<SybaseLinkedService>
@@ -244,6 +281,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override SybaseLinkedService Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

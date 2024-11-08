@@ -26,6 +26,10 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static NamedPolygonString DeserializeNamedPolygonString(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string polygon = default;
             string type = default;
             string name = default;
@@ -48,6 +52,22 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 }
             }
             return new NamedPolygonString(type, name, polygon);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new NamedPolygonString FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeNamedPolygonString(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

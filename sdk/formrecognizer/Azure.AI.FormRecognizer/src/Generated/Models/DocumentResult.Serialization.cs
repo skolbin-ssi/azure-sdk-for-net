@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.Models
 {
@@ -16,10 +15,14 @@ namespace Azure.AI.FormRecognizer.Models
     {
         internal static DocumentResult DeserializeDocumentResult(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string docType = default;
-            Optional<Guid> modelId = default;
+            Guid? modelId = default;
             IReadOnlyList<int> pageRange = default;
-            Optional<float> docTypeConfidence = default;
+            float? docTypeConfidence = default;
             IReadOnlyDictionary<string, FieldValue_internal> fields = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -32,7 +35,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     modelId = property.Value.GetGuid();
@@ -52,7 +54,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     docTypeConfidence = property.Value.GetSingle();
@@ -63,20 +64,21 @@ namespace Azure.AI.FormRecognizer.Models
                     Dictionary<string, FieldValue_internal> dictionary = new Dictionary<string, FieldValue_internal>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.Value.ValueKind == JsonValueKind.Null)
-                        {
-                            dictionary.Add(property0.Name, null);
-                        }
-                        else
-                        {
-                            dictionary.Add(property0.Name, FieldValue_internal.DeserializeFieldValue_internal(property0.Value));
-                        }
+                        dictionary.Add(property0.Name, FieldValue_internal.DeserializeFieldValue_internal(property0.Value));
                     }
                     fields = dictionary;
                     continue;
                 }
             }
-            return new DocumentResult(docType, Optional.ToNullable(modelId), pageRange, Optional.ToNullable(docTypeConfidence), fields);
+            return new DocumentResult(docType, modelId, pageRange, docTypeConfidence, fields);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DocumentResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDocumentResult(document.RootElement);
         }
     }
 }

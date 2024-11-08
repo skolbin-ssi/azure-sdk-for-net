@@ -120,6 +120,64 @@ namespace Azure.Communication.CallAutomation
                     return RecognizeFailed.Deserialize(eventData);
                 case nameof(RecognizeCanceled):
                     return RecognizeCanceled.Deserialize(eventData);
+                case nameof(RemoveParticipantSucceeded):
+                    return RemoveParticipantSucceeded.Deserialize(eventData);
+                case nameof(RemoveParticipantFailed):
+                    return RemoveParticipantFailed.Deserialize(eventData);
+                case nameof(ContinuousDtmfRecognitionToneReceived):
+                    return ContinuousDtmfRecognitionToneReceived.Deserialize(eventData);
+                case nameof(ContinuousDtmfRecognitionToneFailed):
+                    return ContinuousDtmfRecognitionToneFailed.Deserialize(eventData);
+                case nameof(ContinuousDtmfRecognitionStopped):
+                    return ContinuousDtmfRecognitionStopped.Deserialize(eventData);
+                case nameof(SendDtmfTonesCompleted):
+                    return SendDtmfTonesCompleted.Deserialize(eventData);
+                case nameof(SendDtmfTonesFailed):
+                    return SendDtmfTonesFailed.Deserialize(eventData);
+                case nameof(CancelAddParticipantFailed):
+                    return CancelAddParticipantFailed.Deserialize(eventData);
+                case nameof(CancelAddParticipantSucceeded):
+                    return CancelAddParticipantSucceeded.Deserialize(eventData);
+                case nameof(TranscriptionStarted):
+                    return TranscriptionStarted.Deserialize(eventData);
+                case nameof(TranscriptionUpdated):
+                    return TranscriptionUpdated.Deserialize(eventData);
+                case nameof(TranscriptionStopped):
+                    return TranscriptionStopped.Deserialize(eventData);
+                case nameof(TranscriptionFailed):
+                    return TranscriptionFailed.Deserialize(eventData);
+                case nameof(AnswerFailed):
+                    return AnswerFailed.Deserialize(eventData);
+                case nameof(CreateCallFailed):
+                    return CreateCallFailed.Deserialize(eventData);
+                case nameof(HoldFailed):
+                    return HoldFailed.Deserialize(eventData);
+                case nameof(MediaStreamingStarted):
+                    return MediaStreamingStarted.Deserialize(eventData);
+                case nameof(MediaStreamingStopped):
+                    return MediaStreamingStopped.Deserialize(eventData);
+                case nameof(MediaStreamingFailed):
+                    return MediaStreamingFailed.Deserialize(eventData);
+                #region Dialog
+                case nameof(DialogCompleted):
+                    return DialogCompleted.Deserialize(eventData);
+                case nameof(DialogFailed):
+                    return DialogFailed.Deserialize(eventData);
+                case nameof(DialogConsent):
+                    return DialogConsent.Deserialize(eventData);
+                case nameof(DialogStarted):
+                    return DialogStarted.Deserialize(eventData);
+                case nameof(DialogHangup):
+                    return DialogHangup.Deserialize(eventData);
+                case nameof(DialogTransfer):
+                    return DialogTransfer.Deserialize(eventData);
+                case nameof(DialogSensitivityUpdate):
+                    return DialogSensitivityUpdate.Deserialize(eventData);
+                case nameof(DialogLanguageChange):
+                    return DialogLanguageChange.Deserialize(eventData);
+                case nameof(DialogUpdated):
+                    return DialogUpdated.Deserialize(eventData);
+                #endregion
                 default:
                     return null;
             }

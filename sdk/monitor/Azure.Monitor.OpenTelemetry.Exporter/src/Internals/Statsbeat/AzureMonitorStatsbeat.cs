@@ -5,10 +5,11 @@ using System;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Azure.Monitor.OpenTelemetry.Exporter.Internals.ConnectionString;
+using Azure.Monitor.OpenTelemetry.Exporter.Internals.Diagnostics;
+using Azure.Monitor.OpenTelemetry.Exporter.Internals.Platform;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 
@@ -16,7 +17,7 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
 {
     internal sealed class AzureMonitorStatsbeat : IDisposable
     {
-        private static readonly Meter s_myMeter = new("AttachStatsbeatMeter", "1.0");
+        private static readonly Meter s_myMeter = new(StatsbeatConstants.AttachStatsbeatMeterName, "1.0");
 
         internal string? _statsbeat_ConnectionString;
 
@@ -28,32 +29,38 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
 
         private static string? s_sdkVersion => SdkVersionUtils.GetVersion(typeof(AzureMonitorTraceExporter));
 
-        private static string s_operatingSystem = GetOS();
+        private static bool s_hasSdkPrefix => SdkVersionUtils.SdkVersionPrefix != null;
+
+        private static string? s_operatingSystem;
 
         private readonly string? _customer_Ikey;
+
+        private readonly IPlatform _platform;
 
         internal MeterProvider? _attachStatsbeatMeterProvider;
 
         internal static Regex s_endpoint_pattern => new("^https?://(?:www\\.)?([^/.-]+)");
 
-        internal AzureMonitorStatsbeat(ConnectionVars connectionStringVars)
+        internal AzureMonitorStatsbeat(ConnectionVars connectionStringVars, IPlatform platform)
         {
-            _statsbeat_ConnectionString = GetStatsbeatConnectionString(connectionStringVars?.IngestionEndpoint);
+            _platform = platform;
+
+            s_operatingSystem = platform.GetOSPlatformName();
+
+            _statsbeat_ConnectionString = GetStatsbeatConnectionString(connectionStringVars.IngestionEndpoint);
 
             // Initialize only if we are able to determine the correct region to send the data to.
             if (_statsbeat_ConnectionString == null)
             {
-                throw new InvalidOperationException("Cannot initialize statsbeat");
+                throw new InvalidOperationException("Could not find a matching endpoint to initialize Statsbeat.");
             }
 
             _customer_Ikey = connectionStringVars?.InstrumentationKey;
 
-            s_myMeter.CreateObservableGauge("AttachStatsbeat", () => GetAttachStatsbeat());
+            s_myMeter.CreateObservableGauge(StatsbeatConstants.AttachStatsbeatMetricName, () => GetAttachStatsbeat());
 
             // Configure for attach statsbeat which has collection
             // schedule of 24 hrs == 86400000 milliseconds.
-            // TODO: Follow up in spec to confirm the behavior
-            // in case if the app exits before 24hrs duration.
             var exporterOptions = new AzureMonitorExporterOptions
             {
                 DisableOfflineStorage = true,
@@ -62,31 +69,13 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
             };
 
             _attachStatsbeatMeterProvider = Sdk.CreateMeterProviderBuilder()
-                .AddMeter("AttachStatsbeatMeter")
+                .AddMeter(StatsbeatConstants.AttachStatsbeatMeterName)
                 .AddReader(new PeriodicExportingMetricReader(new AzureMonitorMetricExporter(exporterOptions), StatsbeatConstants.AttachStatsbeatInterval)
                 { TemporalityPreference = MetricReaderTemporalityPreference.Delta })
                 .Build();
         }
 
-        private static string GetOS()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return "windows";
-            }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return "linux";
-            }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return "osx";
-            }
-
-            return "unknown";
-        }
-
-        internal static string? GetStatsbeatConnectionString(string? ingestionEndpoint)
+        internal static string? GetStatsbeatConnectionString(string ingestionEndpoint)
         {
             var patternMatch = s_endpoint_pattern.Match(ingestionEndpoint);
             string? statsbeatConnectionString = null;
@@ -112,14 +101,14 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
             {
                 if (_resourceProvider == null)
                 {
-                    SetResourceProviderDetails();
+                    SetResourceProviderDetails(_platform);
                 }
 
                 return
                     new Measurement<int>(1,
                         new("rp", _resourceProvider),
                         new("rpId", _resourceProviderId),
-                        new("attach", "sdk"),
+                        new("attach", s_hasSdkPrefix ? "IntegratedAuto" : "Manual"),
                         new("cikey", _customer_Ikey),
                         new("runtimeVersion", s_runtimeVersion),
                         new("language", "dotnet"),
@@ -128,7 +117,7 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
             }
             catch (Exception ex)
             {
-                AzureMonitorExporterEventSource.Log.WriteWarning("ErrorGettingStatsbeatData", ex);
+                AzureMonitorExporterEventSource.Log.StatsbeatFailed(ex);
                 return new Measurement<int>();
             }
         }
@@ -137,30 +126,39 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
         {
             try
             {
-                using (var httpClient = new HttpClient())
+                // Prevent internal HTTP operations from being instrumented.
+                using (var scope = SuppressInstrumentationScope.Begin())
                 {
-                    httpClient.DefaultRequestHeaders.Add("Metadata", "True");
-                    var responseString = httpClient.GetStringAsync(StatsbeatConstants.AMS_Url);
-                    var vmMetadata = JsonSerializer.Deserialize<VmMetadataResponse>(responseString.Result);
+                    using (var httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(2) })
+                    {
+                        httpClient.DefaultRequestHeaders.Add("Metadata", "True");
+                        var responseString = httpClient.GetStringAsync(StatsbeatConstants.AMS_Url);
+                        VmMetadataResponse? vmMetadata;
+#if NET6_0_OR_GREATER
+                        vmMetadata = JsonSerializer.Deserialize<VmMetadataResponse>(responseString.Result, SourceGenerationContext.Default.VmMetadataResponse);
+#else
+                        vmMetadata = JsonSerializer.Deserialize<VmMetadataResponse>(responseString.Result);
+#endif
 
-                    return vmMetadata;
+                        return vmMetadata;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                AzureMonitorExporterEventSource.Log.WriteInformational("Failed to get VM metadata details", ex);
+                AzureMonitorExporterEventSource.Log.VmMetadataFailed(ex);
                 return null;
             }
         }
 
-        private void SetResourceProviderDetails()
+        private void SetResourceProviderDetails(IPlatform platform)
         {
-            var appSvcWebsiteName = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME");
+            var appSvcWebsiteName = platform.GetEnvironmentVariable(EnvironmentVariableConstants.WEBSITE_SITE_NAME);
             if (appSvcWebsiteName != null)
             {
                 _resourceProvider = "appsvc";
                 _resourceProviderId = appSvcWebsiteName;
-                var appSvcWebsiteHostName = Environment.GetEnvironmentVariable("WEBSITE_HOME_STAMPNAME");
+                var appSvcWebsiteHostName = platform.GetEnvironmentVariable(EnvironmentVariableConstants.WEBSITE_HOME_STAMPNAME);
                 if (!string.IsNullOrEmpty(appSvcWebsiteHostName))
                 {
                     _resourceProviderId += "/" + appSvcWebsiteHostName;
@@ -169,11 +167,20 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
                 return;
             }
 
-            var functionsWorkerRuntime = Environment.GetEnvironmentVariable("FUNCTIONS_WORKER_RUNTIME");
+            var functionsWorkerRuntime = platform.GetEnvironmentVariable(EnvironmentVariableConstants.FUNCTIONS_WORKER_RUNTIME);
             if (functionsWorkerRuntime != null)
             {
                 _resourceProvider = "functions";
-                _resourceProviderId = Environment.GetEnvironmentVariable("WEBSITE_HOSTNAME");
+                _resourceProviderId = platform.GetEnvironmentVariable(EnvironmentVariableConstants.WEBSITE_HOSTNAME);
+
+                return;
+            }
+
+            var aksArmNamespaceId = platform.GetEnvironmentVariable(EnvironmentVariableConstants.AKS_ARM_NAMESPACE_ID);
+            if (aksArmNamespaceId != null)
+            {
+                _resourceProvider = "aks";
+                _resourceProviderId = aksArmNamespaceId;
 
                 return;
             }
@@ -186,7 +193,7 @@ namespace Azure.Monitor.OpenTelemetry.Exporter.Internals.Statsbeat
                 _resourceProviderId = _resourceProviderId = vmMetadata.vmId + "/" + vmMetadata.subscriptionId;
 
                 // osType takes precedence.
-                s_operatingSystem = vmMetadata.osType.ToLower(CultureInfo.InvariantCulture);
+                s_operatingSystem = vmMetadata.osType?.ToLower(CultureInfo.InvariantCulture);
 
                 return;
             }

@@ -36,15 +36,18 @@ namespace Azure.Communication.ShortCodes.Models
 
         internal static UseCase DeserializeUseCase(JsonElement element)
         {
-            Optional<MessageContentCategory> contentCategory = default;
-            Optional<IList<MessageExampleSequence>> examples = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            MessageContentCategory? contentCategory = default;
+            IList<MessageExampleSequence> examples = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("contentCategory"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     contentCategory = new MessageContentCategory(property.Value.GetString());
@@ -54,7 +57,6 @@ namespace Azure.Communication.ShortCodes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<MessageExampleSequence> array = new List<MessageExampleSequence>();
@@ -66,7 +68,23 @@ namespace Azure.Communication.ShortCodes.Models
                     continue;
                 }
             }
-            return new UseCase(Optional.ToNullable(contentCategory), Optional.ToList(examples));
+            return new UseCase(contentCategory, examples ?? new ChangeTrackingList<MessageExampleSequence>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static UseCase FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeUseCase(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

@@ -33,15 +33,18 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static LinkConnectionTargetDatabase DeserializeLinkConnectionTargetDatabase(JsonElement element)
         {
-            Optional<LinkedServiceReference> linkedService = default;
-            Optional<LinkConnectionTargetDatabaseTypeProperties> typeProperties = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            LinkedServiceReference linkedService = default;
+            LinkConnectionTargetDatabaseTypeProperties typeProperties = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("linkedService"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     linkedService = LinkedServiceReference.DeserializeLinkedServiceReference(property.Value);
@@ -51,14 +54,29 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     typeProperties = LinkConnectionTargetDatabaseTypeProperties.DeserializeLinkConnectionTargetDatabaseTypeProperties(property.Value);
                     continue;
                 }
             }
-            return new LinkConnectionTargetDatabase(linkedService.Value, typeProperties.Value);
+            return new LinkConnectionTargetDatabase(linkedService, typeProperties);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static LinkConnectionTargetDatabase FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeLinkConnectionTargetDatabase(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class LinkConnectionTargetDatabaseConverter : JsonConverter<LinkConnectionTargetDatabase>
@@ -67,6 +85,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override LinkConnectionTargetDatabase Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

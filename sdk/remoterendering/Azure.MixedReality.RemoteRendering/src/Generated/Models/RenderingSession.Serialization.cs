@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.MixedReality.RemoteRendering
 {
@@ -15,17 +14,21 @@ namespace Azure.MixedReality.RemoteRendering
     {
         internal static RenderingSession DeserializeRenderingSession(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string id = default;
-            Optional<int> arrInspectorPort = default;
-            Optional<int> handshakePort = default;
-            Optional<int> elapsedTimeMinutes = default;
-            Optional<string> hostname = default;
-            Optional<int> maxLeaseTimeMinutes = default;
+            int? arrInspectorPort = default;
+            int? handshakePort = default;
+            int? elapsedTimeMinutes = default;
+            string hostname = default;
+            int? maxLeaseTimeMinutes = default;
             RenderingServerSize size = default;
             RenderingSessionStatus status = default;
-            Optional<float> teraflops = default;
-            Optional<RemoteRenderingServiceError> error = default;
-            Optional<DateTimeOffset> creationTime = default;
+            float? teraflops = default;
+            RemoteRenderingServiceError error = default;
+            DateTimeOffset? creationTime = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("id"u8))
@@ -37,7 +40,6 @@ namespace Azure.MixedReality.RemoteRendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     arrInspectorPort = property.Value.GetInt32();
@@ -47,7 +49,6 @@ namespace Azure.MixedReality.RemoteRendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     handshakePort = property.Value.GetInt32();
@@ -57,7 +58,6 @@ namespace Azure.MixedReality.RemoteRendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     elapsedTimeMinutes = property.Value.GetInt32();
@@ -72,7 +72,6 @@ namespace Azure.MixedReality.RemoteRendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     maxLeaseTimeMinutes = property.Value.GetInt32();
@@ -92,7 +91,6 @@ namespace Azure.MixedReality.RemoteRendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     teraflops = property.Value.GetSingle();
@@ -112,14 +110,32 @@ namespace Azure.MixedReality.RemoteRendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     creationTime = property.Value.GetDateTimeOffset("O");
                     continue;
                 }
             }
-            return new RenderingSession(id, Optional.ToNullable(arrInspectorPort), Optional.ToNullable(handshakePort), Optional.ToNullable(elapsedTimeMinutes), hostname.Value, Optional.ToNullable(maxLeaseTimeMinutes), size, status, Optional.ToNullable(teraflops), error.Value, Optional.ToNullable(creationTime));
+            return new RenderingSession(
+                id,
+                arrInspectorPort,
+                handshakePort,
+                elapsedTimeMinutes,
+                hostname,
+                maxLeaseTimeMinutes,
+                size,
+                status,
+                teraflops,
+                error,
+                creationTime);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static RenderingSession FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeRenderingSession(document.RootElement);
         }
     }
 }

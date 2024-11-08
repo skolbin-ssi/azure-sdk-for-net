@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Search.Documents.Indexes.Models
 {
@@ -15,8 +14,12 @@ namespace Azure.Search.Documents.Indexes.Models
     {
         internal static SearchIndexerStatus DeserializeSearchIndexerStatus(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IndexerStatus status = default;
-            Optional<IndexerExecutionResult> lastResult = default;
+            IndexerExecutionResult lastResult = default;
             IReadOnlyList<IndexerExecutionResult> executionHistory = default;
             SearchIndexerLimits limits = default;
             foreach (var property in element.EnumerateObject())
@@ -52,7 +55,15 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new SearchIndexerStatus(status, lastResult.Value, executionHistory, limits);
+            return new SearchIndexerStatus(status, lastResult, executionHistory, limits);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SearchIndexerStatus FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSearchIndexerStatus(document.RootElement);
         }
     }
 }

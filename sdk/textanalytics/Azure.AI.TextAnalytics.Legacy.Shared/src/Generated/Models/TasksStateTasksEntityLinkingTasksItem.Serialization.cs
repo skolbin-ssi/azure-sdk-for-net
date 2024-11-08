@@ -7,8 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.AI.TextAnalytics.Legacy;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy.Models
 {
@@ -16,9 +14,13 @@ namespace Azure.AI.TextAnalytics.Legacy.Models
     {
         internal static TasksStateTasksEntityLinkingTasksItem DeserializeTasksStateTasksEntityLinkingTasksItem(JsonElement element)
         {
-            Optional<EntityLinkingResult> results = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            EntityLinkingResult results = default;
             DateTimeOffset lastUpdateDateTime = default;
-            Optional<string> taskName = default;
+            string taskName = default;
             State status = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -26,7 +28,6 @@ namespace Azure.AI.TextAnalytics.Legacy.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     results = EntityLinkingResult.DeserializeEntityLinkingResult(property.Value);
@@ -48,7 +49,15 @@ namespace Azure.AI.TextAnalytics.Legacy.Models
                     continue;
                 }
             }
-            return new TasksStateTasksEntityLinkingTasksItem(lastUpdateDateTime, taskName.Value, status, results.Value);
+            return new TasksStateTasksEntityLinkingTasksItem(lastUpdateDateTime, taskName, status, results);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new TasksStateTasksEntityLinkingTasksItem FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTasksStateTasksEntityLinkingTasksItem(document.RootElement);
         }
     }
 }

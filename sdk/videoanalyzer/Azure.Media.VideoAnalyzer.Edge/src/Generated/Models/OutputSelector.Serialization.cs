@@ -35,16 +35,19 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static OutputSelector DeserializeOutputSelector(JsonElement element)
         {
-            Optional<OutputSelectorProperty> property = default;
-            Optional<OutputSelectorOperator> @operator = default;
-            Optional<string> value = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            OutputSelectorProperty? property = default;
+            OutputSelectorOperator? @operator = default;
+            string value = default;
             foreach (var property0 in element.EnumerateObject())
             {
                 if (property0.NameEquals("property"u8))
                 {
                     if (property0.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property0.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     property = new OutputSelectorProperty(property0.Value.GetString());
@@ -54,7 +57,6 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 {
                     if (property0.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property0.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     @operator = new OutputSelectorOperator(property0.Value.GetString());
@@ -66,7 +68,23 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                     continue;
                 }
             }
-            return new OutputSelector(Optional.ToNullable(property), Optional.ToNullable(@operator), value.Value);
+            return new OutputSelector(property, @operator, value);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static OutputSelector FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeOutputSelector(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

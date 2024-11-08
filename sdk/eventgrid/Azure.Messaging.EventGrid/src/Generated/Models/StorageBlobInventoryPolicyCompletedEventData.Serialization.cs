@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,20 +16,23 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static StorageBlobInventoryPolicyCompletedEventData DeserializeStorageBlobInventoryPolicyCompletedEventData(JsonElement element)
         {
-            Optional<DateTimeOffset> scheduleDateTime = default;
-            Optional<string> accountName = default;
-            Optional<string> ruleName = default;
-            Optional<string> policyRunStatus = default;
-            Optional<string> policyRunStatusMessage = default;
-            Optional<string> policyRunId = default;
-            Optional<string> manifestBlobUrl = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            DateTimeOffset? scheduleDateTime = default;
+            string accountName = default;
+            string ruleName = default;
+            string policyRunStatus = default;
+            string policyRunStatusMessage = default;
+            string policyRunId = default;
+            string manifestBlobUrl = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("scheduleDateTime"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     scheduleDateTime = property.Value.GetDateTimeOffset("O");
@@ -67,7 +69,22 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new StorageBlobInventoryPolicyCompletedEventData(Optional.ToNullable(scheduleDateTime), accountName.Value, ruleName.Value, policyRunStatus.Value, policyRunStatusMessage.Value, policyRunId.Value, manifestBlobUrl.Value);
+            return new StorageBlobInventoryPolicyCompletedEventData(
+                scheduleDateTime,
+                accountName,
+                ruleName,
+                policyRunStatus,
+                policyRunStatusMessage,
+                policyRunId,
+                manifestBlobUrl);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static StorageBlobInventoryPolicyCompletedEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeStorageBlobInventoryPolicyCompletedEventData(document.RootElement);
         }
 
         internal partial class StorageBlobInventoryPolicyCompletedEventDataConverter : JsonConverter<StorageBlobInventoryPolicyCompletedEventData>
@@ -76,6 +93,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override StorageBlobInventoryPolicyCompletedEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -7,8 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Containers.ContainerRegistry.Specialized;
-using Azure.Core;
 
 namespace Azure.Containers.ContainerRegistry
 {
@@ -16,16 +14,19 @@ namespace Azure.Containers.ContainerRegistry
     {
         internal static OCIIndex DeserializeOCIIndex(JsonElement element)
         {
-            Optional<IReadOnlyList<ManifestListAttributes>> manifests = default;
-            Optional<OciAnnotations> annotations = default;
-            Optional<int> schemaVersion = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IReadOnlyList<ManifestListAttributes> manifests = default;
+            OciAnnotations annotations = default;
+            int? schemaVersion = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("manifests"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<ManifestListAttributes> array = new List<ManifestListAttributes>();
@@ -50,14 +51,21 @@ namespace Azure.Containers.ContainerRegistry
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     schemaVersion = property.Value.GetInt32();
                     continue;
                 }
             }
-            return new OCIIndex(Optional.ToNullable(schemaVersion), Optional.ToList(manifests), annotations.Value);
+            return new OCIIndex(schemaVersion, manifests ?? new ChangeTrackingList<ManifestListAttributes>(), annotations);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new OCIIndex FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeOCIIndex(document.RootElement);
         }
     }
 }

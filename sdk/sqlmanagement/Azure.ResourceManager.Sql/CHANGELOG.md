@@ -1,8 +1,10 @@
 # Release History
 
-## 1.3.0-beta.1 (Unreleased)
+## 1.3.0-beta.10 (Unreleased)
 
 ### Features Added
+
+- Exposed `JsonModelWriteCore` for model serialization procedure.
 
 ### Breaking Changes
 
@@ -10,13 +12,97 @@
 
 ### Other Changes
 
+## 1.3.0-beta.9 (2024-07-15)
+
+### Features Added
+
+- Upgraded api-version tag to latest 'composite-v5'. Tag detail available at https://github.com/Azure/azure-rest-api-specs/blob/f45a76fc39f033947ed12faf4b6416e1e19724cd/specification/sql/resource-manager/readme.md.
+
+### Other Changes
+
+- Upgraded Azure.Core from 1.39.0 to 1.40.0
+
+## 1.3.0-beta.8 (2024-05-07)
+
+### Bugs Fixed
+
+- Fixed bicep serialization of flattened properties.
+
+## 1.3.0-beta.7 (2024-04-29)
+
+### Features Added
+
+- Added `ArmOperation.Rehydrate` and `ArmOperation.Rehydrate<T>` static methods to rehydrate a long-running operation.
+
+## 1.3.0-beta.6 (2024-03-26)
+
+### Features Added
+
+- Added experimental Bicep serialization.
+
+## 1.3.0-beta.5 (2024-02-08)
+
+### Features Added
+
+- Enabled the new model serialization by using the System.ClientModel, refer this [document](https://aka.ms/azsdk/net/mrw) for more details.
+- Added TLS 1.3 to list of valid TLS versions. Also created custom classes needed since the type of MinimalTlsVersion was changed from String to Enum.
+
+## 1.3.0-beta.4 (2023-11-21)
+
+### Features Added
+
+- Enabled mocking for extension methods, refer this [document](https://aka.ms/azsdk/net/mocking) for more details.
+
+### Other Changes
+
+- Upgraded dependent `Azure.ResourceManager` to 1.9.0.
+
+## 1.3.0-beta.3 (2023-09-25)
+
+### Features Added
+
+- Unhide the `IsIPv6Enabled` parameter for server creation and updating.
+
+### Other Changes
+
+- Upgraded API version of Servers to `2023-02-01-preview`.
+
+## 1.3.0-beta.2 (2023-07-31)
+
+### Features Added
+
+- Supported Sql Elastic Pool creation and update with `PreferredEnclaveType`.
+
+## 1.3.0-beta.1 (2023-05-31)
+
+### Features Added
+
+- Enabled the model factory feature for model mocking, more information can be found [here](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-mocking-factory-builder).
+- Added support for `ManagedInstanceServerConfigurationOption`, `ManagedInstanceStartStopSchedule` and `ManagedLedgerDigestUpload` resources.
+- Added `filter` and `expand` parameters to `Get` and `Exists` methods of `RestorableDroppedDatabaseCollection` and `SqlDatabaseCollection`.
+- Added `filter` and `expand` parameters to `Get` methods of `RestorableDroppedDatabaseResource` and `SqlDatabaseResource`.
+- Added `RevalidateDatabaseEncryptionProtector` and `RevertDatabaseEncryptionProtector` methods to `SqlDatabaseResource`.
+
+### Other Changes
+
+- Upgraded dependent Azure.Core to 1.32.0.
+- Upgraded dependent Azure.ResourceManager to 1.6.0.
+- Upgraded API version of Instance Failover Groups to `2022-05-01-preview`.
+- Upgraded API version of Transparent Data Encryptions to `2022-08-01-preview`.
+- Upgraded API version of Servers to `2022-08-01-preview`.
+- Upgraded API version of Managed Instances to `2022-08-01-preview`.
+- Upgraded API version of Restorable Dropped Databases to `2022-08-01-preview`.
+- Upgraded API version of Managed Database Restore Details to `2022-05-01-preview`.
+- Upgraded API version of Managed Databases to `2022-05-01-preview`.
+- Upgraded API version of Databases to `2022-08-01-preview`.
+
 ## 1.2.0 (2023-01-16)
 
 ### Features Added
 
 - Supported Sql Database creation and update with `PreferredEnclaveType`.
 - Added methods `StartMove`, `CancelMove` and `CompleteMove` in ManagedDatabaseResource.
-- Added method `GetSynapseLinkWorkspaces` in SqlDatabaseResource. 
+- Added method `GetSynapseLinkWorkspaces` in SqlDatabaseResource.
 - Added new resources for Database SqlVulnerability Assessment related APIs.
 - Added new resources for Server SqlVulnerability Assessment related APIs.
 
@@ -73,12 +159,12 @@ Polishing since last public beta release:
 
 ### Features Added
 
-- Add Update methods in resource classes.
+- Added Update methods in resource classes.
 
 ### Breaking Changes
 
-- Rename private endpoint resource names with `Sql` prefix.
-- Rename `PrivateLinkServiceConnectionState` properties to `ConnectionState`.
+- Renamed private endpoint resource names with `Sql` prefix.
+- Renamed `PrivateLinkServiceConnectionState` properties to `ConnectionState`.
 
 ### Bugs Fixed
 

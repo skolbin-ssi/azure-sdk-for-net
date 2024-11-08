@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.IoT.TimeSeriesInsights
 {
@@ -14,15 +13,18 @@ namespace Azure.IoT.TimeSeriesInsights
     {
         internal static TimeSeriesHierarchyOperationResult DeserializeTimeSeriesHierarchyOperationResult(JsonElement element)
         {
-            Optional<TimeSeriesHierarchy> hierarchy = default;
-            Optional<TimeSeriesOperationError> error = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            TimeSeriesHierarchy hierarchy = default;
+            TimeSeriesOperationError error = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("hierarchy"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     hierarchy = TimeSeriesHierarchy.DeserializeTimeSeriesHierarchy(property.Value);
@@ -32,14 +34,21 @@ namespace Azure.IoT.TimeSeriesInsights
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     error = TimeSeriesOperationError.DeserializeTimeSeriesOperationError(property.Value);
                     continue;
                 }
             }
-            return new TimeSeriesHierarchyOperationResult(hierarchy.Value, error.Value);
+            return new TimeSeriesHierarchyOperationResult(hierarchy, error);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TimeSeriesHierarchyOperationResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTimeSeriesHierarchyOperationResult(document.RootElement);
         }
     }
 }

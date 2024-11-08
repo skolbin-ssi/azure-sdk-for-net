@@ -27,7 +27,11 @@ namespace Azure.AI.MetricsAdvisor.Models
 
         internal static AzureEventHubsParameter DeserializeAzureEventHubsParameter(JsonElement element)
         {
-            Optional<string> connectionString = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string connectionString = default;
             string consumerGroup = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -42,7 +46,23 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new AzureEventHubsParameter(connectionString.Value, consumerGroup);
+            return new AzureEventHubsParameter(connectionString, consumerGroup);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AzureEventHubsParameter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureEventHubsParameter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

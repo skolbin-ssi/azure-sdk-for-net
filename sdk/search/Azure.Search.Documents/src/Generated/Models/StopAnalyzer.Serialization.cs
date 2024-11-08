@@ -35,7 +35,11 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static StopAnalyzer DeserializeStopAnalyzer(JsonElement element)
         {
-            Optional<IList<string>> stopwords = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IList<string> stopwords = default;
             string odataType = default;
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -44,7 +48,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -66,7 +69,23 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new StopAnalyzer(odataType, name, Optional.ToList(stopwords));
+            return new StopAnalyzer(odataType, name, stopwords ?? new ChangeTrackingList<string>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new StopAnalyzer FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeStopAnalyzer(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

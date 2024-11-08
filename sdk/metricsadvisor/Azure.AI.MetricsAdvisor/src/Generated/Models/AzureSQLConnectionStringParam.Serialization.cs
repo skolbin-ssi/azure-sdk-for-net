@@ -25,7 +25,11 @@ namespace Azure.AI.MetricsAdvisor.Models
 
         internal static AzureSQLConnectionStringParam DeserializeAzureSQLConnectionStringParam(JsonElement element)
         {
-            Optional<string> connectionString = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string connectionString = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("connectionString"u8))
@@ -34,7 +38,23 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new AzureSQLConnectionStringParam(connectionString.Value);
+            return new AzureSQLConnectionStringParam(connectionString);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AzureSQLConnectionStringParam FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureSQLConnectionStringParam(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

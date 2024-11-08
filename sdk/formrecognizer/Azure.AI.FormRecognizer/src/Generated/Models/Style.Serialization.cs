@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.Models
 {
@@ -14,6 +13,10 @@ namespace Azure.AI.FormRecognizer.Models
     {
         internal static Style DeserializeStyle(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             TextStyleName name = default;
             float confidence = default;
             foreach (var property in element.EnumerateObject())
@@ -30,6 +33,14 @@ namespace Azure.AI.FormRecognizer.Models
                 }
             }
             return new Style(name, confidence);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static Style FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeStyle(document.RootElement);
         }
     }
 }

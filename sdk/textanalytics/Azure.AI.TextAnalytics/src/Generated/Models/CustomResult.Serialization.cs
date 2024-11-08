@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.AI.TextAnalytics;
 using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Models
@@ -38,8 +37,12 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static CustomResult DeserializeCustomResult(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IList<DocumentError> errors = default;
-            Optional<TextDocumentBatchStatistics> statistics = default;
+            TextDocumentBatchStatistics statistics = default;
             string projectName = default;
             string deploymentName = default;
             foreach (var property in element.EnumerateObject())
@@ -58,7 +61,6 @@ namespace Azure.AI.TextAnalytics.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     statistics = TextDocumentBatchStatistics.DeserializeTextDocumentBatchStatistics(property.Value);
@@ -75,7 +77,23 @@ namespace Azure.AI.TextAnalytics.Models
                     continue;
                 }
             }
-            return new CustomResult(errors, statistics.Value, projectName, deploymentName);
+            return new CustomResult(errors, statistics, projectName, deploymentName);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static CustomResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCustomResult(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

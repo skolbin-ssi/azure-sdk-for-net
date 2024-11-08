@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.DocumentAnalysis
 {
@@ -15,11 +14,15 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
     {
         internal static AnalyzeResultOperation DeserializeAnalyzeResultOperation(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             AnalyzeResultOperationStatus status = default;
             DateTimeOffset createdDateTime = default;
             DateTimeOffset lastUpdatedDateTime = default;
-            Optional<JsonElement> error = default;
-            Optional<AnalyzeResult> analyzeResult = default;
+            JsonElement error = default;
+            AnalyzeResult analyzeResult = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("status"u8))
@@ -46,14 +49,21 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     analyzeResult = AnalyzeResult.DeserializeAnalyzeResult(property.Value);
                     continue;
                 }
             }
-            return new AnalyzeResultOperation(status, createdDateTime, lastUpdatedDateTime, error, analyzeResult.Value);
+            return new AnalyzeResultOperation(status, createdDateTime, lastUpdatedDateTime, error, analyzeResult);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AnalyzeResultOperation FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAnalyzeResultOperation(document.RootElement);
         }
     }
 }

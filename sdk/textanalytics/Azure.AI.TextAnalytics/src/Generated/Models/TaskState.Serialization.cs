@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.AI.TextAnalytics;
 using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Models
@@ -26,6 +25,10 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static TaskState DeserializeTaskState(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             DateTimeOffset lastUpdateDateTime = default;
             TextAnalyticsOperationStatus status = default;
             foreach (var property in element.EnumerateObject())
@@ -42,6 +45,22 @@ namespace Azure.AI.TextAnalytics.Models
                 }
             }
             return new TaskState(lastUpdateDateTime, status);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TaskState FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTaskState(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

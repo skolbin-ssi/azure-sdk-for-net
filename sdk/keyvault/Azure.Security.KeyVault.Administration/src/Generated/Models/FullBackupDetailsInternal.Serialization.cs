@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Security.KeyVault.Administration.Models
 {
@@ -15,13 +14,17 @@ namespace Azure.Security.KeyVault.Administration.Models
     {
         internal static FullBackupDetailsInternal DeserializeFullBackupDetailsInternal(JsonElement element)
         {
-            Optional<string> status = default;
-            Optional<string> statusDetails = default;
-            Optional<KeyVaultServiceError> error = default;
-            Optional<DateTimeOffset> startTime = default;
-            Optional<DateTimeOffset?> endTime = default;
-            Optional<string> jobId = default;
-            Optional<string> azureStorageBlobContainerUri = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string status = default;
+            string statusDetails = default;
+            KeyVaultServiceError error = default;
+            DateTimeOffset? startTime = default;
+            DateTimeOffset? endTime = default;
+            string jobId = default;
+            string azureStorageBlobContainerUri = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("status"u8))
@@ -48,10 +51,9 @@ namespace Azure.Security.KeyVault.Administration.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    startTime = property.Value.GetDateTimeOffset("U");
+                    startTime = DateTimeOffset.FromUnixTimeSeconds(property.Value.GetInt64());
                     continue;
                 }
                 if (property.NameEquals("endTime"u8))
@@ -61,7 +63,7 @@ namespace Azure.Security.KeyVault.Administration.Models
                         endTime = null;
                         continue;
                     }
-                    endTime = property.Value.GetDateTimeOffset("U");
+                    endTime = DateTimeOffset.FromUnixTimeSeconds(property.Value.GetInt64());
                     continue;
                 }
                 if (property.NameEquals("jobId"u8))
@@ -75,7 +77,22 @@ namespace Azure.Security.KeyVault.Administration.Models
                     continue;
                 }
             }
-            return new FullBackupDetailsInternal(status.Value, statusDetails.Value, error.Value, Optional.ToNullable(startTime), Optional.ToNullable(endTime), jobId.Value, azureStorageBlobContainerUri.Value);
+            return new FullBackupDetailsInternal(
+                status,
+                statusDetails,
+                error,
+                startTime,
+                endTime,
+                jobId,
+                azureStorageBlobContainerUri);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static FullBackupDetailsInternal FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeFullBackupDetailsInternal(document.RootElement);
         }
     }
 }

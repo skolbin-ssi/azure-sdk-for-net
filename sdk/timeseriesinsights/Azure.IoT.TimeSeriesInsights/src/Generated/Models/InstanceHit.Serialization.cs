@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.IoT.TimeSeriesInsights
 {
@@ -15,24 +14,34 @@ namespace Azure.IoT.TimeSeriesInsights
     {
         internal static InstanceHit DeserializeInstanceHit(JsonElement element)
         {
-            Optional<IReadOnlyList<object>> timeSeriesId = default;
-            Optional<string> name = default;
-            Optional<string> typeId = default;
-            Optional<IReadOnlyList<string>> hierarchyIds = default;
-            Optional<InstanceHitHighlights> highlights = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IReadOnlyList<object> timeSeriesId = default;
+            string name = default;
+            string typeId = default;
+            IReadOnlyList<string> hierarchyIds = default;
+            InstanceHitHighlights highlights = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("timeSeriesId"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<object> array = new List<object>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(item.GetObject());
+                        if (item.ValueKind == JsonValueKind.Null)
+                        {
+                            array.Add(null);
+                        }
+                        else
+                        {
+                            array.Add(item.GetObject());
+                        }
                     }
                     timeSeriesId = array;
                     continue;
@@ -51,7 +60,6 @@ namespace Azure.IoT.TimeSeriesInsights
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -66,14 +74,21 @@ namespace Azure.IoT.TimeSeriesInsights
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     highlights = InstanceHitHighlights.DeserializeInstanceHitHighlights(property.Value);
                     continue;
                 }
             }
-            return new InstanceHit(Optional.ToList(timeSeriesId), name.Value, typeId.Value, Optional.ToList(hierarchyIds), highlights.Value);
+            return new InstanceHit(timeSeriesId ?? new ChangeTrackingList<object>(), name, typeId, hierarchyIds ?? new ChangeTrackingList<string>(), highlights);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static InstanceHit FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeInstanceHit(document.RootElement);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             writer.WritePropertyName("password"u8);
             writer.WriteObjectValue(Password);
             writer.WritePropertyName("url"u8);
-            writer.WriteObjectValue(Url);
+            writer.WriteObjectValue<object>(Url);
             writer.WritePropertyName("authenticationType"u8);
             writer.WriteStringValue(AuthenticationType.ToString());
             writer.WriteEndObject();
@@ -31,6 +31,10 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static WebClientCertificateAuthentication DeserializeWebClientCertificateAuthentication(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             SecretBase pfx = default;
             SecretBase password = default;
             object url = default;
@@ -61,12 +65,29 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             return new WebClientCertificateAuthentication(url, authenticationType, pfx, password);
         }
 
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new WebClientCertificateAuthentication FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeWebClientCertificateAuthentication(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
+        }
+
         internal partial class WebClientCertificateAuthenticationConverter : JsonConverter<WebClientCertificateAuthentication>
         {
             public override void Write(Utf8JsonWriter writer, WebClientCertificateAuthentication model, JsonSerializerOptions options)
             {
                 writer.WriteObjectValue(model);
             }
+
             public override WebClientCertificateAuthentication Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

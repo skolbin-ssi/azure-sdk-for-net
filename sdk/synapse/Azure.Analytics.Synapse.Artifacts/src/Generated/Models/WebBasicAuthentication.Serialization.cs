@@ -19,11 +19,11 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
         {
             writer.WriteStartObject();
             writer.WritePropertyName("username"u8);
-            writer.WriteObjectValue(Username);
+            writer.WriteObjectValue<object>(Username);
             writer.WritePropertyName("password"u8);
             writer.WriteObjectValue(Password);
             writer.WritePropertyName("url"u8);
-            writer.WriteObjectValue(Url);
+            writer.WriteObjectValue<object>(Url);
             writer.WritePropertyName("authenticationType"u8);
             writer.WriteStringValue(AuthenticationType.ToString());
             writer.WriteEndObject();
@@ -31,6 +31,10 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static WebBasicAuthentication DeserializeWebBasicAuthentication(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             object username = default;
             SecretBase password = default;
             object url = default;
@@ -61,12 +65,29 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             return new WebBasicAuthentication(url, authenticationType, username, password);
         }
 
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new WebBasicAuthentication FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeWebBasicAuthentication(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
+        }
+
         internal partial class WebBasicAuthenticationConverter : JsonConverter<WebBasicAuthentication>
         {
             public override void Write(Utf8JsonWriter writer, WebBasicAuthentication model, JsonSerializerOptions options)
             {
                 writer.WriteObjectValue(model);
             }
+
             public override WebBasicAuthentication Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

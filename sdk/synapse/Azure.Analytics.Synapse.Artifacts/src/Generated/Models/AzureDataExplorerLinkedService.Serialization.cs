@@ -48,18 +48,23 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WriteStartArray();
                 foreach (var item in Annotations)
                 {
-                    writer.WriteObjectValue(item);
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item);
                 }
                 writer.WriteEndArray();
             }
             writer.WritePropertyName("typeProperties"u8);
             writer.WriteStartObject();
             writer.WritePropertyName("endpoint"u8);
-            writer.WriteObjectValue(Endpoint);
+            writer.WriteObjectValue<object>(Endpoint);
             if (Optional.IsDefined(ServicePrincipalId))
             {
                 writer.WritePropertyName("servicePrincipalId"u8);
-                writer.WriteObjectValue(ServicePrincipalId);
+                writer.WriteObjectValue<object>(ServicePrincipalId);
             }
             if (Optional.IsDefined(ServicePrincipalKey))
             {
@@ -67,33 +72,43 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WriteObjectValue(ServicePrincipalKey);
             }
             writer.WritePropertyName("database"u8);
-            writer.WriteObjectValue(Database);
+            writer.WriteObjectValue<object>(Database);
             if (Optional.IsDefined(Tenant))
             {
                 writer.WritePropertyName("tenant"u8);
-                writer.WriteObjectValue(Tenant);
+                writer.WriteObjectValue<object>(Tenant);
+            }
+            if (Optional.IsDefined(Credential))
+            {
+                writer.WritePropertyName("credential"u8);
+                writer.WriteObjectValue(Credential);
             }
             writer.WriteEndObject();
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static AzureDataExplorerLinkedService DeserializeAzureDataExplorerLinkedService(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = default;
-            Optional<IntegrationRuntimeReference> connectVia = default;
-            Optional<string> description = default;
-            Optional<IDictionary<string, ParameterSpecification>> parameters = default;
-            Optional<IList<object>> annotations = default;
+            IntegrationRuntimeReference connectVia = default;
+            string description = default;
+            IDictionary<string, ParameterSpecification> parameters = default;
+            IList<object> annotations = default;
             object endpoint = default;
-            Optional<object> servicePrincipalId = default;
-            Optional<SecretBase> servicePrincipalKey = default;
+            object servicePrincipalId = default;
+            SecretBase servicePrincipalKey = default;
             object database = default;
-            Optional<object> tenant = default;
+            object tenant = default;
+            CredentialReference credential = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -107,7 +122,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     connectVia = IntegrationRuntimeReference.DeserializeIntegrationRuntimeReference(property.Value);
@@ -122,7 +136,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, ParameterSpecification> dictionary = new Dictionary<string, ParameterSpecification>();
@@ -137,13 +150,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<object> array = new List<object>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(item.GetObject());
+                        if (item.ValueKind == JsonValueKind.Null)
+                        {
+                            array.Add(null);
+                        }
+                        else
+                        {
+                            array.Add(item.GetObject());
+                        }
                     }
                     annotations = array;
                     continue;
@@ -166,7 +185,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             servicePrincipalId = property0.Value.GetObject();
@@ -176,7 +194,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             servicePrincipalKey = SecretBase.DeserializeSecretBase(property0.Value);
@@ -191,10 +208,18 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             tenant = property0.Value.GetObject();
+                            continue;
+                        }
+                        if (property0.NameEquals("credential"u8))
+                        {
+                            if (property0.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                continue;
+                            }
+                            credential = CredentialReference.DeserializeCredentialReference(property0.Value);
                             continue;
                         }
                     }
@@ -203,7 +228,35 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new AzureDataExplorerLinkedService(type, connectVia.Value, description.Value, Optional.ToDictionary(parameters), Optional.ToList(annotations), additionalProperties, endpoint, servicePrincipalId.Value, servicePrincipalKey.Value, database, tenant.Value);
+            return new AzureDataExplorerLinkedService(
+                type,
+                connectVia,
+                description,
+                parameters ?? new ChangeTrackingDictionary<string, ParameterSpecification>(),
+                annotations ?? new ChangeTrackingList<object>(),
+                additionalProperties,
+                endpoint,
+                servicePrincipalId,
+                servicePrincipalKey,
+                database,
+                tenant,
+                credential);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AzureDataExplorerLinkedService FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureDataExplorerLinkedService(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class AzureDataExplorerLinkedServiceConverter : JsonConverter<AzureDataExplorerLinkedService>
@@ -212,6 +265,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override AzureDataExplorerLinkedService Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

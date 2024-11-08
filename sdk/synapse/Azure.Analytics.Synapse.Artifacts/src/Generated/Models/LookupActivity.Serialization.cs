@@ -38,6 +38,16 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WritePropertyName("description"u8);
                 writer.WriteStringValue(Description);
             }
+            if (Optional.IsDefined(State))
+            {
+                writer.WritePropertyName("state"u8);
+                writer.WriteStringValue(State.Value.ToString());
+            }
+            if (Optional.IsDefined(OnInactiveMarkAs))
+            {
+                writer.WritePropertyName("onInactiveMarkAs"u8);
+                writer.WriteStringValue(OnInactiveMarkAs.Value.ToString());
+            }
             if (Optional.IsCollectionDefined(DependsOn))
             {
                 writer.WritePropertyName("dependsOn"u8);
@@ -67,29 +77,35 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(FirstRowOnly))
             {
                 writer.WritePropertyName("firstRowOnly"u8);
-                writer.WriteObjectValue(FirstRowOnly);
+                writer.WriteObjectValue<object>(FirstRowOnly);
             }
             writer.WriteEndObject();
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static LookupActivity DeserializeLookupActivity(JsonElement element)
         {
-            Optional<LinkedServiceReference> linkedServiceName = default;
-            Optional<ActivityPolicy> policy = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            LinkedServiceReference linkedServiceName = default;
+            ActivityPolicy policy = default;
             string name = default;
             string type = default;
-            Optional<string> description = default;
-            Optional<IList<ActivityDependency>> dependsOn = default;
-            Optional<IList<UserProperty>> userProperties = default;
+            string description = default;
+            ActivityState? state = default;
+            ActivityOnInactiveMarkAs? onInactiveMarkAs = default;
+            IList<ActivityDependency> dependsOn = default;
+            IList<UserProperty> userProperties = default;
             CopySource source = default;
             DatasetReference dataset = default;
-            Optional<object> firstRowOnly = default;
+            object firstRowOnly = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -98,7 +114,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     linkedServiceName = LinkedServiceReference.DeserializeLinkedServiceReference(property.Value);
@@ -108,7 +123,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     policy = ActivityPolicy.DeserializeActivityPolicy(property.Value);
@@ -129,11 +143,28 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     description = property.Value.GetString();
                     continue;
                 }
+                if (property.NameEquals("state"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    state = new ActivityState(property.Value.GetString());
+                    continue;
+                }
+                if (property.NameEquals("onInactiveMarkAs"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    onInactiveMarkAs = new ActivityOnInactiveMarkAs(property.Value.GetString());
+                    continue;
+                }
                 if (property.NameEquals("dependsOn"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<ActivityDependency> array = new List<ActivityDependency>();
@@ -148,7 +179,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<UserProperty> array = new List<UserProperty>();
@@ -182,7 +212,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             firstRowOnly = property0.Value.GetObject();
@@ -194,7 +223,36 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new LookupActivity(name, type, description.Value, Optional.ToList(dependsOn), Optional.ToList(userProperties), additionalProperties, linkedServiceName.Value, policy.Value, source, dataset, firstRowOnly.Value);
+            return new LookupActivity(
+                name,
+                type,
+                description,
+                state,
+                onInactiveMarkAs,
+                dependsOn ?? new ChangeTrackingList<ActivityDependency>(),
+                userProperties ?? new ChangeTrackingList<UserProperty>(),
+                additionalProperties,
+                linkedServiceName,
+                policy,
+                source,
+                dataset,
+                firstRowOnly);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new LookupActivity FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeLookupActivity(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class LookupActivityConverter : JsonConverter<LookupActivity>
@@ -203,6 +261,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override LookupActivity Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

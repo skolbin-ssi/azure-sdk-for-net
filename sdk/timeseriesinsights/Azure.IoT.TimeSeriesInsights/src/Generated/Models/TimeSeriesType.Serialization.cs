@@ -41,9 +41,13 @@ namespace Azure.IoT.TimeSeriesInsights
 
         internal static TimeSeriesType DeserializeTimeSeriesType(JsonElement element)
         {
-            Optional<string> id = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string id = default;
             string name = default;
-            Optional<string> description = default;
+            string description = default;
             IDictionary<string, TimeSeriesVariable> variables = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -73,7 +77,23 @@ namespace Azure.IoT.TimeSeriesInsights
                     continue;
                 }
             }
-            return new TimeSeriesType(id.Value, name, description.Value, variables);
+            return new TimeSeriesType(id, name, description, variables);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TimeSeriesType FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTimeSeriesType(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

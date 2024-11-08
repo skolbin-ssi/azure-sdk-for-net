@@ -69,14 +69,14 @@ namespace Azure.Search.Documents.Indexes.Models
             writer.WriteStartArray();
             foreach (var item in Inputs)
             {
-                writer.WriteObjectValue(item);
+                writer.WriteObjectValue<InputFieldMappingEntry>(item);
             }
             writer.WriteEndArray();
             writer.WritePropertyName("outputs"u8);
             writer.WriteStartArray();
             foreach (var item in Outputs)
             {
-                writer.WriteObjectValue(item);
+                writer.WriteObjectValue<OutputFieldMappingEntry>(item);
             }
             writer.WriteEndArray();
             writer.WriteEndObject();
@@ -84,13 +84,17 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static ImageAnalysisSkill DeserializeImageAnalysisSkill(JsonElement element)
         {
-            Optional<ImageAnalysisSkillLanguage?> defaultLanguageCode = default;
-            Optional<IList<VisualFeature>> visualFeatures = default;
-            Optional<IList<ImageDetail>> details = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            ImageAnalysisSkillLanguage? defaultLanguageCode = default;
+            IList<VisualFeature> visualFeatures = default;
+            IList<ImageDetail> details = default;
             string odataType = default;
-            Optional<string> name = default;
-            Optional<string> description = default;
-            Optional<string> context = default;
+            string name = default;
+            string description = default;
+            string context = default;
             IList<InputFieldMappingEntry> inputs = default;
             IList<OutputFieldMappingEntry> outputs = default;
             foreach (var property in element.EnumerateObject())
@@ -109,7 +113,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<VisualFeature> array = new List<VisualFeature>();
@@ -124,7 +127,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<ImageDetail> array = new List<ImageDetail>();
@@ -176,7 +178,32 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new ImageAnalysisSkill(odataType, name.Value, description.Value, context.Value, inputs, outputs, Optional.ToNullable(defaultLanguageCode), Optional.ToList(visualFeatures), Optional.ToList(details));
+            return new ImageAnalysisSkill(
+                odataType,
+                name,
+                description,
+                context,
+                inputs,
+                outputs,
+                defaultLanguageCode,
+                visualFeatures ?? new ChangeTrackingList<VisualFeature>(),
+                details ?? new ChangeTrackingList<ImageDetail>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new ImageAnalysisSkill FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeImageAnalysisSkill(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

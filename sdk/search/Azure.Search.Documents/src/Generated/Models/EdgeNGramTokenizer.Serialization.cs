@@ -45,9 +45,13 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static EdgeNGramTokenizer DeserializeEdgeNGramTokenizer(JsonElement element)
         {
-            Optional<int> minGram = default;
-            Optional<int> maxGram = default;
-            Optional<IList<TokenCharacterKind>> tokenChars = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? minGram = default;
+            int? maxGram = default;
+            IList<TokenCharacterKind> tokenChars = default;
             string odataType = default;
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -56,7 +60,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     minGram = property.Value.GetInt32();
@@ -66,7 +69,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     maxGram = property.Value.GetInt32();
@@ -76,7 +78,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<TokenCharacterKind> array = new List<TokenCharacterKind>();
@@ -98,7 +99,23 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new EdgeNGramTokenizer(odataType, name, Optional.ToNullable(minGram), Optional.ToNullable(maxGram), Optional.ToList(tokenChars));
+            return new EdgeNGramTokenizer(odataType, name, minGram, maxGram, tokenChars ?? new ChangeTrackingList<TokenCharacterKind>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new EdgeNGramTokenizer FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeEdgeNGramTokenizer(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

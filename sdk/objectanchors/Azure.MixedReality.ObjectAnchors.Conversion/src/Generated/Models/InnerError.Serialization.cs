@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.MixedReality.ObjectAnchors.Conversion.Models
 {
@@ -14,8 +13,12 @@ namespace Azure.MixedReality.ObjectAnchors.Conversion.Models
     {
         internal static InnerError DeserializeInnerError(JsonElement element)
         {
-            Optional<string> code = default;
-            Optional<InnerError> innererror = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string code = default;
+            InnerError innererror = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("code"u8))
@@ -27,14 +30,21 @@ namespace Azure.MixedReality.ObjectAnchors.Conversion.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     innererror = DeserializeInnerError(property.Value);
                     continue;
                 }
             }
-            return new InnerError(code.Value, innererror.Value);
+            return new InnerError(code, innererror);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static InnerError FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeInnerError(document.RootElement);
         }
     }
 }

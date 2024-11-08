@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Azure.Core;
 
@@ -191,19 +192,25 @@ namespace Azure.Identity
         public string WorkloadIdentityClientId { get; set; } = EnvironmentVariables.ClientId;
 
         /// <summary>
-        /// Specifies the client id of a user assigned ManagedIdentity. If this value is configured, then <see cref="ManagedIdentityResourceId"/> should not be configured.
+        /// Specifies the client ID of a user-assigned managed identity. If this value is configured, then <see cref="ManagedIdentityResourceId"/> should not be configured.
         /// </summary>
+        /// <remarks>
+        /// If neither the <see cref="ManagedIdentityClientId"/> nor the <see cref="ManagedIdentityResourceId"/> property is set, then a system-assigned managed identity is used.
+        /// </remarks>
         public string ManagedIdentityClientId { get; set; } = EnvironmentVariables.ClientId;
 
         /// <summary>
-        /// Specifies the resource id of a user assigned ManagedIdentity. If this value is configured, then <see cref="ManagedIdentityClientId"/> should not be configured.
+        /// Specifies the resource ID of a user-assigned managed identity. If this value is configured, then <see cref="ManagedIdentityClientId"/> should not be configured.
         /// </summary>
+        /// <remarks>
+        /// If neither the <see cref="ManagedIdentityClientId"/> nor the <see cref="ManagedIdentityResourceId"/> property is set, then a system-assigned managed identity is used.
+        /// </remarks>
         public ResourceIdentifier ManagedIdentityResourceId { get; set; }
 
         /// <summary>
-        /// Specifies timeout for Developer credentials. e.g. Visual Studio, Azure CLI, Azure Powershell.
+        /// Specifies timeout for credentials invoked via sub-process. e.g. Visual Studio, Azure CLI, Azure PowerShell.
         /// </summary>
-        public TimeSpan? DeveloperCredentialTimeout { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan? CredentialProcessTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// Specifies whether the <see cref="EnvironmentCredential"/> will be excluded from the authentication flow. Setting to true disables reading
@@ -266,7 +273,9 @@ namespace Azure.Identity
         /// <inheriteddoc/>
         public bool DisableInstanceDiscovery { get; set; }
 
-        internal override T Clone<T>()
+        internal bool IsForceRefreshEnabled { get; set; }
+
+        internal override T Clone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>()
         {
             var clone = base.Clone<T>();
 
@@ -282,7 +291,7 @@ namespace Azure.Identity
                 dacClone.WorkloadIdentityClientId = WorkloadIdentityClientId;
                 dacClone.ManagedIdentityClientId = ManagedIdentityClientId;
                 dacClone.ManagedIdentityResourceId = ManagedIdentityResourceId;
-                dacClone.DeveloperCredentialTimeout = DeveloperCredentialTimeout;
+                dacClone.CredentialProcessTimeout = CredentialProcessTimeout;
                 dacClone.ExcludeEnvironmentCredential = ExcludeEnvironmentCredential;
                 dacClone.ExcludeWorkloadIdentityCredential = ExcludeWorkloadIdentityCredential;
                 dacClone.ExcludeManagedIdentityCredential = ExcludeManagedIdentityCredential;
@@ -293,6 +302,7 @@ namespace Azure.Identity
                 dacClone.ExcludeVisualStudioCredential = ExcludeVisualStudioCredential;
                 dacClone.ExcludeVisualStudioCodeCredential = ExcludeVisualStudioCodeCredential;
                 dacClone.ExcludeAzurePowerShellCredential = ExcludeAzurePowerShellCredential;
+                dacClone.IsForceRefreshEnabled = IsForceRefreshEnabled;
             }
 
             return clone;

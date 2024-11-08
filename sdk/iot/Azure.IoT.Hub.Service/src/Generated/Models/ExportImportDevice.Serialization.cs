@@ -62,7 +62,12 @@ namespace Azure.IoT.Hub.Service.Models
                 foreach (var item in Tags)
                 {
                     writer.WritePropertyName(item.Key);
-                    writer.WriteObjectValue(item.Value);
+                    if (item.Value == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item.Value);
                 }
                 writer.WriteEndObject();
             }
@@ -82,6 +87,14 @@ namespace Azure.IoT.Hub.Service.Models
                 writer.WriteStringValue(DeviceScope);
             }
             writer.WriteEndObject();
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

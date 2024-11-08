@@ -7,11 +7,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Azure;
 using Azure.Core;
 using Azure.Identity;
-using Azure.ResourceManager;
-using Azure.ResourceManager.Monitor;
 using Azure.ResourceManager.Monitor.Models;
 using Azure.ResourceManager.Resources;
 
@@ -24,7 +21,7 @@ namespace Azure.ResourceManager.Monitor.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task GetDataCollectionEndpoints_ListDataCollectionEndpointsBySubscription()
         {
-            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/preview/2021-09-01-preview/examples/DataCollectionEndpointsListBySubscription.json
+            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/examples/DataCollectionEndpointsListBySubscription.json
             // this example is just showing the usage of "DataCollectionEndpoints_ListBySubscription" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -56,7 +53,7 @@ namespace Azure.ResourceManager.Monitor.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Get_GetDataCollectionEndpoint()
         {
-            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/preview/2021-09-01-preview/examples/DataCollectionEndpointsGet.json
+            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/examples/DataCollectionEndpointsGet.json
             // this example is just showing the usage of "DataCollectionEndpoints_Get" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -87,7 +84,7 @@ namespace Azure.ResourceManager.Monitor.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Update_UpdateDataCollectionEndpoint()
         {
-            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/preview/2021-09-01-preview/examples/DataCollectionEndpointsUpdate.json
+            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/examples/DataCollectionEndpointsUpdate.json
             // this example is just showing the usage of "DataCollectionEndpoints_Update" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -127,7 +124,7 @@ namespace Azure.ResourceManager.Monitor.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Delete_DeleteDataCollectionEndpoint()
         {
-            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/preview/2021-09-01-preview/examples/DataCollectionEndpointsDelete.json
+            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/examples/DataCollectionEndpointsDelete.json
             // this example is just showing the usage of "DataCollectionEndpoints_Delete" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -154,7 +151,7 @@ namespace Azure.ResourceManager.Monitor.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task GetDataCollectionRuleAssociations_ListAssociationsForSpecifiedDataCollectionEndpoint()
         {
-            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/preview/2021-09-01-preview/examples/DataCollectionRuleAssociationsListByDataCollectionEndpoint.json
+            // Generated from example definition: specification/monitor/resource-manager/Microsoft.Insights/stable/2022-06-01/examples/DataCollectionRuleAssociationsListByDataCollectionEndpoint.json
             // this example is just showing the usage of "DataCollectionRuleAssociations_ListByDataCollectionEndpoint" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line

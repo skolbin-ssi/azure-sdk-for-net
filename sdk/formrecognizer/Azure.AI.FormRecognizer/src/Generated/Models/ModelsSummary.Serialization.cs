@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.Models
 {
@@ -15,6 +14,10 @@ namespace Azure.AI.FormRecognizer.Models
     {
         internal static ModelsSummary DeserializeModelsSummary(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             int count = default;
             int limit = default;
             DateTimeOffset lastUpdatedDateTime = default;
@@ -37,6 +40,14 @@ namespace Azure.AI.FormRecognizer.Models
                 }
             }
             return new ModelsSummary(count, limit, lastUpdatedDateTime);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ModelsSummary FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeModelsSummary(document.RootElement);
         }
     }
 }

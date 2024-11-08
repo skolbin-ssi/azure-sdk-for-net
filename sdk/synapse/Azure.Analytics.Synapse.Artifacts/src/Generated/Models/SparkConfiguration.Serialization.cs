@@ -73,13 +73,17 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static SparkConfiguration DeserializeSparkConfiguration(JsonElement element)
         {
-            Optional<string> description = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string description = default;
             IDictionary<string, string> configs = default;
-            Optional<IList<string>> annotations = default;
-            Optional<string> notes = default;
-            Optional<string> createdBy = default;
-            Optional<DateTimeOffset> created = default;
-            Optional<IDictionary<string, string>> configMergeRule = default;
+            IList<string> annotations = default;
+            string notes = default;
+            string createdBy = default;
+            DateTimeOffset? created = default;
+            IDictionary<string, string> configMergeRule = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("description"u8))
@@ -101,7 +105,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -126,7 +129,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     created = property.Value.GetDateTimeOffset("O");
@@ -136,7 +138,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
@@ -148,7 +149,30 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new SparkConfiguration(description.Value, configs, Optional.ToList(annotations), notes.Value, createdBy.Value, Optional.ToNullable(created), Optional.ToDictionary(configMergeRule));
+            return new SparkConfiguration(
+                description,
+                configs,
+                annotations ?? new ChangeTrackingList<string>(),
+                notes,
+                createdBy,
+                created,
+                configMergeRule ?? new ChangeTrackingDictionary<string, string>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SparkConfiguration FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSparkConfiguration(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class SparkConfigurationConverter : JsonConverter<SparkConfiguration>
@@ -157,6 +181,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override SparkConfiguration Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -116,35 +116,38 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static Workspace DeserializeWorkspace(JsonElement element)
         {
-            Optional<ManagedIdentity> identity = default;
-            Optional<IDictionary<string, string>> tags = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            ManagedIdentity identity = default;
+            IDictionary<string, string> tags = default;
             string location = default;
-            Optional<string> id = default;
-            Optional<string> name = default;
-            Optional<string> type = default;
-            Optional<DataLakeStorageAccountDetails> defaultDataLakeStorage = default;
-            Optional<string> sqlAdministratorLoginPassword = default;
-            Optional<string> managedResourceGroupName = default;
-            Optional<string> provisioningState = default;
-            Optional<string> sqlAdministratorLogin = default;
-            Optional<VirtualNetworkProfile> virtualNetworkProfile = default;
-            Optional<IDictionary<string, string>> connectivityEndpoints = default;
-            Optional<string> managedVirtualNetwork = default;
-            Optional<IList<PrivateEndpointConnection>> privateEndpointConnections = default;
-            Optional<EncryptionDetails> encryption = default;
-            Optional<Guid> workspaceUID = default;
-            Optional<IReadOnlyDictionary<string, object>> extraProperties = default;
-            Optional<ManagedVirtualNetworkSettings> managedVirtualNetworkSettings = default;
-            Optional<WorkspaceRepositoryConfiguration> workspaceRepositoryConfiguration = default;
-            Optional<PurviewConfiguration> purviewConfiguration = default;
-            Optional<string> adlaResourceId = default;
+            string id = default;
+            string name = default;
+            string type = default;
+            DataLakeStorageAccountDetails defaultDataLakeStorage = default;
+            string sqlAdministratorLoginPassword = default;
+            string managedResourceGroupName = default;
+            string provisioningState = default;
+            string sqlAdministratorLogin = default;
+            VirtualNetworkProfile virtualNetworkProfile = default;
+            IDictionary<string, string> connectivityEndpoints = default;
+            string managedVirtualNetwork = default;
+            IList<PrivateEndpointConnection> privateEndpointConnections = default;
+            EncryptionDetails encryption = default;
+            Guid? workspaceUID = default;
+            IReadOnlyDictionary<string, object> extraProperties = default;
+            ManagedVirtualNetworkSettings managedVirtualNetworkSettings = default;
+            WorkspaceRepositoryConfiguration workspaceRepositoryConfiguration = default;
+            PurviewConfiguration purviewConfiguration = default;
+            string adlaResourceId = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("identity"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     identity = ManagedIdentity.DeserializeManagedIdentity(property.Value);
@@ -154,7 +157,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
@@ -198,7 +200,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             defaultDataLakeStorage = DataLakeStorageAccountDetails.DeserializeDataLakeStorageAccountDetails(property0.Value);
@@ -228,7 +229,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             virtualNetworkProfile = VirtualNetworkProfile.DeserializeVirtualNetworkProfile(property0.Value);
@@ -238,7 +238,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             Dictionary<string, string> dictionary = new Dictionary<string, string>();
@@ -258,7 +257,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             List<PrivateEndpointConnection> array = new List<PrivateEndpointConnection>();
@@ -273,7 +271,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             encryption = EncryptionDetails.DeserializeEncryptionDetails(property0.Value);
@@ -283,7 +280,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             workspaceUID = property0.Value.GetGuid();
@@ -293,13 +289,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             Dictionary<string, object> dictionary = new Dictionary<string, object>();
                             foreach (var property1 in property0.Value.EnumerateObject())
                             {
-                                dictionary.Add(property1.Name, property1.Value.GetObject());
+                                if (property1.Value.ValueKind == JsonValueKind.Null)
+                                {
+                                    dictionary.Add(property1.Name, null);
+                                }
+                                else
+                                {
+                                    dictionary.Add(property1.Name, property1.Value.GetObject());
+                                }
                             }
                             extraProperties = dictionary;
                             continue;
@@ -308,7 +310,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             managedVirtualNetworkSettings = ManagedVirtualNetworkSettings.DeserializeManagedVirtualNetworkSettings(property0.Value);
@@ -318,7 +319,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             workspaceRepositoryConfiguration = WorkspaceRepositoryConfiguration.DeserializeWorkspaceRepositoryConfiguration(property0.Value);
@@ -328,7 +328,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             purviewConfiguration = PurviewConfiguration.DeserializePurviewConfiguration(property0.Value);
@@ -343,7 +342,45 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new Workspace(id.Value, name.Value, type.Value, Optional.ToDictionary(tags), location, identity.Value, defaultDataLakeStorage.Value, sqlAdministratorLoginPassword.Value, managedResourceGroupName.Value, provisioningState.Value, sqlAdministratorLogin.Value, virtualNetworkProfile.Value, Optional.ToDictionary(connectivityEndpoints), managedVirtualNetwork.Value, Optional.ToList(privateEndpointConnections), encryption.Value, Optional.ToNullable(workspaceUID), Optional.ToDictionary(extraProperties), managedVirtualNetworkSettings.Value, workspaceRepositoryConfiguration.Value, purviewConfiguration.Value, adlaResourceId.Value);
+            return new Workspace(
+                id,
+                name,
+                type,
+                tags ?? new ChangeTrackingDictionary<string, string>(),
+                location,
+                identity,
+                defaultDataLakeStorage,
+                sqlAdministratorLoginPassword,
+                managedResourceGroupName,
+                provisioningState,
+                sqlAdministratorLogin,
+                virtualNetworkProfile,
+                connectivityEndpoints ?? new ChangeTrackingDictionary<string, string>(),
+                managedVirtualNetwork,
+                privateEndpointConnections ?? new ChangeTrackingList<PrivateEndpointConnection>(),
+                encryption,
+                workspaceUID,
+                extraProperties ?? new ChangeTrackingDictionary<string, object>(),
+                managedVirtualNetworkSettings,
+                workspaceRepositoryConfiguration,
+                purviewConfiguration,
+                adlaResourceId);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new Workspace FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeWorkspace(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class WorkspaceConverter : JsonConverter<Workspace>
@@ -352,6 +389,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override Workspace Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -6,8 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Communication;
-using Azure.Core;
 
 namespace Azure.Communication.CallAutomation
 {
@@ -15,14 +13,41 @@ namespace Azure.Communication.CallAutomation
     {
         internal static AddParticipantSucceededInternal DeserializeAddParticipantSucceededInternal(JsonElement element)
         {
-            Optional<string> callConnectionId = default;
-            Optional<string> serverCallId = default;
-            Optional<string> correlationId = default;
-            Optional<string> operationContext = default;
-            Optional<ResultInformation> resultInformation = default;
-            Optional<CommunicationIdentifierModel> participant = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string operationContext = default;
+            ResultInformation resultInformation = default;
+            CommunicationIdentifierModel participant = default;
+            string callConnectionId = default;
+            string serverCallId = default;
+            string correlationId = default;
             foreach (var property in element.EnumerateObject())
             {
+                if (property.NameEquals("operationContext"u8))
+                {
+                    operationContext = property.Value.GetString();
+                    continue;
+                }
+                if (property.NameEquals("resultInformation"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    resultInformation = ResultInformation.DeserializeResultInformation(property.Value);
+                    continue;
+                }
+                if (property.NameEquals("participant"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    participant = CommunicationIdentifierModel.DeserializeCommunicationIdentifierModel(property.Value);
+                    continue;
+                }
                 if (property.NameEquals("callConnectionId"u8))
                 {
                     callConnectionId = property.Value.GetString();
@@ -38,33 +63,22 @@ namespace Azure.Communication.CallAutomation
                     correlationId = property.Value.GetString();
                     continue;
                 }
-                if (property.NameEquals("operationContext"u8))
-                {
-                    operationContext = property.Value.GetString();
-                    continue;
-                }
-                if (property.NameEquals("resultInformation"u8))
-                {
-                    if (property.Value.ValueKind == JsonValueKind.Null)
-                    {
-                        property.ThrowNonNullablePropertyIsNull();
-                        continue;
-                    }
-                    resultInformation = ResultInformation.DeserializeResultInformation(property.Value);
-                    continue;
-                }
-                if (property.NameEquals("participant"u8))
-                {
-                    if (property.Value.ValueKind == JsonValueKind.Null)
-                    {
-                        property.ThrowNonNullablePropertyIsNull();
-                        continue;
-                    }
-                    participant = CommunicationIdentifierModel.DeserializeCommunicationIdentifierModel(property.Value);
-                    continue;
-                }
             }
-            return new AddParticipantSucceededInternal(callConnectionId.Value, serverCallId.Value, correlationId.Value, operationContext.Value, resultInformation.Value, participant.Value);
+            return new AddParticipantSucceededInternal(
+                operationContext,
+                resultInformation,
+                participant,
+                callConnectionId,
+                serverCallId,
+                correlationId);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AddParticipantSucceededInternal FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAddParticipantSucceededInternal(document.RootElement);
         }
     }
 }

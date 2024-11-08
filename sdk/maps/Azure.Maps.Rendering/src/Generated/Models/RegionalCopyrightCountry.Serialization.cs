@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Maps.Rendering
 {
@@ -14,8 +13,12 @@ namespace Azure.Maps.Rendering
     {
         internal static RegionalCopyrightCountry DeserializeRegionalCopyrightCountry(JsonElement element)
         {
-            Optional<string> isO3 = default;
-            Optional<string> label = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string isO3 = default;
+            string label = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("ISO3"u8))
@@ -29,7 +32,15 @@ namespace Azure.Maps.Rendering
                     continue;
                 }
             }
-            return new RegionalCopyrightCountry(isO3.Value, label.Value);
+            return new RegionalCopyrightCountry(isO3, label);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static RegionalCopyrightCountry FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeRegionalCopyrightCountry(document.RootElement);
         }
     }
 }

@@ -23,7 +23,12 @@ namespace Azure.IoT.Hub.Service.Models
                 foreach (var item in Desired)
                 {
                     writer.WritePropertyName(item.Key);
-                    writer.WriteObjectValue(item.Value);
+                    if (item.Value == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item.Value);
                 }
                 writer.WriteEndObject();
             }
@@ -34,7 +39,12 @@ namespace Azure.IoT.Hub.Service.Models
                 foreach (var item in Reported)
                 {
                     writer.WritePropertyName(item.Key);
-                    writer.WriteObjectValue(item.Value);
+                    if (item.Value == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item.Value);
                 }
                 writer.WriteEndObject();
             }
@@ -43,21 +53,31 @@ namespace Azure.IoT.Hub.Service.Models
 
         internal static TwinProperties DeserializeTwinProperties(JsonElement element)
         {
-            Optional<IDictionary<string, object>> desired = default;
-            Optional<IDictionary<string, object>> reported = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IDictionary<string, object> desired = default;
+            IDictionary<string, object> reported = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("desired"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, object> dictionary = new Dictionary<string, object>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        dictionary.Add(property0.Name, property0.Value.GetObject());
+                        if (property0.Value.ValueKind == JsonValueKind.Null)
+                        {
+                            dictionary.Add(property0.Name, null);
+                        }
+                        else
+                        {
+                            dictionary.Add(property0.Name, property0.Value.GetObject());
+                        }
                     }
                     desired = dictionary;
                     continue;
@@ -66,19 +86,41 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, object> dictionary = new Dictionary<string, object>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        dictionary.Add(property0.Name, property0.Value.GetObject());
+                        if (property0.Value.ValueKind == JsonValueKind.Null)
+                        {
+                            dictionary.Add(property0.Name, null);
+                        }
+                        else
+                        {
+                            dictionary.Add(property0.Name, property0.Value.GetObject());
+                        }
                     }
                     reported = dictionary;
                     continue;
                 }
             }
-            return new TwinProperties(Optional.ToDictionary(desired), Optional.ToDictionary(reported));
+            return new TwinProperties(desired ?? new ChangeTrackingDictionary<string, object>(), reported ?? new ChangeTrackingDictionary<string, object>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TwinProperties FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTwinProperties(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

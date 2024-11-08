@@ -8,7 +8,7 @@
 using System.Text.Json;
 using Azure.Core;
 
-namespace Azure.Communication.Email.Models
+namespace Azure.Communication.Email
 {
     public partial class EmailAttachment : IUtf8JsonSerializable
     {
@@ -17,11 +17,24 @@ namespace Azure.Communication.Email.Models
             writer.WriteStartObject();
             writer.WritePropertyName("name"u8);
             writer.WriteStringValue(Name);
-            writer.WritePropertyName("attachmentType"u8);
-            writer.WriteStringValue(AttachmentType.ToString());
-            writer.WritePropertyName("contentBytesBase64"u8);
-            writer.WriteStringValue(ContentBytesBase64);
+            writer.WritePropertyName("contentType"u8);
+            writer.WriteStringValue(ContentType);
+            writer.WritePropertyName("contentInBase64"u8);
+            writer.WriteBase64StringValue(Content.ToArray(), "D");
+            if (Optional.IsDefined(ContentId))
+            {
+                writer.WritePropertyName("contentId"u8);
+                writer.WriteStringValue(ContentId);
+            }
             writer.WriteEndObject();
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

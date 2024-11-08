@@ -24,6 +24,11 @@ namespace Azure.AI.MetricsAdvisor.Models
                 foreach (var item in DimensionFilter)
                 {
                     writer.WritePropertyName(item.Key);
+                    if (item.Value == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
                     writer.WriteStartArray();
                     foreach (var item0 in item.Value)
                     {
@@ -34,6 +39,14 @@ namespace Azure.AI.MetricsAdvisor.Models
                 writer.WriteEndObject();
             }
             writer.WriteEndObject();
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

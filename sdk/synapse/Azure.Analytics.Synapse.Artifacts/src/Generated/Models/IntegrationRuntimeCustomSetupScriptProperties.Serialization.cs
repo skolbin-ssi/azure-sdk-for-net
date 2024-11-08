@@ -33,8 +33,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static IntegrationRuntimeCustomSetupScriptProperties DeserializeIntegrationRuntimeCustomSetupScriptProperties(JsonElement element)
         {
-            Optional<string> blobContainerUri = default;
-            Optional<SecureString> sasToken = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string blobContainerUri = default;
+            SecureString sasToken = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("blobContainerUri"u8))
@@ -46,14 +50,29 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     sasToken = SecureString.DeserializeSecureString(property.Value);
                     continue;
                 }
             }
-            return new IntegrationRuntimeCustomSetupScriptProperties(blobContainerUri.Value, sasToken.Value);
+            return new IntegrationRuntimeCustomSetupScriptProperties(blobContainerUri, sasToken);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static IntegrationRuntimeCustomSetupScriptProperties FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeIntegrationRuntimeCustomSetupScriptProperties(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class IntegrationRuntimeCustomSetupScriptPropertiesConverter : JsonConverter<IntegrationRuntimeCustomSetupScriptProperties>
@@ -62,6 +81,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override IntegrationRuntimeCustomSetupScriptProperties Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

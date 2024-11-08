@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.Models
 {
@@ -15,6 +14,10 @@ namespace Azure.AI.FormRecognizer.Models
     {
         internal static SelectionMark DeserializeSelectionMark(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IReadOnlyList<float> boundingBox = default;
             float confidence = default;
             SelectionMarkState state = default;
@@ -42,6 +45,14 @@ namespace Azure.AI.FormRecognizer.Models
                 }
             }
             return new SelectionMark(boundingBox, confidence, state);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SelectionMark FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSelectionMark(document.RootElement);
         }
     }
 }

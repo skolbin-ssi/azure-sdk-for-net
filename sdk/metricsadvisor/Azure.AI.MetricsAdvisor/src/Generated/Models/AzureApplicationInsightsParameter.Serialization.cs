@@ -65,9 +65,13 @@ namespace Azure.AI.MetricsAdvisor.Models
 
         internal static AzureApplicationInsightsParameter DeserializeAzureApplicationInsightsParameter(JsonElement element)
         {
-            Optional<string> azureCloud = default;
-            Optional<string> applicationId = default;
-            Optional<string> apiKey = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string azureCloud = default;
+            string applicationId = default;
+            string apiKey = default;
             string query = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -112,7 +116,23 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new AzureApplicationInsightsParameter(azureCloud.Value, applicationId.Value, apiKey.Value, query);
+            return new AzureApplicationInsightsParameter(azureCloud, applicationId, apiKey, query);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AzureApplicationInsightsParameter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureApplicationInsightsParameter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

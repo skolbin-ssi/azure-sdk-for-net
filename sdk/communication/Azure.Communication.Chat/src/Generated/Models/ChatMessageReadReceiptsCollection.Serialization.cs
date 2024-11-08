@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.Chat
 {
@@ -15,8 +14,12 @@ namespace Azure.Communication.Chat
     {
         internal static ChatMessageReadReceiptsCollection DeserializeChatMessageReadReceiptsCollection(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IReadOnlyList<ChatMessageReadReceiptInternal> value = default;
-            Optional<string> nextLink = default;
+            string nextLink = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("value"u8))
@@ -35,7 +38,15 @@ namespace Azure.Communication.Chat
                     continue;
                 }
             }
-            return new ChatMessageReadReceiptsCollection(value, nextLink.Value);
+            return new ChatMessageReadReceiptsCollection(value, nextLink);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ChatMessageReadReceiptsCollection FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeChatMessageReadReceiptsCollection(document.RootElement);
         }
     }
 }

@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -15,13 +14,17 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static LinkedEntity DeserializeLinkedEntity(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string name = default;
             IReadOnlyList<Match> matches = default;
             string language = default;
-            Optional<string> id = default;
+            string id = default;
             string url = default;
             string dataSource = default;
-            Optional<string> bingId = default;
+            string bingId = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("name"u8))
@@ -65,7 +68,22 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new LinkedEntity(name, matches, language, id.Value, url, dataSource, bingId.Value);
+            return new LinkedEntity(
+                name,
+                matches,
+                language,
+                id,
+                url,
+                dataSource,
+                bingId);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static LinkedEntity FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeLinkedEntity(document.RootElement);
         }
     }
 }

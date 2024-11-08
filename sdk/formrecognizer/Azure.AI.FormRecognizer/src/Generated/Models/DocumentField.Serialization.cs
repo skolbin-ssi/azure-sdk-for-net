@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.DocumentAnalysis
 {
@@ -16,24 +15,29 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
     {
         internal static DocumentField DeserializeDocumentField(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             DocumentFieldType type = default;
-            Optional<string> valueString = default;
-            Optional<DateTimeOffset> valueDate = default;
-            Optional<TimeSpan> valueTime = default;
-            Optional<string> valuePhoneNumber = default;
-            Optional<double> valueNumber = default;
-            Optional<long> valueInteger = default;
-            Optional<V3SelectionMarkState> valueSelectionMark = default;
-            Optional<DocumentSignatureType> valueSignature = default;
-            Optional<string> valueCountryRegion = default;
-            Optional<IReadOnlyList<DocumentField>> valueArray = default;
-            Optional<IReadOnlyDictionary<string, DocumentField>> valueObject = default;
-            Optional<CurrencyValue> valueCurrency = default;
-            Optional<AddressValue> valueAddress = default;
-            Optional<string> content = default;
-            Optional<IReadOnlyList<BoundingRegion>> boundingRegions = default;
-            Optional<IReadOnlyList<DocumentSpan>> spans = default;
-            Optional<float> confidence = default;
+            string valueString = default;
+            DateTimeOffset? valueDate = default;
+            TimeSpan? valueTime = default;
+            string valuePhoneNumber = default;
+            double? valueNumber = default;
+            long? valueInteger = default;
+            V3SelectionMarkState? valueSelectionMark = default;
+            DocumentSignatureType? valueSignature = default;
+            string valueCountryRegion = default;
+            IReadOnlyList<DocumentField> valueArray = default;
+            IReadOnlyDictionary<string, DocumentField> valueObject = default;
+            CurrencyValue? valueCurrency = default;
+            AddressValue valueAddress = default;
+            bool? valueBoolean = default;
+            string content = default;
+            IReadOnlyList<BoundingRegion> boundingRegions = default;
+            IReadOnlyList<DocumentSpan> spans = default;
+            float? confidence = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("type"u8))
@@ -50,7 +54,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueDate = property.Value.GetDateTimeOffset("D");
@@ -60,7 +63,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueTime = property.Value.GetTimeSpan("T");
@@ -75,7 +77,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueNumber = property.Value.GetDouble();
@@ -85,7 +86,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueInteger = property.Value.GetInt64();
@@ -95,7 +95,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueSelectionMark = new V3SelectionMarkState(property.Value.GetString());
@@ -105,7 +104,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueSignature = new DocumentSignatureType(property.Value.GetString());
@@ -120,7 +118,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<DocumentField> array = new List<DocumentField>();
@@ -135,7 +132,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, DocumentField> dictionary = new Dictionary<string, DocumentField>();
@@ -150,7 +146,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueCurrency = CurrencyValue.DeserializeCurrencyValue(property.Value);
@@ -160,10 +155,18 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueAddress = AddressValue.DeserializeAddressValue(property.Value);
+                    continue;
+                }
+                if (property.NameEquals("valueBoolean"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    valueBoolean = property.Value.GetBoolean();
                     continue;
                 }
                 if (property.NameEquals("content"u8))
@@ -175,7 +178,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<BoundingRegion> array = new List<BoundingRegion>();
@@ -190,7 +192,6 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<DocumentSpan> array = new List<DocumentSpan>();
@@ -205,14 +206,40 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     confidence = property.Value.GetSingle();
                     continue;
                 }
             }
-            return new DocumentField(type, valueString.Value, Optional.ToNullable(valueDate), Optional.ToNullable(valueTime), valuePhoneNumber.Value, Optional.ToNullable(valueNumber), Optional.ToNullable(valueInteger), Optional.ToNullable(valueSelectionMark), Optional.ToNullable(valueSignature), valueCountryRegion.Value, Optional.ToList(valueArray), Optional.ToDictionary(valueObject), Optional.ToNullable(valueCurrency), valueAddress.Value, content.Value, Optional.ToList(boundingRegions), Optional.ToList(spans), Optional.ToNullable(confidence));
+            return new DocumentField(
+                type,
+                valueString,
+                valueDate,
+                valueTime,
+                valuePhoneNumber,
+                valueNumber,
+                valueInteger,
+                valueSelectionMark,
+                valueSignature,
+                valueCountryRegion,
+                valueArray ?? new ChangeTrackingList<DocumentField>(),
+                valueObject ?? new ChangeTrackingDictionary<string, DocumentField>(),
+                valueCurrency,
+                valueAddress,
+                valueBoolean,
+                content,
+                boundingRegions ?? new ChangeTrackingList<BoundingRegion>(),
+                spans ?? new ChangeTrackingList<DocumentSpan>(),
+                confidence);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DocumentField FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDocumentField(document.RootElement);
         }
     }
 }

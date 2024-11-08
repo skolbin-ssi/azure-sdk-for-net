@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using Azure.AI.TextAnalytics.Legacy.Models;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -16,8 +15,12 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static TaskState DeserializeTaskState(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             DateTimeOffset lastUpdateDateTime = default;
-            Optional<string> taskName = default;
+            string taskName = default;
             State status = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -37,7 +40,15 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new TaskState(lastUpdateDateTime, taskName.Value, status);
+            return new TaskState(lastUpdateDateTime, taskName, status);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TaskState FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTaskState(document.RootElement);
         }
     }
 }

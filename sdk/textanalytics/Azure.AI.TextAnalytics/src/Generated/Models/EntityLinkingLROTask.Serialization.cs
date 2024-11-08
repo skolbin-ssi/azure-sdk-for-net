@@ -32,16 +32,19 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static EntityLinkingLROTask DeserializeEntityLinkingLROTask(JsonElement element)
         {
-            Optional<EntityLinkingTaskParameters> parameters = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            EntityLinkingTaskParameters parameters = default;
             AnalyzeTextLROTaskKind kind = default;
-            Optional<string> taskName = default;
+            string taskName = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("parameters"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     parameters = EntityLinkingTaskParameters.DeserializeEntityLinkingTaskParameters(property.Value);
@@ -58,7 +61,23 @@ namespace Azure.AI.TextAnalytics.Models
                     continue;
                 }
             }
-            return new EntityLinkingLROTask(taskName.Value, kind, parameters.Value);
+            return new EntityLinkingLROTask(taskName, kind, parameters);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new EntityLinkingLROTask FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeEntityLinkingLROTask(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

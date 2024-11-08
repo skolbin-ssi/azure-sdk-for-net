@@ -29,8 +29,12 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static UnsecuredEndpoint DeserializeUnsecuredEndpoint(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = default;
-            Optional<CredentialsBase> credentials = default;
+            CredentialsBase credentials = default;
             string url = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -43,7 +47,6 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     credentials = CredentialsBase.DeserializeCredentialsBase(property.Value);
@@ -55,7 +58,23 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                     continue;
                 }
             }
-            return new UnsecuredEndpoint(type, credentials.Value, url);
+            return new UnsecuredEndpoint(type, credentials, url);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new UnsecuredEndpoint FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeUnsecuredEndpoint(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

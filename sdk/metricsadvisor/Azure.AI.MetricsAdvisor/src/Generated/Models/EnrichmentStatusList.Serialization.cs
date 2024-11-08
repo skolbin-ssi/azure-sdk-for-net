@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.MetricsAdvisor.Models
 {
@@ -15,8 +14,12 @@ namespace Azure.AI.MetricsAdvisor.Models
     {
         internal static EnrichmentStatusList DeserializeEnrichmentStatusList(JsonElement element)
         {
-            Optional<string> nextLink = default;
-            Optional<IReadOnlyList<EnrichmentStatus>> value = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string nextLink = default;
+            IReadOnlyList<EnrichmentStatus> value = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("@nextLink"u8))
@@ -28,7 +31,6 @@ namespace Azure.AI.MetricsAdvisor.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<EnrichmentStatus> array = new List<EnrichmentStatus>();
@@ -40,7 +42,15 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new EnrichmentStatusList(nextLink.Value, Optional.ToList(value));
+            return new EnrichmentStatusList(nextLink, value ?? new ChangeTrackingList<EnrichmentStatus>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static EnrichmentStatusList FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeEnrichmentStatusList(document.RootElement);
         }
     }
 }

@@ -7,6 +7,7 @@
 
 using System.Text.Json;
 using Azure.Core;
+using Azure.MixedReality.Common;
 
 namespace Azure.MixedReality.ObjectAnchors.Conversion.Models
 {
@@ -28,6 +29,10 @@ namespace Azure.MixedReality.ObjectAnchors.Conversion.Models
 
         internal static Vector4 DeserializeVector4(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             float x = default;
             float y = default;
             float z = default;
@@ -56,6 +61,22 @@ namespace Azure.MixedReality.ObjectAnchors.Conversion.Models
                 }
             }
             return new Vector4(x, y, z, w);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static Vector4 FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeVector4(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Common.Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

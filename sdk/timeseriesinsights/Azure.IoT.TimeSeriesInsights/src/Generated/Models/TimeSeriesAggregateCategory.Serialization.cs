@@ -22,7 +22,12 @@ namespace Azure.IoT.TimeSeriesInsights
             writer.WriteStartArray();
             foreach (var item in Values)
             {
-                writer.WriteObjectValue(item);
+                if (item == null)
+                {
+                    writer.WriteNullValue();
+                    continue;
+                }
+                writer.WriteObjectValue<object>(item);
             }
             writer.WriteEndArray();
             writer.WriteEndObject();
@@ -30,6 +35,10 @@ namespace Azure.IoT.TimeSeriesInsights
 
         internal static TimeSeriesAggregateCategory DeserializeTimeSeriesAggregateCategory(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string label = default;
             IList<object> values = default;
             foreach (var property in element.EnumerateObject())
@@ -44,13 +53,36 @@ namespace Azure.IoT.TimeSeriesInsights
                     List<object> array = new List<object>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(item.GetObject());
+                        if (item.ValueKind == JsonValueKind.Null)
+                        {
+                            array.Add(null);
+                        }
+                        else
+                        {
+                            array.Add(item.GetObject());
+                        }
                     }
                     values = array;
                     continue;
                 }
             }
             return new TimeSeriesAggregateCategory(label, values);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TimeSeriesAggregateCategory FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTimeSeriesAggregateCategory(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

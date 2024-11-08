@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Containers.ContainerRegistry
 {
@@ -15,12 +14,16 @@ namespace Azure.Containers.ContainerRegistry
     {
         internal static Platform DeserializePlatform(JsonElement element)
         {
-            Optional<string> architecture = default;
-            Optional<string> os = default;
-            Optional<string> osVersion = default;
-            Optional<IReadOnlyList<string>> osFeatures = default;
-            Optional<string> variant = default;
-            Optional<IReadOnlyList<string>> features = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string architecture = default;
+            string os = default;
+            string osVersion = default;
+            IReadOnlyList<string> osFeatures = default;
+            string variant = default;
+            IReadOnlyList<string> features = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("architecture"u8))
@@ -42,7 +45,6 @@ namespace Azure.Containers.ContainerRegistry
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -62,7 +64,6 @@ namespace Azure.Containers.ContainerRegistry
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -74,7 +75,21 @@ namespace Azure.Containers.ContainerRegistry
                     continue;
                 }
             }
-            return new Platform(architecture.Value, os.Value, osVersion.Value, Optional.ToList(osFeatures), variant.Value, Optional.ToList(features));
+            return new Platform(
+                architecture,
+                os,
+                osVersion,
+                osFeatures ?? new ChangeTrackingList<string>(),
+                variant,
+                features ?? new ChangeTrackingList<string>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static Platform FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePlatform(document.RootElement);
         }
     }
 }

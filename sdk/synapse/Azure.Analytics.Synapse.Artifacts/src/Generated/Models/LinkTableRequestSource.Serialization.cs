@@ -33,8 +33,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static LinkTableRequestSource DeserializeLinkTableRequestSource(JsonElement element)
         {
-            Optional<string> tableName = default;
-            Optional<string> schemaName = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string tableName = default;
+            string schemaName = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("tableName"u8))
@@ -48,7 +52,23 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new LinkTableRequestSource(tableName.Value, schemaName.Value);
+            return new LinkTableRequestSource(tableName, schemaName);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static LinkTableRequestSource FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeLinkTableRequestSource(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class LinkTableRequestSourceConverter : JsonConverter<LinkTableRequestSource>
@@ -57,6 +77,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override LinkTableRequestSource Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

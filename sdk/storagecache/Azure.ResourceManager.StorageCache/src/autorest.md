@@ -5,16 +5,21 @@ Run `dotnet build /t:GenerateCode` to generate code.
 ``` yaml
 
 azure-arm: true
-generate-model-factory: false
 csharp: true
 library-name: StorageCache
 namespace: Azure.ResourceManager.StorageCache
-require: https://github.com/Azure/azure-rest-api-specs/blob/53b1affe357b3bfbb53721d0a2002382a046d3b0/specification/storagecache/resource-manager/readme.md
+require: https://github.com/Azure/azure-rest-api-specs/blob/cb1185d9961b7dabe002fdb4c3a28c07d130e47e/specification/storagecache/resource-manager/readme.md
 output-folder: $(this-folder)/Generated
 clear-output-folder: true
+sample-gen:
+  output-folder: $(this-folder)/../samples/Generated
+  clear-output-folder: true
 skip-csproj: true
 modelerfour:
   flatten-payloads: false
+  lenient-model-deduplication: true
+use-model-reader-writer: true
+use-write-core: true
 
 rename-mapping:
   Cache.properties.mountAddresses: -|ip-address
@@ -66,6 +71,13 @@ rename-mapping:
   UsageModelsResult: StorageCacheUsageModelsResult
   UsernameSource: StorageCacheUsernameSourceType
   UsernameDownloadedType: StorageCacheUsernameDownloadedType
+  Nfs3Target.verificationTimer: VerificationDelayInSeconds
+  Nfs3Target.writeBackTimer: WriteBackDelayInSeconds
+  BlobNfsTarget.verificationTimer: VerificationDelayInSeconds
+  BlobNfsTarget.writeBackTimer: WriteBackDelayInSeconds
+
+prepend-rp-prefix:
+  - ImportJob
 
 format-by-name-rules:
   'tenantId': 'uuid'
@@ -74,7 +86,7 @@ format-by-name-rules:
   '*Uri': 'Uri'
   '*Uris': 'Uri'
 
-rename-rules:
+acronym-mapping:
   CPU: Cpu
   CPUs: Cpus
   Os: OS
@@ -96,6 +108,7 @@ rename-rules:
   SSO: Sso
   URI: Uri
   Etag: ETag|etag
+  AmlFilesystem: AmlFileSystem
 
 override-operation-name:
   Caches_SpaceAllocation: UpdateSpaceAllocation

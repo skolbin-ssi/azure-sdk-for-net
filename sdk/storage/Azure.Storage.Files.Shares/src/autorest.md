@@ -4,12 +4,14 @@ Run `dotnet build /t:GenerateCode` to generate code.
 
 ``` yaml
 input-file:
-    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/7dcd41cd28d46eb256bac034760a7e2f0a036238/specification/storage/data-plane/Microsoft.FileStorage/preview/2022-11-02/file.json
+    - https://raw.githubusercontent.com/Azure/azure-rest-api-specs/ae95eb6a4701d844bada7d1c4f5ecf4a7444e5b8/specification/storage/data-plane/Microsoft.FileStorage/stable/2025-01-05/file.json
 generation1-convenience-client: true
 # https://github.com/Azure/autorest/issues/4075
 skip-semantics-validation: true
 modelerfour:
     seal-single-value-enum-by-default: true
+
+helper-namespace: Azure.Storage.Common
 ```
 
 ### Don't include share name, directory, or file name in path - we have direct URIs.
@@ -44,11 +46,7 @@ directive:
     $.Metrics.type = "object";
 ```
 
-<<<<<<< HEAD
 ### Times aren't required 
-=======
-### Formats aren't required
->>>>>>> feature/storage/stg82base
 ``` yaml
 directive:
 - from: swagger-document

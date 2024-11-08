@@ -16,7 +16,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
         {
             writer.WriteStartObject();
             writer.WritePropertyName("url"u8);
-            writer.WriteObjectValue(Url);
+            writer.WriteObjectValue<object>(Url);
             writer.WritePropertyName("authenticationType"u8);
             writer.WriteStringValue(AuthenticationType.ToString());
             writer.WriteEndObject();
@@ -24,6 +24,10 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static UnknownWebLinkedServiceTypeProperties DeserializeUnknownWebLinkedServiceTypeProperties(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             object url = default;
             WebAuthenticationType authenticationType = "Unknown";
             foreach (var property in element.EnumerateObject())
@@ -40,6 +44,22 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 }
             }
             return new UnknownWebLinkedServiceTypeProperties(url, authenticationType);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new UnknownWebLinkedServiceTypeProperties FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeUnknownWebLinkedServiceTypeProperties(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue<WebLinkedServiceTypeProperties>(this);
+            return content;
         }
     }
 }

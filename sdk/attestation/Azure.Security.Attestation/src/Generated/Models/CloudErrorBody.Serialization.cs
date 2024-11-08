@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Security.Attestation.Models
 {
@@ -14,8 +13,12 @@ namespace Azure.Security.Attestation.Models
     {
         internal static CloudErrorBody DeserializeCloudErrorBody(JsonElement element)
         {
-            Optional<string> code = default;
-            Optional<string> message = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string code = default;
+            string message = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("code"u8))
@@ -29,7 +32,15 @@ namespace Azure.Security.Attestation.Models
                     continue;
                 }
             }
-            return new CloudErrorBody(code.Value, message.Value);
+            return new CloudErrorBody(code, message);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static CloudErrorBody FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCloudErrorBody(document.RootElement);
         }
     }
 }

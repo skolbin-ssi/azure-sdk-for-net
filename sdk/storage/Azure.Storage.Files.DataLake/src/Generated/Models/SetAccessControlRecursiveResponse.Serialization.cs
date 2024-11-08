@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
+using Azure.Storage.Common;
 
 namespace Azure.Storage.Files.DataLake.Models
 {
@@ -15,17 +15,20 @@ namespace Azure.Storage.Files.DataLake.Models
     {
         internal static SetAccessControlRecursiveResponse DeserializeSetAccessControlRecursiveResponse(JsonElement element)
         {
-            Optional<int> directoriesSuccessful = default;
-            Optional<int> filesSuccessful = default;
-            Optional<int> failureCount = default;
-            Optional<IReadOnlyList<AclFailedEntry>> failedEntries = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? directoriesSuccessful = default;
+            int? filesSuccessful = default;
+            int? failureCount = default;
+            IReadOnlyList<AclFailedEntry> failedEntries = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("directoriesSuccessful"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     directoriesSuccessful = property.Value.GetInt32();
@@ -35,7 +38,6 @@ namespace Azure.Storage.Files.DataLake.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     filesSuccessful = property.Value.GetInt32();
@@ -45,7 +47,6 @@ namespace Azure.Storage.Files.DataLake.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     failureCount = property.Value.GetInt32();
@@ -55,7 +56,6 @@ namespace Azure.Storage.Files.DataLake.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<AclFailedEntry> array = new List<AclFailedEntry>();
@@ -67,7 +67,15 @@ namespace Azure.Storage.Files.DataLake.Models
                     continue;
                 }
             }
-            return new SetAccessControlRecursiveResponse(Optional.ToNullable(directoriesSuccessful), Optional.ToNullable(filesSuccessful), Optional.ToNullable(failureCount), Optional.ToList(failedEntries));
+            return new SetAccessControlRecursiveResponse(directoriesSuccessful, filesSuccessful, failureCount, failedEntries ?? new ChangeTrackingList<AclFailedEntry>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SetAccessControlRecursiveResponse FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSetAccessControlRecursiveResponse(document.RootElement);
         }
     }
 }

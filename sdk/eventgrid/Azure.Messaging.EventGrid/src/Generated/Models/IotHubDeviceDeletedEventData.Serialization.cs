@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,9 +16,13 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static IotHubDeviceDeletedEventData DeserializeIotHubDeviceDeletedEventData(JsonElement element)
         {
-            Optional<string> deviceId = default;
-            Optional<string> hubName = default;
-            Optional<DeviceTwinInfo> twin = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string deviceId = default;
+            string hubName = default;
+            DeviceTwinInfo twin = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("deviceId"u8))
@@ -36,14 +39,21 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     twin = DeviceTwinInfo.DeserializeDeviceTwinInfo(property.Value);
                     continue;
                 }
             }
-            return new IotHubDeviceDeletedEventData(deviceId.Value, hubName.Value, twin.Value);
+            return new IotHubDeviceDeletedEventData(deviceId, hubName, twin);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new IotHubDeviceDeletedEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeIotHubDeviceDeletedEventData(document.RootElement);
         }
 
         internal partial class IotHubDeviceDeletedEventDataConverter : JsonConverter<IotHubDeviceDeletedEventData>
@@ -52,6 +62,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override IotHubDeviceDeletedEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

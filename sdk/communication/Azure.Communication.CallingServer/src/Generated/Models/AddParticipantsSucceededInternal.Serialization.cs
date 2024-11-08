@@ -7,8 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Communication;
-using Azure.Core;
 
 namespace Azure.Communication.CallingServer
 {
@@ -16,15 +14,19 @@ namespace Azure.Communication.CallingServer
     {
         internal static AddParticipantsSucceededInternal DeserializeAddParticipantsSucceededInternal(JsonElement element)
         {
-            Optional<string> eventSource = default;
-            Optional<string> operationContext = default;
-            Optional<ResultInformation> resultInformation = default;
-            Optional<IReadOnlyList<CommunicationIdentifierModel>> participants = default;
-            Optional<string> version = default;
-            Optional<string> callConnectionId = default;
-            Optional<string> serverCallId = default;
-            Optional<string> correlationId = default;
-            Optional<string> publicEventType = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string eventSource = default;
+            string operationContext = default;
+            ResultInformation resultInformation = default;
+            IReadOnlyList<CommunicationIdentifierModel> participants = default;
+            string version = default;
+            string callConnectionId = default;
+            string serverCallId = default;
+            string correlationId = default;
+            string publicEventType = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("eventSource"u8))
@@ -41,7 +43,6 @@ namespace Azure.Communication.CallingServer
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     resultInformation = ResultInformation.DeserializeResultInformation(property.Value);
@@ -51,7 +52,6 @@ namespace Azure.Communication.CallingServer
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<CommunicationIdentifierModel> array = new List<CommunicationIdentifierModel>();
@@ -88,7 +88,24 @@ namespace Azure.Communication.CallingServer
                     continue;
                 }
             }
-            return new AddParticipantsSucceededInternal(eventSource.Value, operationContext.Value, resultInformation.Value, Optional.ToList(participants), version.Value, callConnectionId.Value, serverCallId.Value, correlationId.Value, publicEventType.Value);
+            return new AddParticipantsSucceededInternal(
+                eventSource,
+                operationContext,
+                resultInformation,
+                participants ?? new ChangeTrackingList<CommunicationIdentifierModel>(),
+                version,
+                callConnectionId,
+                serverCallId,
+                correlationId,
+                publicEventType);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AddParticipantsSucceededInternal FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAddParticipantsSucceededInternal(document.RootElement);
         }
     }
 }

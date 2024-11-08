@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Storage.Files.DataLake.Models
 {
@@ -14,9 +13,13 @@ namespace Azure.Storage.Files.DataLake.Models
     {
         internal static FileSystem DeserializeFileSystem(JsonElement element)
         {
-            Optional<string> name = default;
-            Optional<string> lastModified = default;
-            Optional<string> eTag = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string name = default;
+            string lastModified = default;
+            string eTag = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("name"u8))
@@ -35,7 +38,15 @@ namespace Azure.Storage.Files.DataLake.Models
                     continue;
                 }
             }
-            return new FileSystem(name.Value, lastModified.Value, eTag.Value);
+            return new FileSystem(name, lastModified, eTag);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static FileSystem FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeFileSystem(document.RootElement);
         }
     }
 }

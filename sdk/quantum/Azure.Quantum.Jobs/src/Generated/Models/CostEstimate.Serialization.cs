@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Quantum.Jobs.Models
 {
@@ -15,9 +14,13 @@ namespace Azure.Quantum.Jobs.Models
     {
         internal static CostEstimate DeserializeCostEstimate(JsonElement element)
         {
-            Optional<string> currencyCode = default;
-            Optional<IReadOnlyList<UsageEvent>> events = default;
-            Optional<float> estimatedTotal = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string currencyCode = default;
+            IReadOnlyList<UsageEvent> events = default;
+            float? estimatedTotal = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("currencyCode"u8))
@@ -29,7 +32,6 @@ namespace Azure.Quantum.Jobs.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<UsageEvent> array = new List<UsageEvent>();
@@ -44,14 +46,21 @@ namespace Azure.Quantum.Jobs.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     estimatedTotal = property.Value.GetSingle();
                     continue;
                 }
             }
-            return new CostEstimate(currencyCode.Value, Optional.ToList(events), Optional.ToNullable(estimatedTotal));
+            return new CostEstimate(currencyCode, events ?? new ChangeTrackingList<UsageEvent>(), estimatedTotal);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static CostEstimate FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCostEstimate(document.RootElement);
         }
     }
 }

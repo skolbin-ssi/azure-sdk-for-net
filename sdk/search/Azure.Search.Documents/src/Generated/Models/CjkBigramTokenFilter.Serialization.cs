@@ -40,8 +40,12 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static CjkBigramTokenFilter DeserializeCjkBigramTokenFilter(JsonElement element)
         {
-            Optional<IList<CjkBigramTokenFilterScripts>> ignoreScripts = default;
-            Optional<bool> outputUnigrams = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IList<CjkBigramTokenFilterScripts> ignoreScripts = default;
+            bool? outputUnigrams = default;
             string odataType = default;
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -50,7 +54,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<CjkBigramTokenFilterScripts> array = new List<CjkBigramTokenFilterScripts>();
@@ -65,7 +68,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     outputUnigrams = property.Value.GetBoolean();
@@ -82,7 +84,23 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new CjkBigramTokenFilter(odataType, name, Optional.ToList(ignoreScripts), Optional.ToNullable(outputUnigrams));
+            return new CjkBigramTokenFilter(odataType, name, ignoreScripts ?? new ChangeTrackingList<CjkBigramTokenFilterScripts>(), outputUnigrams);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new CjkBigramTokenFilter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCjkBigramTokenFilter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

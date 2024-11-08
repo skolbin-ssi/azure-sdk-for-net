@@ -22,27 +22,31 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(MaxRowsPerFile))
             {
                 writer.WritePropertyName("maxRowsPerFile"u8);
-                writer.WriteObjectValue(MaxRowsPerFile);
+                writer.WriteObjectValue<object>(MaxRowsPerFile);
             }
             if (Optional.IsDefined(FileNamePrefix))
             {
                 writer.WritePropertyName("fileNamePrefix"u8);
-                writer.WriteObjectValue(FileNamePrefix);
+                writer.WriteObjectValue<object>(FileNamePrefix);
             }
             writer.WritePropertyName("type"u8);
             writer.WriteStringValue(Type);
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static OrcWriteSettings DeserializeOrcWriteSettings(JsonElement element)
         {
-            Optional<object> maxRowsPerFile = default;
-            Optional<object> fileNamePrefix = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            object maxRowsPerFile = default;
+            object fileNamePrefix = default;
             string type = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
@@ -52,7 +56,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     maxRowsPerFile = property.Value.GetObject();
@@ -62,7 +65,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     fileNamePrefix = property.Value.GetObject();
@@ -76,7 +78,23 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new OrcWriteSettings(type, additionalProperties, maxRowsPerFile.Value, fileNamePrefix.Value);
+            return new OrcWriteSettings(type, additionalProperties, maxRowsPerFile, fileNamePrefix);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new OrcWriteSettings FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeOrcWriteSettings(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class OrcWriteSettingsConverter : JsonConverter<OrcWriteSettings>
@@ -85,6 +103,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override OrcWriteSettings Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

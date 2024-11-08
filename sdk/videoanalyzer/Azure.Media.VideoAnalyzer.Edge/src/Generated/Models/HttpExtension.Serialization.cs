@@ -41,9 +41,13 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static HttpExtension DeserializeHttpExtension(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             EndpointBase endpoint = default;
             ImageProperties image = default;
-            Optional<SamplingOptions> samplingOptions = default;
+            SamplingOptions samplingOptions = default;
             string type = default;
             string name = default;
             IList<NodeInput> inputs = default;
@@ -63,7 +67,6 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     samplingOptions = SamplingOptions.DeserializeSamplingOptions(property.Value);
@@ -90,7 +93,29 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                     continue;
                 }
             }
-            return new HttpExtension(type, name, inputs, endpoint, image, samplingOptions.Value);
+            return new HttpExtension(
+                type,
+                name,
+                inputs,
+                endpoint,
+                image,
+                samplingOptions);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new HttpExtension FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeHttpExtension(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

@@ -1,6 +1,6 @@
 # Release History
 
-## 1.1.0-beta.1 (Unreleased)
+## 1.2.0-beta.3 (Unreleased)
 
 ### Features Added
 
@@ -10,14 +10,70 @@
 
 ### Other Changes
 
+## 1.2.0-beta.2 (2024-10-31)
+
+### Features Added
+
+- Exposed `JsonModelWriteCore` for model serialization procedure.
+
+### Bugs Fixed
+
+- Exposed 'DnsRecordType' property in DnsRecordData.cs and added factory method for DnsRecordData. Issue:https://github.com/Azure/azure-sdk-for-net/issues/45423
+- Fixed the NAPTR record type serialization issue and added relevant tests and recordings.
+
+## 1.2.0-beta.1 (2024-06-01)
+
+### Features Added
+
+- Added `trafficManagementProfile` property in some classes.
+- Added `serializedAdditionalRawData` property in some classes
+- Added resources: `DnsNaptrRecord`, `DnsTlsaRecord`, `DnsDSRecord`, and `DnssecConfig`.
+- Added `SigningKeys` property in DnsZoneData
+
+## 1.1.1 (2024-04-29)
+
+### Features Added
+
+- Enabled the new model serialization by using the System.ClientModel, refer this [document](https://aka.ms/azsdk/net/mrw) for more details.
+- Added model factory for all `DnsRecordData`
+- Add `ArmOperation.Rehydrate` and `ArmOperation.Rehydrate<T>` static methods to rehydrate a long-running operation.
+
+## 1.1.0 (2023-11-21)
+
+### Features Added
+
+- Enabled mocking for extension methods, refer this [document](https://aka.ms/azsdk/net/mocking) for more details.
+
+### Other Changes
+
+- Upgraded dependent `Azure.ResourceManager` to 1.9.0.
+
+## 1.1.0-beta.1 (2023-05-29)
+
+### Features Added
+
+- Enabled the model factory feature for model mocking, more information can be found [here](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-mocking-factory-builder).
+
+### Other Changes
+
+- Upgraded dependent Azure.Core to 1.32.0.
+- Upgraded dependent Azure.ResourceManager to 1.6.0.
+
+## 1.0.1 (2023-02-28)
+
+### Other Changes
+
+- Upgraded dependent `Azure.Core` to `1.28.0`.
+- Upgraded dependent `Azure.ResourceManager` to `1.4.0`.
+
 ## 1.0.0 (2022-12-05)
 
 This package is the first stable release of the Azure DNS management library.
 
 ### Breaking Changes
 
- - Add `Dns` prefix for some models
- - Rename `RecordSet` to `Record`
+ - Added `Dns` prefix for some models
+ - Renamed `RecordSet` to `Record`
  - Renamed some properties to more comprehensive names.
 
 ### Other Changes

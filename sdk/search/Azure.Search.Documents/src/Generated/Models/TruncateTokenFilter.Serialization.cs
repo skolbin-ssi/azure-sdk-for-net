@@ -29,7 +29,11 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static TruncateTokenFilter DeserializeTruncateTokenFilter(JsonElement element)
         {
-            Optional<int> length = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? length = default;
             string odataType = default;
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -38,7 +42,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     length = property.Value.GetInt32();
@@ -55,7 +58,23 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new TruncateTokenFilter(odataType, name, Optional.ToNullable(length));
+            return new TruncateTokenFilter(odataType, name, length);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new TruncateTokenFilter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTruncateTokenFilter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

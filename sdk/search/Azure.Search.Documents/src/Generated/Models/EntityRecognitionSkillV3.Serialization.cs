@@ -83,14 +83,14 @@ namespace Azure.Search.Documents.Indexes.Models
             writer.WriteStartArray();
             foreach (var item in Inputs)
             {
-                writer.WriteObjectValue(item);
+                writer.WriteObjectValue<InputFieldMappingEntry>(item);
             }
             writer.WriteEndArray();
             writer.WritePropertyName("outputs"u8);
             writer.WriteStartArray();
             foreach (var item in Outputs)
             {
-                writer.WriteObjectValue(item);
+                writer.WriteObjectValue<OutputFieldMappingEntry>(item);
             }
             writer.WriteEndArray();
             writer.WriteEndObject();
@@ -98,14 +98,18 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static EntityRecognitionSkillV3 DeserializeEntityRecognitionSkillV3(JsonElement element)
         {
-            Optional<IList<string>> categories = default;
-            Optional<string> defaultLanguageCode = default;
-            Optional<double?> minimumPrecision = default;
-            Optional<string> modelVersion = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IList<string> categories = default;
+            string defaultLanguageCode = default;
+            double? minimumPrecision = default;
+            string modelVersion = default;
             string odataType = default;
-            Optional<string> name = default;
-            Optional<string> description = default;
-            Optional<string> context = default;
+            string name = default;
+            string description = default;
+            string context = default;
             IList<InputFieldMappingEntry> inputs = default;
             IList<OutputFieldMappingEntry> outputs = default;
             foreach (var property in element.EnumerateObject())
@@ -114,7 +118,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -196,7 +199,33 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new EntityRecognitionSkillV3(odataType, name.Value, description.Value, context.Value, inputs, outputs, Optional.ToList(categories), defaultLanguageCode.Value, Optional.ToNullable(minimumPrecision), modelVersion.Value);
+            return new EntityRecognitionSkillV3(
+                odataType,
+                name,
+                description,
+                context,
+                inputs,
+                outputs,
+                categories ?? new ChangeTrackingList<string>(),
+                defaultLanguageCode,
+                minimumPrecision,
+                modelVersion);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new EntityRecognitionSkillV3 FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeEntityRecognitionSkillV3(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

@@ -30,8 +30,12 @@ namespace Azure.IoT.Hub.Service.Models
 
         internal static SymmetricKey DeserializeSymmetricKey(JsonElement element)
         {
-            Optional<string> primaryKey = default;
-            Optional<string> secondaryKey = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string primaryKey = default;
+            string secondaryKey = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("primaryKey"u8))
@@ -45,7 +49,23 @@ namespace Azure.IoT.Hub.Service.Models
                     continue;
                 }
             }
-            return new SymmetricKey(primaryKey.Value, secondaryKey.Value);
+            return new SymmetricKey(primaryKey, secondaryKey);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SymmetricKey FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSymmetricKey(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

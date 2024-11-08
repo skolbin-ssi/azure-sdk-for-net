@@ -34,7 +34,12 @@ namespace Azure.IoT.Hub.Service.Models
                 foreach (var item in Tags)
                 {
                     writer.WritePropertyName(item.Key);
-                    writer.WriteObjectValue(item.Value);
+                    if (item.Value == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item.Value);
                 }
                 writer.WriteEndObject();
             }
@@ -113,23 +118,27 @@ namespace Azure.IoT.Hub.Service.Models
 
         internal static TwinData DeserializeTwinData(JsonElement element)
         {
-            Optional<string> deviceId = default;
-            Optional<string> moduleId = default;
-            Optional<IDictionary<string, object>> tags = default;
-            Optional<TwinProperties> properties = default;
-            Optional<string> etag = default;
-            Optional<long> version = default;
-            Optional<string> deviceEtag = default;
-            Optional<TwinStatus> status = default;
-            Optional<string> statusReason = default;
-            Optional<DateTimeOffset> statusUpdateTime = default;
-            Optional<TwinConnectionState> connectionState = default;
-            Optional<DateTimeOffset> lastActivityTime = default;
-            Optional<int> cloudToDeviceMessageCount = default;
-            Optional<TwinAuthenticationType> authenticationType = default;
-            Optional<X509Thumbprint> x509Thumbprint = default;
-            Optional<DeviceCapabilities> capabilities = default;
-            Optional<string> deviceScope = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string deviceId = default;
+            string moduleId = default;
+            IDictionary<string, object> tags = default;
+            TwinProperties properties = default;
+            string etag = default;
+            long? version = default;
+            string deviceEtag = default;
+            TwinStatus? status = default;
+            string statusReason = default;
+            DateTimeOffset? statusUpdateTime = default;
+            TwinConnectionState? connectionState = default;
+            DateTimeOffset? lastActivityTime = default;
+            int? cloudToDeviceMessageCount = default;
+            TwinAuthenticationType? authenticationType = default;
+            X509Thumbprint x509Thumbprint = default;
+            DeviceCapabilities capabilities = default;
+            string deviceScope = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("deviceId"u8))
@@ -146,13 +155,19 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, object> dictionary = new Dictionary<string, object>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        dictionary.Add(property0.Name, property0.Value.GetObject());
+                        if (property0.Value.ValueKind == JsonValueKind.Null)
+                        {
+                            dictionary.Add(property0.Name, null);
+                        }
+                        else
+                        {
+                            dictionary.Add(property0.Name, property0.Value.GetObject());
+                        }
                     }
                     tags = dictionary;
                     continue;
@@ -161,7 +176,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     properties = TwinProperties.DeserializeTwinProperties(property.Value);
@@ -176,7 +190,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     version = property.Value.GetInt64();
@@ -191,7 +204,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     status = new TwinStatus(property.Value.GetString());
@@ -206,7 +218,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     statusUpdateTime = property.Value.GetDateTimeOffset("O");
@@ -216,7 +227,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     connectionState = new TwinConnectionState(property.Value.GetString());
@@ -226,7 +236,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     lastActivityTime = property.Value.GetDateTimeOffset("O");
@@ -236,7 +245,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     cloudToDeviceMessageCount = property.Value.GetInt32();
@@ -246,7 +254,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     authenticationType = new TwinAuthenticationType(property.Value.GetString());
@@ -256,7 +263,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     x509Thumbprint = X509Thumbprint.DeserializeX509Thumbprint(property.Value);
@@ -266,7 +272,6 @@ namespace Azure.IoT.Hub.Service.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     capabilities = DeviceCapabilities.DeserializeDeviceCapabilities(property.Value);
@@ -278,7 +283,40 @@ namespace Azure.IoT.Hub.Service.Models
                     continue;
                 }
             }
-            return new TwinData(deviceId.Value, moduleId.Value, Optional.ToDictionary(tags), properties.Value, etag.Value, Optional.ToNullable(version), deviceEtag.Value, Optional.ToNullable(status), statusReason.Value, Optional.ToNullable(statusUpdateTime), Optional.ToNullable(connectionState), Optional.ToNullable(lastActivityTime), Optional.ToNullable(cloudToDeviceMessageCount), Optional.ToNullable(authenticationType), x509Thumbprint.Value, capabilities.Value, deviceScope.Value);
+            return new TwinData(
+                deviceId,
+                moduleId,
+                tags ?? new ChangeTrackingDictionary<string, object>(),
+                properties,
+                etag,
+                version,
+                deviceEtag,
+                status,
+                statusReason,
+                statusUpdateTime,
+                connectionState,
+                lastActivityTime,
+                cloudToDeviceMessageCount,
+                authenticationType,
+                x509Thumbprint,
+                capabilities,
+                deviceScope);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TwinData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTwinData(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

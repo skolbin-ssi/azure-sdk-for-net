@@ -32,8 +32,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static SelfDependencyTumblingWindowTriggerReference DeserializeSelfDependencyTumblingWindowTriggerReference(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string offset = default;
-            Optional<string> size = default;
+            string size = default;
             string type = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -53,7 +57,23 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new SelfDependencyTumblingWindowTriggerReference(type, offset, size.Value);
+            return new SelfDependencyTumblingWindowTriggerReference(type, offset, size);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new SelfDependencyTumblingWindowTriggerReference FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSelfDependencyTumblingWindowTriggerReference(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class SelfDependencyTumblingWindowTriggerReferenceConverter : JsonConverter<SelfDependencyTumblingWindowTriggerReference>
@@ -62,6 +82,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override SelfDependencyTumblingWindowTriggerReference Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

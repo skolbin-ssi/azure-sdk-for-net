@@ -4,7 +4,7 @@ Run `dotnet build /t:GenerateCode` to generate code.
 
 ``` yaml
 title: EventGridClient
-require: https://github.com/Azure/azure-rest-api-specs/blob/8ba5121a93e44a6ab53e4bc12a56f96829e47a91/specification/eventgrid/data-plane/readme.md
+require: https://github.com/Azure/azure-rest-api-specs/blob/012021c786c360e0c34faf7af888c7fd7dbe2df5/specification/eventgrid/data-plane/readme.md
 generation1-convenience-client: true
 model-factory-for-hlc:
 - MediaJobOutputAsset
@@ -95,7 +95,7 @@ directive:
     const namespace = "Azure.Messaging.EventGrid.SystemEvents";
     for (var path in $)
     {
-      if (!path.includes("CloudEvent") && !path.includes("EventGridEvent"))
+      if (!path.includes("CloudEventEvent") && !path.includes("EventGridEvent"))
       {
         $[path]["x-namespace"] = namespace;
       }
@@ -134,6 +134,53 @@ directive:
           $[path]["properties"]["recordingFormatType"]["x-ms-client-name"] = "FormatType";
           $[path]["properties"]["recordingFormatType"]["x-ms-enum"]["name"] = "AcsRecordingFormatType";
       }
+      if (path.includes("AcsEmailDeliveryReportReceivedEventData"))
+      {
+          $[path]["properties"]["status"]["x-namespace"] = namespace;
+      }
+      if (path.includes("AcsEmailEngagementTrackingReportReceivedEventData"))
+      {
+          $[path]["properties"]["engagementType"]["x-namespace"] = namespace;
+      }
+      if (path.includes("StorageTaskCompletedEventData"))
+      {
+          $[path]["properties"]["status"]["x-namespace"] = namespace;
+          $[path]["properties"]["summaryReportBlobUrl"]["x-ms-client-name"] = "SummaryReportBlobUri";
+      }
+      if (path.includes("StorageTaskAssignmentCompletedEventData"))
+      {
+          $[path]["properties"]["status"]["x-namespace"] = namespace;
+      }
+      if (path.includes("EventGridMQTTClientCreatedOrUpdatedEventData"))
+      {
+          $[path]["properties"]["state"]["x-namespace"] = namespace;
+      }
+      if (path.includes("EventGridMQTTClientSessionDisconnectedEventData"))
+      {
+          $[path]["properties"]["disconnectionReason"]["x-namespace"] = namespace;
+      }
+      if (path.includes("AcsRouterJobReceivedEventData"))
+      {
+          $[path]["properties"]["jobStatus"]["x-namespace"] = namespace;
+      }
+      if (path.includes("AcsRouterWorkerSelector"))
+      {
+          $[path]["properties"]["labelOperator"]["x-namespace"] = namespace;
+          $[path]["properties"]["state"]["x-namespace"] = namespace;
+      }
+      if (path.includes("AcsMessageDeliveryStatusUpdatedEventData"))
+      {
+          $[path]["properties"]["status"]["x-namespace"] = namespace;
+          $[path]["properties"]["channelType"]["x-namespace"] = namespace;
+      }
+      if (path.includes("AcsRouterWorkerUpdatedEventData"))
+      {
+          $[path]["properties"]["updatedWorkerProperties"]["items"]["x-namespace"] = namespace;
+      }
+      if (path.includes("AcsMessageInteractiveContent"))
+      {
+          $[path]["properties"]["type"]["x-namespace"] = namespace;
+      }
     }
 ```
 
@@ -144,7 +191,6 @@ directive:
 - from: swagger-document
   where: $.definitions.MediaJobOutput
   transform: >
-    $.required.push("@odata.type");
     $["x-csharp-usage"] = "model,output";
 ```
 

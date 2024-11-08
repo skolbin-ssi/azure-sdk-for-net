@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using Azure.AI.TextAnalytics.Legacy.Models;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -16,9 +15,13 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static AnalyzeJobMetadata DeserializeAnalyzeJobMetadata(JsonElement element)
         {
-            Optional<string> displayName = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string displayName = default;
             DateTimeOffset createdDateTime = default;
-            Optional<DateTimeOffset> expirationDateTime = default;
+            DateTimeOffset? expirationDateTime = default;
             Guid jobId = default;
             DateTimeOffset lastUpdateDateTime = default;
             State status = default;
@@ -38,7 +41,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     expirationDateTime = property.Value.GetDateTimeOffset("O");
@@ -60,7 +62,21 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new AnalyzeJobMetadata(createdDateTime, Optional.ToNullable(expirationDateTime), jobId, lastUpdateDateTime, status, displayName.Value);
+            return new AnalyzeJobMetadata(
+                createdDateTime,
+                expirationDateTime,
+                jobId,
+                lastUpdateDateTime,
+                status,
+                displayName);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AnalyzeJobMetadata FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAnalyzeJobMetadata(document.RootElement);
         }
     }
 }

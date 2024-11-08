@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,22 +16,25 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static AcsChatMessageDeletedInThreadEventData DeserializeAcsChatMessageDeletedInThreadEventData(JsonElement element)
         {
-            Optional<DateTimeOffset> deleteTime = default;
-            Optional<string> messageId = default;
-            Optional<CommunicationIdentifierModel> senderCommunicationIdentifier = default;
-            Optional<string> senderDisplayName = default;
-            Optional<DateTimeOffset> composeTime = default;
-            Optional<string> type = default;
-            Optional<long> version = default;
-            Optional<string> transactionId = default;
-            Optional<string> threadId = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            DateTimeOffset? deleteTime = default;
+            string messageId = default;
+            CommunicationIdentifierModel senderCommunicationIdentifier = default;
+            string senderDisplayName = default;
+            DateTimeOffset? composeTime = default;
+            string type = default;
+            long? version = default;
+            string transactionId = default;
+            string threadId = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("deleteTime"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     deleteTime = property.Value.GetDateTimeOffset("O");
@@ -47,7 +49,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     senderCommunicationIdentifier = CommunicationIdentifierModel.DeserializeCommunicationIdentifierModel(property.Value);
@@ -62,7 +63,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     composeTime = property.Value.GetDateTimeOffset("O");
@@ -77,7 +77,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     version = property.Value.GetInt64();
@@ -94,7 +93,24 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new AcsChatMessageDeletedInThreadEventData(transactionId.Value, threadId.Value, messageId.Value, senderCommunicationIdentifier.Value, senderDisplayName.Value, Optional.ToNullable(composeTime), type.Value, Optional.ToNullable(version), Optional.ToNullable(deleteTime));
+            return new AcsChatMessageDeletedInThreadEventData(
+                transactionId,
+                threadId,
+                messageId,
+                senderCommunicationIdentifier,
+                senderDisplayName,
+                composeTime,
+                type,
+                version,
+                deleteTime);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AcsChatMessageDeletedInThreadEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAcsChatMessageDeletedInThreadEventData(document.RootElement);
         }
 
         internal partial class AcsChatMessageDeletedInThreadEventDataConverter : JsonConverter<AcsChatMessageDeletedInThreadEventData>
@@ -103,6 +119,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override AcsChatMessageDeletedInThreadEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

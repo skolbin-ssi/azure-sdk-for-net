@@ -35,16 +35,19 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static ImageScale DeserializeImageScale(JsonElement element)
         {
-            Optional<ImageScaleMode> mode = default;
-            Optional<string> width = default;
-            Optional<string> height = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            ImageScaleMode? mode = default;
+            string width = default;
+            string height = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("mode"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     mode = new ImageScaleMode(property.Value.GetString());
@@ -61,7 +64,23 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                     continue;
                 }
             }
-            return new ImageScale(Optional.ToNullable(mode), width.Value, height.Value);
+            return new ImageScale(mode, width, height);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ImageScale FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeImageScale(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

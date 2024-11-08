@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.CallingServer
 {
@@ -14,16 +13,19 @@ namespace Azure.Communication.CallingServer
     {
         internal static ResultInformation DeserializeResultInformation(JsonElement element)
         {
-            Optional<int> code = default;
-            Optional<int> subCode = default;
-            Optional<string> message = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? code = default;
+            int? subCode = default;
+            string message = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("code"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     code = property.Value.GetInt32();
@@ -33,7 +35,6 @@ namespace Azure.Communication.CallingServer
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     subCode = property.Value.GetInt32();
@@ -45,7 +46,15 @@ namespace Azure.Communication.CallingServer
                     continue;
                 }
             }
-            return new ResultInformation(Optional.ToNullable(code), Optional.ToNullable(subCode), message.Value);
+            return new ResultInformation(code, subCode, message);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ResultInformation FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeResultInformation(document.RootElement);
         }
     }
 }

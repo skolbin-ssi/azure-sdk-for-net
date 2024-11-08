@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -14,10 +13,14 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static ResourceHttpRequest DeserializeResourceHttpRequest(JsonElement element)
         {
-            Optional<string> clientRequestId = default;
-            Optional<string> clientIpAddress = default;
-            Optional<string> method = default;
-            Optional<string> url = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string clientRequestId = default;
+            string clientIpAddress = default;
+            string method = default;
+            string url = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("clientRequestId"u8))
@@ -41,7 +44,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new ResourceHttpRequest(clientRequestId.Value, clientIpAddress.Value, method.Value, url.Value);
+            return new ResourceHttpRequest(clientRequestId, clientIpAddress, method, url);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ResourceHttpRequest FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeResourceHttpRequest(document.RootElement);
         }
     }
 }

@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Quantum.Jobs.Models
 {
@@ -14,13 +13,17 @@ namespace Azure.Quantum.Jobs.Models
     {
         internal static QuantumJobQuota DeserializeQuantumJobQuota(JsonElement element)
         {
-            Optional<string> dimension = default;
-            Optional<DimensionScope> scope = default;
-            Optional<string> providerId = default;
-            Optional<float> utilization = default;
-            Optional<float> holds = default;
-            Optional<float> limit = default;
-            Optional<MeterPeriod> period = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string dimension = default;
+            DimensionScope? scope = default;
+            string providerId = default;
+            float? utilization = default;
+            float? holds = default;
+            float? limit = default;
+            MeterPeriod? period = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("dimension"u8))
@@ -32,7 +35,6 @@ namespace Azure.Quantum.Jobs.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     scope = new DimensionScope(property.Value.GetString());
@@ -47,7 +49,6 @@ namespace Azure.Quantum.Jobs.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     utilization = property.Value.GetSingle();
@@ -57,7 +58,6 @@ namespace Azure.Quantum.Jobs.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     holds = property.Value.GetSingle();
@@ -67,7 +67,6 @@ namespace Azure.Quantum.Jobs.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     limit = property.Value.GetSingle();
@@ -77,14 +76,28 @@ namespace Azure.Quantum.Jobs.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     period = new MeterPeriod(property.Value.GetString());
                     continue;
                 }
             }
-            return new QuantumJobQuota(dimension.Value, Optional.ToNullable(scope), providerId.Value, Optional.ToNullable(utilization), Optional.ToNullable(holds), Optional.ToNullable(limit), Optional.ToNullable(period));
+            return new QuantumJobQuota(
+                dimension,
+                scope,
+                providerId,
+                utilization,
+                holds,
+                limit,
+                period);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static QuantumJobQuota FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeQuantumJobQuota(document.RootElement);
         }
     }
 }

@@ -22,6 +22,10 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static UnknownDependencyReference DeserializeUnknownDependencyReference(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = "Unknown";
             foreach (var property in element.EnumerateObject())
             {
@@ -32,6 +36,22 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 }
             }
             return new UnknownDependencyReference(type);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new UnknownDependencyReference FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeUnknownDependencyReference(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue<DependencyReference>(this);
+            return content;
         }
     }
 }

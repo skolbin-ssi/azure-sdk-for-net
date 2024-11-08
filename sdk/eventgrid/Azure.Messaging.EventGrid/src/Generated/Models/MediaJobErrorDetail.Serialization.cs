@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -14,8 +13,12 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static MediaJobErrorDetail DeserializeMediaJobErrorDetail(JsonElement element)
         {
-            Optional<string> code = default;
-            Optional<string> message = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string code = default;
+            string message = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("code"u8))
@@ -29,7 +32,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new MediaJobErrorDetail(code.Value, message.Value);
+            return new MediaJobErrorDetail(code, message);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static MediaJobErrorDetail FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeMediaJobErrorDetail(document.RootElement);
         }
     }
 }

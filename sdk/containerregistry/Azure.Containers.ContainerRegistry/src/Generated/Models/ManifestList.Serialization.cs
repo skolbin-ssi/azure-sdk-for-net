@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Containers.ContainerRegistry
 {
@@ -15,9 +14,13 @@ namespace Azure.Containers.ContainerRegistry
     {
         internal static ManifestList DeserializeManifestList(JsonElement element)
         {
-            Optional<string> mediaType = default;
-            Optional<IReadOnlyList<ManifestListAttributes>> manifests = default;
-            Optional<int> schemaVersion = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string mediaType = default;
+            IReadOnlyList<ManifestListAttributes> manifests = default;
+            int? schemaVersion = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("mediaType"u8))
@@ -29,7 +32,6 @@ namespace Azure.Containers.ContainerRegistry
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<ManifestListAttributes> array = new List<ManifestListAttributes>();
@@ -44,14 +46,21 @@ namespace Azure.Containers.ContainerRegistry
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     schemaVersion = property.Value.GetInt32();
                     continue;
                 }
             }
-            return new ManifestList(Optional.ToNullable(schemaVersion), mediaType.Value, Optional.ToList(manifests));
+            return new ManifestList(schemaVersion, mediaType, manifests ?? new ChangeTrackingList<ManifestListAttributes>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new ManifestList FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeManifestList(document.RootElement);
         }
     }
 }

@@ -27,7 +27,11 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static GrpcExtensionDataTransfer DeserializeGrpcExtensionDataTransfer(JsonElement element)
         {
-            Optional<string> sharedMemorySizeMiB = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string sharedMemorySizeMiB = default;
             GrpcExtensionDataTransferMode mode = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -42,7 +46,23 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                     continue;
                 }
             }
-            return new GrpcExtensionDataTransfer(sharedMemorySizeMiB.Value, mode);
+            return new GrpcExtensionDataTransfer(sharedMemorySizeMiB, mode);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static GrpcExtensionDataTransfer FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeGrpcExtensionDataTransfer(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

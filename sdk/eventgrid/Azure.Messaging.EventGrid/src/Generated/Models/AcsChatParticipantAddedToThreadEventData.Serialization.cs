@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,19 +16,22 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static AcsChatParticipantAddedToThreadEventData DeserializeAcsChatParticipantAddedToThreadEventData(JsonElement element)
         {
-            Optional<DateTimeOffset> time = default;
-            Optional<CommunicationIdentifierModel> addedByCommunicationIdentifier = default;
-            Optional<AcsChatThreadParticipantProperties> participantAdded = default;
-            Optional<long> version = default;
-            Optional<string> transactionId = default;
-            Optional<string> threadId = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            DateTimeOffset? time = default;
+            CommunicationIdentifierModel addedByCommunicationIdentifier = default;
+            AcsChatThreadParticipantProperties participantAdded = default;
+            long? version = default;
+            string transactionId = default;
+            string threadId = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("time"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     time = property.Value.GetDateTimeOffset("O");
@@ -39,7 +41,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     addedByCommunicationIdentifier = CommunicationIdentifierModel.DeserializeCommunicationIdentifierModel(property.Value);
@@ -49,7 +50,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     participantAdded = AcsChatThreadParticipantProperties.DeserializeAcsChatThreadParticipantProperties(property.Value);
@@ -59,7 +59,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     version = property.Value.GetInt64();
@@ -76,7 +75,21 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new AcsChatParticipantAddedToThreadEventData(transactionId.Value, threadId.Value, Optional.ToNullable(time), addedByCommunicationIdentifier.Value, participantAdded.Value, Optional.ToNullable(version));
+            return new AcsChatParticipantAddedToThreadEventData(
+                transactionId,
+                threadId,
+                time,
+                addedByCommunicationIdentifier,
+                participantAdded,
+                version);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AcsChatParticipantAddedToThreadEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAcsChatParticipantAddedToThreadEventData(document.RootElement);
         }
 
         internal partial class AcsChatParticipantAddedToThreadEventDataConverter : JsonConverter<AcsChatParticipantAddedToThreadEventData>
@@ -85,6 +98,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override AcsChatParticipantAddedToThreadEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

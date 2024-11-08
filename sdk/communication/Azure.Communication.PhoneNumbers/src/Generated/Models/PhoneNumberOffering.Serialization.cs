@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.PhoneNumbers
 {
@@ -14,9 +13,13 @@ namespace Azure.Communication.PhoneNumbers
     {
         internal static PhoneNumberOffering DeserializePhoneNumberOffering(JsonElement element)
         {
-            Optional<PhoneNumberType> phoneNumberType = default;
-            Optional<PhoneNumberAssignmentType> assignmentType = default;
-            Optional<PhoneNumberCapabilities> availableCapabilities = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            PhoneNumberType? phoneNumberType = default;
+            PhoneNumberAssignmentType? assignmentType = default;
+            PhoneNumberCapabilities availableCapabilities = default;
             PhoneNumberCost cost = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -24,7 +27,6 @@ namespace Azure.Communication.PhoneNumbers
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     phoneNumberType = new PhoneNumberType(property.Value.GetString());
@@ -34,7 +36,6 @@ namespace Azure.Communication.PhoneNumbers
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     assignmentType = new PhoneNumberAssignmentType(property.Value.GetString());
@@ -44,7 +45,6 @@ namespace Azure.Communication.PhoneNumbers
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     availableCapabilities = PhoneNumberCapabilities.DeserializePhoneNumberCapabilities(property.Value);
@@ -56,7 +56,15 @@ namespace Azure.Communication.PhoneNumbers
                     continue;
                 }
             }
-            return new PhoneNumberOffering(Optional.ToNullable(phoneNumberType), Optional.ToNullable(assignmentType), availableCapabilities.Value, cost);
+            return new PhoneNumberOffering(phoneNumberType, assignmentType, availableCapabilities, cost);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static PhoneNumberOffering FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePhoneNumberOffering(document.RootElement);
         }
     }
 }

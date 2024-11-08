@@ -48,25 +48,30 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WriteStartArray();
                 foreach (var item in Annotations)
                 {
-                    writer.WriteObjectValue(item);
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item);
                 }
                 writer.WriteEndArray();
             }
             writer.WritePropertyName("typeProperties"u8);
             writer.WriteStartObject();
             writer.WritePropertyName("mlEndpoint"u8);
-            writer.WriteObjectValue(MlEndpoint);
+            writer.WriteObjectValue<object>(MlEndpoint);
             writer.WritePropertyName("apiKey"u8);
             writer.WriteObjectValue(ApiKey);
             if (Optional.IsDefined(UpdateResourceEndpoint))
             {
                 writer.WritePropertyName("updateResourceEndpoint"u8);
-                writer.WriteObjectValue(UpdateResourceEndpoint);
+                writer.WriteObjectValue<object>(UpdateResourceEndpoint);
             }
             if (Optional.IsDefined(ServicePrincipalId))
             {
                 writer.WritePropertyName("servicePrincipalId"u8);
-                writer.WriteObjectValue(ServicePrincipalId);
+                writer.WriteObjectValue<object>(ServicePrincipalId);
             }
             if (Optional.IsDefined(ServicePrincipalKey))
             {
@@ -76,36 +81,46 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(Tenant))
             {
                 writer.WritePropertyName("tenant"u8);
-                writer.WriteObjectValue(Tenant);
+                writer.WriteObjectValue<object>(Tenant);
             }
             if (Optional.IsDefined(EncryptedCredential))
             {
                 writer.WritePropertyName("encryptedCredential"u8);
-                writer.WriteObjectValue(EncryptedCredential);
+                writer.WriteObjectValue<object>(EncryptedCredential);
+            }
+            if (Optional.IsDefined(Authentication))
+            {
+                writer.WritePropertyName("authentication"u8);
+                writer.WriteObjectValue<object>(Authentication);
             }
             writer.WriteEndObject();
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static AzureMLLinkedService DeserializeAzureMLLinkedService(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = default;
-            Optional<IntegrationRuntimeReference> connectVia = default;
-            Optional<string> description = default;
-            Optional<IDictionary<string, ParameterSpecification>> parameters = default;
-            Optional<IList<object>> annotations = default;
+            IntegrationRuntimeReference connectVia = default;
+            string description = default;
+            IDictionary<string, ParameterSpecification> parameters = default;
+            IList<object> annotations = default;
             object mlEndpoint = default;
             SecretBase apiKey = default;
-            Optional<object> updateResourceEndpoint = default;
-            Optional<object> servicePrincipalId = default;
-            Optional<SecretBase> servicePrincipalKey = default;
-            Optional<object> tenant = default;
-            Optional<object> encryptedCredential = default;
+            object updateResourceEndpoint = default;
+            object servicePrincipalId = default;
+            SecretBase servicePrincipalKey = default;
+            object tenant = default;
+            object encryptedCredential = default;
+            object authentication = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -119,7 +134,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     connectVia = IntegrationRuntimeReference.DeserializeIntegrationRuntimeReference(property.Value);
@@ -134,7 +148,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, ParameterSpecification> dictionary = new Dictionary<string, ParameterSpecification>();
@@ -149,13 +162,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<object> array = new List<object>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(item.GetObject());
+                        if (item.ValueKind == JsonValueKind.Null)
+                        {
+                            array.Add(null);
+                        }
+                        else
+                        {
+                            array.Add(item.GetObject());
+                        }
                     }
                     annotations = array;
                     continue;
@@ -183,7 +202,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             updateResourceEndpoint = property0.Value.GetObject();
@@ -193,7 +211,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             servicePrincipalId = property0.Value.GetObject();
@@ -203,7 +220,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             servicePrincipalKey = SecretBase.DeserializeSecretBase(property0.Value);
@@ -213,7 +229,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             tenant = property0.Value.GetObject();
@@ -223,10 +238,18 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             encryptedCredential = property0.Value.GetObject();
+                            continue;
+                        }
+                        if (property0.NameEquals("authentication"u8))
+                        {
+                            if (property0.Value.ValueKind == JsonValueKind.Null)
+                            {
+                                continue;
+                            }
+                            authentication = property0.Value.GetObject();
                             continue;
                         }
                     }
@@ -235,7 +258,37 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new AzureMLLinkedService(type, connectVia.Value, description.Value, Optional.ToDictionary(parameters), Optional.ToList(annotations), additionalProperties, mlEndpoint, apiKey, updateResourceEndpoint.Value, servicePrincipalId.Value, servicePrincipalKey.Value, tenant.Value, encryptedCredential.Value);
+            return new AzureMLLinkedService(
+                type,
+                connectVia,
+                description,
+                parameters ?? new ChangeTrackingDictionary<string, ParameterSpecification>(),
+                annotations ?? new ChangeTrackingList<object>(),
+                additionalProperties,
+                mlEndpoint,
+                apiKey,
+                updateResourceEndpoint,
+                servicePrincipalId,
+                servicePrincipalKey,
+                tenant,
+                encryptedCredential,
+                authentication);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AzureMLLinkedService FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureMLLinkedService(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class AzureMLLinkedServiceConverter : JsonConverter<AzureMLLinkedService>
@@ -244,6 +297,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override AzureMLLinkedService Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -29,7 +29,11 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static UniqueTokenFilter DeserializeUniqueTokenFilter(JsonElement element)
         {
-            Optional<bool> onlyOnSamePosition = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            bool? onlyOnSamePosition = default;
             string odataType = default;
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -38,7 +42,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     onlyOnSamePosition = property.Value.GetBoolean();
@@ -55,7 +58,23 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new UniqueTokenFilter(odataType, name, Optional.ToNullable(onlyOnSamePosition));
+            return new UniqueTokenFilter(odataType, name, onlyOnSamePosition);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new UniqueTokenFilter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeUniqueTokenFilter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

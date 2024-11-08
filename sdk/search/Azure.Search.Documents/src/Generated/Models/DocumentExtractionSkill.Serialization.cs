@@ -49,7 +49,12 @@ namespace Azure.Search.Documents.Indexes.Models
                     foreach (var item in Configuration)
                     {
                         writer.WritePropertyName(item.Key);
-                        writer.WriteObjectValue(item.Value);
+                        if (item.Value == null)
+                        {
+                            writer.WriteNullValue();
+                            continue;
+                        }
+                        writer.WriteObjectValue<object>(item.Value);
                     }
                     writer.WriteEndObject();
                 }
@@ -79,14 +84,14 @@ namespace Azure.Search.Documents.Indexes.Models
             writer.WriteStartArray();
             foreach (var item in Inputs)
             {
-                writer.WriteObjectValue(item);
+                writer.WriteObjectValue<InputFieldMappingEntry>(item);
             }
             writer.WriteEndArray();
             writer.WritePropertyName("outputs"u8);
             writer.WriteStartArray();
             foreach (var item in Outputs)
             {
-                writer.WriteObjectValue(item);
+                writer.WriteObjectValue<OutputFieldMappingEntry>(item);
             }
             writer.WriteEndArray();
             writer.WriteEndObject();
@@ -94,13 +99,17 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static DocumentExtractionSkill DeserializeDocumentExtractionSkill(JsonElement element)
         {
-            Optional<BlobIndexerParsingMode?> parsingMode = default;
-            Optional<BlobIndexerDataToExtract?> dataToExtract = default;
-            Optional<IDictionary<string, object>> configuration = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            BlobIndexerParsingMode? parsingMode = default;
+            BlobIndexerDataToExtract? dataToExtract = default;
+            IDictionary<string, object> configuration = default;
             string odataType = default;
-            Optional<string> name = default;
-            Optional<string> description = default;
-            Optional<string> context = default;
+            string name = default;
+            string description = default;
+            string context = default;
             IList<InputFieldMappingEntry> inputs = default;
             IList<OutputFieldMappingEntry> outputs = default;
             foreach (var property in element.EnumerateObject())
@@ -135,7 +144,14 @@ namespace Azure.Search.Documents.Indexes.Models
                     Dictionary<string, object> dictionary = new Dictionary<string, object>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        dictionary.Add(property0.Name, property0.Value.GetObject());
+                        if (property0.Value.ValueKind == JsonValueKind.Null)
+                        {
+                            dictionary.Add(property0.Name, null);
+                        }
+                        else
+                        {
+                            dictionary.Add(property0.Name, property0.Value.GetObject());
+                        }
                     }
                     configuration = dictionary;
                     continue;
@@ -181,7 +197,32 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new DocumentExtractionSkill(odataType, name.Value, description.Value, context.Value, inputs, outputs, Optional.ToNullable(parsingMode), Optional.ToNullable(dataToExtract), Optional.ToDictionary(configuration));
+            return new DocumentExtractionSkill(
+                odataType,
+                name,
+                description,
+                context,
+                inputs,
+                outputs,
+                parsingMode,
+                dataToExtract,
+                configuration ?? new ChangeTrackingDictionary<string, object>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new DocumentExtractionSkill FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDocumentExtractionSkill(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

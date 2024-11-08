@@ -24,6 +24,10 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static UnknownNamedLineBase DeserializeUnknownNamedLineBase(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = "Unknown";
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -40,6 +44,22 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 }
             }
             return new UnknownNamedLineBase(type, name);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new UnknownNamedLineBase FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeUnknownNamedLineBase(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue<NamedLineBase>(this);
+            return content;
         }
     }
 }

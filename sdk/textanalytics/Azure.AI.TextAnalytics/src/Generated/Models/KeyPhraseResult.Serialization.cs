@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.AI.TextAnalytics;
 using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Models
@@ -43,9 +42,13 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static KeyPhraseResult DeserializeKeyPhraseResult(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IList<KeyPhraseResultDocumentsItem> documents = default;
-            IList<InputError> errors = default;
-            Optional<TextDocumentBatchStatistics> statistics = default;
+            IList<DocumentError> errors = default;
+            TextDocumentBatchStatistics statistics = default;
             string modelVersion = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -61,10 +64,10 @@ namespace Azure.AI.TextAnalytics.Models
                 }
                 if (property.NameEquals("errors"u8))
                 {
-                    List<InputError> array = new List<InputError>();
+                    List<DocumentError> array = new List<DocumentError>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(InputError.DeserializeInputError(item));
+                        array.Add(DocumentError.DeserializeDocumentError(item));
                     }
                     errors = array;
                     continue;
@@ -73,7 +76,6 @@ namespace Azure.AI.TextAnalytics.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     statistics = TextDocumentBatchStatistics.DeserializeTextDocumentBatchStatistics(property.Value);
@@ -85,7 +87,23 @@ namespace Azure.AI.TextAnalytics.Models
                     continue;
                 }
             }
-            return new KeyPhraseResult(errors, statistics.Value, modelVersion, documents);
+            return new KeyPhraseResult(errors, statistics, modelVersion, documents);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new KeyPhraseResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeKeyPhraseResult(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

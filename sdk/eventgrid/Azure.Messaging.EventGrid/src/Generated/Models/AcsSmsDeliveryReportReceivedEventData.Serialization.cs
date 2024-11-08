@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -18,14 +17,18 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static AcsSmsDeliveryReportReceivedEventData DeserializeAcsSmsDeliveryReportReceivedEventData(JsonElement element)
         {
-            Optional<string> deliveryStatus = default;
-            Optional<string> deliveryStatusDetails = default;
-            Optional<IReadOnlyList<AcsSmsDeliveryAttemptProperties>> deliveryAttempts = default;
-            Optional<DateTimeOffset> receivedTimestamp = default;
-            Optional<string> tag = default;
-            Optional<string> messageId = default;
-            Optional<string> @from = default;
-            Optional<string> to = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string deliveryStatus = default;
+            string deliveryStatusDetails = default;
+            IReadOnlyList<AcsSmsDeliveryAttemptProperties> deliveryAttempts = default;
+            DateTimeOffset? receivedTimestamp = default;
+            string tag = default;
+            string messageId = default;
+            string @from = default;
+            string to = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("deliveryStatus"u8))
@@ -42,7 +45,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<AcsSmsDeliveryAttemptProperties> array = new List<AcsSmsDeliveryAttemptProperties>();
@@ -57,7 +59,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     receivedTimestamp = property.Value.GetDateTimeOffset("O");
@@ -84,7 +85,23 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new AcsSmsDeliveryReportReceivedEventData(messageId.Value, @from.Value, to.Value, deliveryStatus.Value, deliveryStatusDetails.Value, Optional.ToList(deliveryAttempts), Optional.ToNullable(receivedTimestamp), tag.Value);
+            return new AcsSmsDeliveryReportReceivedEventData(
+                messageId,
+                @from,
+                to,
+                deliveryStatus,
+                deliveryStatusDetails,
+                deliveryAttempts ?? new ChangeTrackingList<AcsSmsDeliveryAttemptProperties>(),
+                receivedTimestamp,
+                tag);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AcsSmsDeliveryReportReceivedEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAcsSmsDeliveryReportReceivedEventData(document.RootElement);
         }
 
         internal partial class AcsSmsDeliveryReportReceivedEventDataConverter : JsonConverter<AcsSmsDeliveryReportReceivedEventData>
@@ -93,6 +110,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override AcsSmsDeliveryReportReceivedEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

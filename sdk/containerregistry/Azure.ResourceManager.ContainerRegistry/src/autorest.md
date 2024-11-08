@@ -4,18 +4,26 @@ Run `dotnet build /t:GenerateCode` to generate code.
 
 ``` yaml
 azure-arm: true
-generate-model-factory: false
 csharp: true
 library-name: ContainerRegistry
 namespace: Azure.ResourceManager.ContainerRegistry
 # default tag is a preview version
-require: https://github.com/Azure/azure-rest-api-specs/blob/d37b3db5ec88a9fc2afcae36bf8d2004b1c5b537/specification/containerregistry/resource-manager/readme.md
+require: https://github.com/Azure/azure-rest-api-specs/blob/8a28143c7271d4496296ed47f70c3cb5a9981e57/specification/containerregistry/resource-manager/readme.md
 tag: package-2022-12
 output-folder: $(this-folder)/Generated
 clear-output-folder: true
+sample-gen:
+  output-folder: $(this-folder)/../samples/Generated
+  clear-output-folder: true
 skip-csproj: true
 modelerfour:
   flatten-payloads: false
+use-model-reader-writer: true
+use-write-core: true
+enable-bicep-serialization: true
+
+# mgmt-debug:
+#   show-serialized-names: true
 
 format-by-name-rules:
   'tenantId': 'uuid'
@@ -29,7 +37,7 @@ format-by-name-rules:
   'tokenId': 'arm-id'
   'scopeMapId': 'arm-id'
 
-rename-rules:
+acronym-mapping:
   CPU: Cpu
   CPUs: Cpus
   Os: OS
@@ -210,6 +218,7 @@ rename-mapping:
   RegistryListResult: ContainerRegistryListResult
   RegistryUsageListResult: ContainerRegistryUsageListResult
   StepType: ContainerRegistryTaskStepType
+  TaskStepProperties.type: ContainerRegistryTaskStepType
   ImageUpdateTrigger.id: -|uuid
   SourceTriggerDescriptor.id: -|uuid
   EventContent.id: -|uuid

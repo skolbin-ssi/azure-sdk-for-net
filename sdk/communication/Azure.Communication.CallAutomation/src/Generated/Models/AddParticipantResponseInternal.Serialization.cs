@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.CallAutomation
 {
@@ -14,15 +13,19 @@ namespace Azure.Communication.CallAutomation
     {
         internal static AddParticipantResponseInternal DeserializeAddParticipantResponseInternal(JsonElement element)
         {
-            Optional<CallParticipantInternal> participant = default;
-            Optional<string> operationContext = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            CallParticipantInternal participant = default;
+            string operationContext = default;
+            string invitationId = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("participant"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     participant = CallParticipantInternal.DeserializeCallParticipantInternal(property.Value);
@@ -33,8 +36,21 @@ namespace Azure.Communication.CallAutomation
                     operationContext = property.Value.GetString();
                     continue;
                 }
+                if (property.NameEquals("invitationId"u8))
+                {
+                    invitationId = property.Value.GetString();
+                    continue;
+                }
             }
-            return new AddParticipantResponseInternal(participant.Value, operationContext.Value);
+            return new AddParticipantResponseInternal(participant, operationContext, invitationId);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AddParticipantResponseInternal FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAddParticipantResponseInternal(document.RootElement);
         }
     }
 }

@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.DocumentAnalysis
 {
@@ -15,6 +14,10 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
     {
         internal static DocumentLanguage DeserializeDocumentLanguage(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string locale = default;
             IReadOnlyList<DocumentSpan> spans = default;
             float confidence = default;
@@ -42,6 +45,14 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 }
             }
             return new DocumentLanguage(locale, spans, confidence);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DocumentLanguage FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDocumentLanguage(document.RootElement);
         }
     }
 }

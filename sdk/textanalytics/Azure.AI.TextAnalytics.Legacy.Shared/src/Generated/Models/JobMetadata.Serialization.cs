@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using Azure.AI.TextAnalytics.Legacy.Models;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -16,8 +15,12 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static JobMetadata DeserializeJobMetadata(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             DateTimeOffset createdDateTime = default;
-            Optional<DateTimeOffset> expirationDateTime = default;
+            DateTimeOffset? expirationDateTime = default;
             Guid jobId = default;
             DateTimeOffset lastUpdateDateTime = default;
             State status = default;
@@ -32,7 +35,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     expirationDateTime = property.Value.GetDateTimeOffset("O");
@@ -54,7 +56,15 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new JobMetadata(createdDateTime, Optional.ToNullable(expirationDateTime), jobId, lastUpdateDateTime, status);
+            return new JobMetadata(createdDateTime, expirationDateTime, jobId, lastUpdateDateTime, status);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static JobMetadata FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeJobMetadata(document.RootElement);
         }
     }
 }

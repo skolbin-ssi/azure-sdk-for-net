@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -15,9 +14,13 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static LanguageResult DeserializeLanguageResult(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IReadOnlyList<DocumentLanguage> documents = default;
             IReadOnlyList<DocumentError> errors = default;
-            Optional<RequestStatistics> statistics = default;
+            RequestStatistics statistics = default;
             string modelVersion = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -45,7 +48,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     statistics = RequestStatistics.DeserializeRequestStatistics(property.Value);
@@ -57,7 +59,15 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new LanguageResult(documents, errors, statistics.Value, modelVersion);
+            return new LanguageResult(documents, errors, statistics, modelVersion);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static LanguageResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeLanguageResult(document.RootElement);
         }
     }
 }

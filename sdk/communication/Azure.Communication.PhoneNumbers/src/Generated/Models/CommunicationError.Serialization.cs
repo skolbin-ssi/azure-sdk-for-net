@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.PhoneNumbers
 {
@@ -15,11 +14,15 @@ namespace Azure.Communication.PhoneNumbers
     {
         internal static CommunicationError DeserializeCommunicationError(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string code = default;
             string message = default;
-            Optional<string> target = default;
-            Optional<IReadOnlyList<CommunicationError>> details = default;
-            Optional<CommunicationError> innererror = default;
+            string target = default;
+            IReadOnlyList<CommunicationError> details = default;
+            CommunicationError innererror = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("code"u8))
@@ -41,7 +44,6 @@ namespace Azure.Communication.PhoneNumbers
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<CommunicationError> array = new List<CommunicationError>();
@@ -56,14 +58,21 @@ namespace Azure.Communication.PhoneNumbers
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     innererror = DeserializeCommunicationError(property.Value);
                     continue;
                 }
             }
-            return new CommunicationError(code, message, target.Value, Optional.ToList(details), innererror.Value);
+            return new CommunicationError(code, message, target, details ?? new ChangeTrackingList<CommunicationError>(), innererror);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static CommunicationError FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCommunicationError(document.RootElement);
         }
     }
 }

@@ -37,7 +37,11 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static ObjectTrackingProcessor DeserializeObjectTrackingProcessor(JsonElement element)
         {
-            Optional<ObjectTrackingAccuracy> accuracy = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            ObjectTrackingAccuracy? accuracy = default;
             string type = default;
             string name = default;
             IList<NodeInput> inputs = default;
@@ -47,7 +51,6 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     accuracy = new ObjectTrackingAccuracy(property.Value.GetString());
@@ -74,7 +77,23 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                     continue;
                 }
             }
-            return new ObjectTrackingProcessor(type, name, inputs, Optional.ToNullable(accuracy));
+            return new ObjectTrackingProcessor(type, name, inputs, accuracy);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new ObjectTrackingProcessor FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeObjectTrackingProcessor(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

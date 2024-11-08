@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Maps.Routing.Models
 {
@@ -14,15 +13,18 @@ namespace Azure.Maps.Routing.Models
     {
         internal static RouteMatrix DeserializeRouteMatrix(JsonElement element)
         {
-            Optional<int> statusCode = default;
-            Optional<RouteMatrixResultResponse> response = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? statusCode = default;
+            RouteMatrixResultResponse response = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("statusCode"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     statusCode = property.Value.GetInt32();
@@ -32,14 +34,21 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     response = RouteMatrixResultResponse.DeserializeRouteMatrixResultResponse(property.Value);
                     continue;
                 }
             }
-            return new RouteMatrix(Optional.ToNullable(statusCode), response.Value);
+            return new RouteMatrix(statusCode, response);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static RouteMatrix FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeRouteMatrix(document.RootElement);
         }
     }
 }

@@ -35,9 +35,13 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static KqlScriptContent DeserializeKqlScriptContent(JsonElement element)
         {
-            Optional<string> query = default;
-            Optional<KqlScriptContentMetadata> metadata = default;
-            Optional<KqlScriptContentCurrentConnection> currentConnection = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string query = default;
+            KqlScriptContentMetadata metadata = default;
+            KqlScriptContentCurrentConnection currentConnection = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("query"u8))
@@ -49,7 +53,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     metadata = KqlScriptContentMetadata.DeserializeKqlScriptContentMetadata(property.Value);
@@ -59,14 +62,29 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     currentConnection = KqlScriptContentCurrentConnection.DeserializeKqlScriptContentCurrentConnection(property.Value);
                     continue;
                 }
             }
-            return new KqlScriptContent(query.Value, metadata.Value, currentConnection.Value);
+            return new KqlScriptContent(query, metadata, currentConnection);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static KqlScriptContent FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeKqlScriptContent(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

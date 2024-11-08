@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
@@ -194,6 +193,8 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
                         { "AzureWebJobs:extensions:EventHubs:EventProcessorOptions:MaxBatchSize", "100" },
                         { "AzureWebJobs:extensions:EventHubs:EventProcessorOptions:PrefetchCount", "200" },
                         { "AzureWebJobs:extensions:EventHubs:BatchCheckpointFrequency", "5" },
+                        { "AzureWebJobs:extensions:EventHubs:MinEventBatchSize", "90" },
+                        { "AzureWebJobs:extensions:EventHubs:MaxWaitTime", "00:00:01" },
                         { "AzureWebJobs:extensions:EventHubs:PartitionManagerOptions:LeaseDuration", "00:00:31" },
                         { "AzureWebJobs:extensions:EventHubs:PartitionManagerOptions:RenewInterval", "00:00:21" },
                         { "AzureWebJobs:extensions:EventHubs:InitialOffsetOptions:Type", "FromEnd" },
@@ -210,6 +211,8 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
             Assert.AreEqual(200, eventProcessorOptions.PrefetchCount);
             Assert.AreEqual(5, options.BatchCheckpointFrequency);
             Assert.AreEqual(100, options.MaxEventBatchSize);
+            Assert.AreEqual(90, options.MinEventBatchSize);
+            Assert.AreEqual(TimeSpan.FromSeconds(1), options.MaxWaitTime);
             Assert.AreEqual(31, options.EventProcessorOptions.PartitionOwnershipExpirationInterval.TotalSeconds);
             Assert.AreEqual(21, options.EventProcessorOptions.LoadBalancingUpdateInterval.TotalSeconds);
             Assert.AreEqual(EventPosition.Latest, eventProcessorOptions.DefaultStartingPosition);
@@ -307,7 +310,7 @@ namespace Microsoft.Azure.WebJobs.EventHubs.UnitTests
         }
 
         internal static EventProcessorHostPartition GetPartitionContext(string partitionId = "0", string eventHubPath = "path",
-            string consumerGroupName = "group", string owner = null)
+            string consumerGroupName = "group")
         {
             var processor = new EventProcessorHost(consumerGroupName,
                 "Endpoint=sb://test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abc123=",

@@ -6,10 +6,9 @@ Run `dotnet build /t:GenerateCode` to generate code.
 > see https://aka.ms/autorest
 ``` yaml
 input-file:
-- https://github.com/Azure/azure-rest-api-specs/blob/3751704f5318f1175875c94b66af769db917f2d3/specification/appconfiguration/data-plane/Microsoft.AppConfiguration/preview/2022-11-01-preview/appconfiguration.json
+- https://github.com/Azure/azure-rest-api-specs/blob/c1af3ab8e803da2f40fc90217a6d023bc13b677f/specification/appconfiguration/data-plane/Microsoft.AppConfiguration/stable/2023-11-01/appconfiguration.json
 namespace: Azure.Data.AppConfiguration
 title: ConfigurationClient
-public-clients: true
 ```
 
 ### Change Endpoint type to Uri
@@ -20,7 +19,7 @@ directive:
   transform: $.format = "url"
   ```
 
-  ### Modify operation names
+### Modify operation names
 ``` yaml
 directive:
 - rename-operation:
@@ -44,4 +43,13 @@ directive:
 - rename-operation:
     from: UpdateSnapshot
     to: UpdateSnapshotStatus
+```
+
+### Internalize protocol methods
+``` yaml
+directive:
+  from: swagger-document
+  where: $.paths.*.*
+  transform: >
+    $["x-accessibility"] = "internal"
 ```

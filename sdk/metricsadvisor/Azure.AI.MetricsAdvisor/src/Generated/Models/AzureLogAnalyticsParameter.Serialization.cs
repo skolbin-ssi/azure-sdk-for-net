@@ -39,9 +39,13 @@ namespace Azure.AI.MetricsAdvisor.Models
 
         internal static AzureLogAnalyticsParameter DeserializeAzureLogAnalyticsParameter(JsonElement element)
         {
-            Optional<string> tenantId = default;
-            Optional<string> clientId = default;
-            Optional<string> clientSecret = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string tenantId = default;
+            string clientId = default;
+            string clientSecret = default;
             string workspaceId = default;
             string query = default;
             foreach (var property in element.EnumerateObject())
@@ -72,7 +76,23 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new AzureLogAnalyticsParameter(tenantId.Value, clientId.Value, clientSecret.Value, workspaceId, query);
+            return new AzureLogAnalyticsParameter(tenantId, clientId, clientSecret, workspaceId, query);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AzureLogAnalyticsParameter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureLogAnalyticsParameter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

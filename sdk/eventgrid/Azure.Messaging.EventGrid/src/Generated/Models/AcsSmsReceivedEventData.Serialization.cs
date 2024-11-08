@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,11 +16,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static AcsSmsReceivedEventData DeserializeAcsSmsReceivedEventData(JsonElement element)
         {
-            Optional<string> message = default;
-            Optional<DateTimeOffset> receivedTimestamp = default;
-            Optional<string> messageId = default;
-            Optional<string> @from = default;
-            Optional<string> to = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string message = default;
+            DateTimeOffset? receivedTimestamp = default;
+            string messageId = default;
+            string @from = default;
+            string to = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("message"u8))
@@ -33,7 +36,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     receivedTimestamp = property.Value.GetDateTimeOffset("O");
@@ -55,7 +57,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new AcsSmsReceivedEventData(messageId.Value, @from.Value, to.Value, message.Value, Optional.ToNullable(receivedTimestamp));
+            return new AcsSmsReceivedEventData(messageId, @from, to, message, receivedTimestamp);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AcsSmsReceivedEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAcsSmsReceivedEventData(document.RootElement);
         }
 
         internal partial class AcsSmsReceivedEventDataConverter : JsonConverter<AcsSmsReceivedEventData>
@@ -64,6 +74,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override AcsSmsReceivedEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -25,10 +25,14 @@ namespace Azure.Analytics.Synapse.ManagedPrivateEndpoints.Models
 
         internal static ManagedPrivateEndpoint DeserializeManagedPrivateEndpoint(JsonElement element)
         {
-            Optional<string> id = default;
-            Optional<string> name = default;
-            Optional<string> type = default;
-            Optional<ManagedPrivateEndpointProperties> properties = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string id = default;
+            string name = default;
+            string type = default;
+            ManagedPrivateEndpointProperties properties = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("id"u8))
@@ -50,14 +54,29 @@ namespace Azure.Analytics.Synapse.ManagedPrivateEndpoints.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     properties = ManagedPrivateEndpointProperties.DeserializeManagedPrivateEndpointProperties(property.Value);
                     continue;
                 }
             }
-            return new ManagedPrivateEndpoint(id.Value, name.Value, type.Value, properties.Value);
+            return new ManagedPrivateEndpoint(id, name, type, properties);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ManagedPrivateEndpoint FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeManagedPrivateEndpoint(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

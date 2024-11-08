@@ -35,7 +35,11 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static ElisionTokenFilter DeserializeElisionTokenFilter(JsonElement element)
         {
-            Optional<IList<string>> articles = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IList<string> articles = default;
             string odataType = default;
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -44,7 +48,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -66,7 +69,23 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new ElisionTokenFilter(odataType, name, Optional.ToList(articles));
+            return new ElisionTokenFilter(odataType, name, articles ?? new ChangeTrackingList<string>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new ElisionTokenFilter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeElisionTokenFilter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

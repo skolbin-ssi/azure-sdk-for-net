@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.MetricsAdvisor.Models
 {
@@ -15,6 +14,10 @@ namespace Azure.AI.MetricsAdvisor.Models
     {
         internal static DataFeedIngestionStatus DeserializeDataFeedIngestionStatus(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             DateTimeOffset timestamp = default;
             IngestionStatusType status = default;
             string message = default;
@@ -37,6 +40,14 @@ namespace Azure.AI.MetricsAdvisor.Models
                 }
             }
             return new DataFeedIngestionStatus(timestamp, status, message);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DataFeedIngestionStatus FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDataFeedIngestionStatus(document.RootElement);
         }
     }
 }

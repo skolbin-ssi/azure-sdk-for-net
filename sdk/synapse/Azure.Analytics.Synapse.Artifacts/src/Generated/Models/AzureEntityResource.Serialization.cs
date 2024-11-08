@@ -23,10 +23,14 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static AzureEntityResource DeserializeAzureEntityResource(JsonElement element)
         {
-            Optional<string> etag = default;
-            Optional<string> id = default;
-            Optional<string> name = default;
-            Optional<string> type = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string etag = default;
+            string id = default;
+            string name = default;
+            string type = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("etag"u8))
@@ -50,7 +54,23 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new AzureEntityResource(id.Value, name.Value, type.Value, etag.Value);
+            return new AzureEntityResource(id, name, type, etag);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AzureEntityResource FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureEntityResource(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class AzureEntityResourceConverter : JsonConverter<AzureEntityResource>
@@ -59,6 +79,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override AzureEntityResource Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

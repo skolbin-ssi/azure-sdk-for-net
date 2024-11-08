@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -14,6 +13,10 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static DetectedLanguage DeserializeDetectedLanguage(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string name = default;
             string iso6391Name = default;
             double confidenceScore = default;
@@ -46,6 +49,14 @@ namespace Azure.AI.TextAnalytics.Legacy
                 }
             }
             return new DetectedLanguage(name, iso6391Name, confidenceScore);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DetectedLanguage FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDetectedLanguage(document.RootElement);
         }
     }
 }

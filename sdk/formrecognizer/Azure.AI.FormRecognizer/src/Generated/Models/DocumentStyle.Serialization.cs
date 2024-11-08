@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.DocumentAnalysis
 {
@@ -15,7 +14,16 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
     {
         internal static DocumentStyle DeserializeDocumentStyle(JsonElement element)
         {
-            Optional<bool> isHandwritten = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            bool? isHandwritten = default;
+            string similarFontFamily = default;
+            DocumentFontStyle? fontStyle = default;
+            DocumentFontWeight? fontWeight = default;
+            string color = default;
+            string backgroundColor = default;
             IReadOnlyList<DocumentSpan> spans = default;
             float confidence = default;
             foreach (var property in element.EnumerateObject())
@@ -24,10 +32,42 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     isHandwritten = property.Value.GetBoolean();
+                    continue;
+                }
+                if (property.NameEquals("similarFontFamily"u8))
+                {
+                    similarFontFamily = property.Value.GetString();
+                    continue;
+                }
+                if (property.NameEquals("fontStyle"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    fontStyle = new DocumentFontStyle(property.Value.GetString());
+                    continue;
+                }
+                if (property.NameEquals("fontWeight"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    fontWeight = new DocumentFontWeight(property.Value.GetString());
+                    continue;
+                }
+                if (property.NameEquals("color"u8))
+                {
+                    color = property.Value.GetString();
+                    continue;
+                }
+                if (property.NameEquals("backgroundColor"u8))
+                {
+                    backgroundColor = property.Value.GetString();
                     continue;
                 }
                 if (property.NameEquals("spans"u8))
@@ -46,7 +86,23 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                     continue;
                 }
             }
-            return new DocumentStyle(Optional.ToNullable(isHandwritten), spans, confidence);
+            return new DocumentStyle(
+                isHandwritten,
+                similarFontFamily,
+                fontStyle,
+                fontWeight,
+                color,
+                backgroundColor,
+                spans,
+                confidence);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DocumentStyle FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDocumentStyle(document.RootElement);
         }
     }
 }

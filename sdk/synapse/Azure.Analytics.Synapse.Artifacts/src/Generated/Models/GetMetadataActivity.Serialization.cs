@@ -38,6 +38,16 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WritePropertyName("description"u8);
                 writer.WriteStringValue(Description);
             }
+            if (Optional.IsDefined(State))
+            {
+                writer.WritePropertyName("state"u8);
+                writer.WriteStringValue(State.Value.ToString());
+            }
+            if (Optional.IsDefined(OnInactiveMarkAs))
+            {
+                writer.WritePropertyName("onInactiveMarkAs"u8);
+                writer.WriteStringValue(OnInactiveMarkAs.Value.ToString());
+            }
             if (Optional.IsCollectionDefined(DependsOn))
             {
                 writer.WritePropertyName("dependsOn"u8);
@@ -68,7 +78,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WriteStartArray();
                 foreach (var item in FieldList)
                 {
-                    writer.WriteObjectValue(item);
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item);
                 }
                 writer.WriteEndArray();
             }
@@ -86,24 +101,30 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static GetMetadataActivity DeserializeGetMetadataActivity(JsonElement element)
         {
-            Optional<LinkedServiceReference> linkedServiceName = default;
-            Optional<ActivityPolicy> policy = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            LinkedServiceReference linkedServiceName = default;
+            ActivityPolicy policy = default;
             string name = default;
             string type = default;
-            Optional<string> description = default;
-            Optional<IList<ActivityDependency>> dependsOn = default;
-            Optional<IList<UserProperty>> userProperties = default;
+            string description = default;
+            ActivityState? state = default;
+            ActivityOnInactiveMarkAs? onInactiveMarkAs = default;
+            IList<ActivityDependency> dependsOn = default;
+            IList<UserProperty> userProperties = default;
             DatasetReference dataset = default;
-            Optional<IList<object>> fieldList = default;
-            Optional<StoreReadSettings> storeSettings = default;
-            Optional<FormatReadSettings> formatSettings = default;
+            IList<object> fieldList = default;
+            StoreReadSettings storeSettings = default;
+            FormatReadSettings formatSettings = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -112,7 +133,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     linkedServiceName = LinkedServiceReference.DeserializeLinkedServiceReference(property.Value);
@@ -122,7 +142,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     policy = ActivityPolicy.DeserializeActivityPolicy(property.Value);
@@ -143,11 +162,28 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     description = property.Value.GetString();
                     continue;
                 }
+                if (property.NameEquals("state"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    state = new ActivityState(property.Value.GetString());
+                    continue;
+                }
+                if (property.NameEquals("onInactiveMarkAs"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    onInactiveMarkAs = new ActivityOnInactiveMarkAs(property.Value.GetString());
+                    continue;
+                }
                 if (property.NameEquals("dependsOn"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<ActivityDependency> array = new List<ActivityDependency>();
@@ -162,7 +198,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<UserProperty> array = new List<UserProperty>();
@@ -191,13 +226,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             List<object> array = new List<object>();
                             foreach (var item in property0.Value.EnumerateArray())
                             {
-                                array.Add(item.GetObject());
+                                if (item.ValueKind == JsonValueKind.Null)
+                                {
+                                    array.Add(null);
+                                }
+                                else
+                                {
+                                    array.Add(item.GetObject());
+                                }
                             }
                             fieldList = array;
                             continue;
@@ -206,7 +247,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             storeSettings = StoreReadSettings.DeserializeStoreReadSettings(property0.Value);
@@ -216,7 +256,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             formatSettings = FormatReadSettings.DeserializeFormatReadSettings(property0.Value);
@@ -228,7 +267,37 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new GetMetadataActivity(name, type, description.Value, Optional.ToList(dependsOn), Optional.ToList(userProperties), additionalProperties, linkedServiceName.Value, policy.Value, dataset, Optional.ToList(fieldList), storeSettings.Value, formatSettings.Value);
+            return new GetMetadataActivity(
+                name,
+                type,
+                description,
+                state,
+                onInactiveMarkAs,
+                dependsOn ?? new ChangeTrackingList<ActivityDependency>(),
+                userProperties ?? new ChangeTrackingList<UserProperty>(),
+                additionalProperties,
+                linkedServiceName,
+                policy,
+                dataset,
+                fieldList ?? new ChangeTrackingList<object>(),
+                storeSettings,
+                formatSettings);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new GetMetadataActivity FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeGetMetadataActivity(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class GetMetadataActivityConverter : JsonConverter<GetMetadataActivity>
@@ -237,6 +306,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override GetMetadataActivity Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

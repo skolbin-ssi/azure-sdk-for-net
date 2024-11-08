@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
+using Azure.Maps.Common;
 
 namespace Azure.Maps.Rendering
 {
@@ -15,9 +15,13 @@ namespace Azure.Maps.Rendering
     {
         internal static RenderCopyright DeserializeRenderCopyright(JsonElement element)
         {
-            Optional<string> formatVersion = default;
-            Optional<IReadOnlyList<string>> generalCopyrights = default;
-            Optional<IReadOnlyList<RegionalCopyright>> regions = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string formatVersion = default;
+            IReadOnlyList<string> generalCopyrights = default;
+            IReadOnlyList<RegionalCopyright> regions = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("formatVersion"u8))
@@ -29,7 +33,6 @@ namespace Azure.Maps.Rendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -44,7 +47,6 @@ namespace Azure.Maps.Rendering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<RegionalCopyright> array = new List<RegionalCopyright>();
@@ -56,7 +58,15 @@ namespace Azure.Maps.Rendering
                     continue;
                 }
             }
-            return new RenderCopyright(formatVersion.Value, Optional.ToList(generalCopyrights), Optional.ToList(regions));
+            return new RenderCopyright(formatVersion, generalCopyrights ?? new ChangeTrackingList<string>(), regions ?? new ChangeTrackingList<RegionalCopyright>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static RenderCopyright FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeRenderCopyright(document.RootElement);
         }
     }
 }

@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,10 +16,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static StorageLifecyclePolicyCompletedEventData DeserializeStorageLifecyclePolicyCompletedEventData(JsonElement element)
         {
-            Optional<string> scheduleTime = default;
-            Optional<StorageLifecyclePolicyActionSummaryDetail> deleteSummary = default;
-            Optional<StorageLifecyclePolicyActionSummaryDetail> tierToCoolSummary = default;
-            Optional<StorageLifecyclePolicyActionSummaryDetail> tierToArchiveSummary = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string scheduleTime = default;
+            StorageLifecyclePolicyActionSummaryDetail deleteSummary = default;
+            StorageLifecyclePolicyActionSummaryDetail tierToCoolSummary = default;
+            StorageLifecyclePolicyActionSummaryDetail tierToColdSummary = default;
+            StorageLifecyclePolicyActionSummaryDetail tierToArchiveSummary = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("scheduleTime"u8))
@@ -32,7 +36,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     deleteSummary = StorageLifecyclePolicyActionSummaryDetail.DeserializeStorageLifecyclePolicyActionSummaryDetail(property.Value);
@@ -42,24 +45,39 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     tierToCoolSummary = StorageLifecyclePolicyActionSummaryDetail.DeserializeStorageLifecyclePolicyActionSummaryDetail(property.Value);
+                    continue;
+                }
+                if (property.NameEquals("tierToColdSummary"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    tierToColdSummary = StorageLifecyclePolicyActionSummaryDetail.DeserializeStorageLifecyclePolicyActionSummaryDetail(property.Value);
                     continue;
                 }
                 if (property.NameEquals("tierToArchiveSummary"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     tierToArchiveSummary = StorageLifecyclePolicyActionSummaryDetail.DeserializeStorageLifecyclePolicyActionSummaryDetail(property.Value);
                     continue;
                 }
             }
-            return new StorageLifecyclePolicyCompletedEventData(scheduleTime.Value, deleteSummary.Value, tierToCoolSummary.Value, tierToArchiveSummary.Value);
+            return new StorageLifecyclePolicyCompletedEventData(scheduleTime, deleteSummary, tierToCoolSummary, tierToColdSummary, tierToArchiveSummary);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static StorageLifecyclePolicyCompletedEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeStorageLifecyclePolicyCompletedEventData(document.RootElement);
         }
 
         internal partial class StorageLifecyclePolicyCompletedEventDataConverter : JsonConverter<StorageLifecyclePolicyCompletedEventData>
@@ -68,6 +86,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override StorageLifecyclePolicyCompletedEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -40,17 +40,20 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static SentimentAnalysisTaskParameters DeserializeSentimentAnalysisTaskParameters(JsonElement element)
         {
-            Optional<bool> opinionMining = default;
-            Optional<StringIndexType> stringIndexType = default;
-            Optional<string> modelVersion = default;
-            Optional<bool> loggingOptOut = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            bool? opinionMining = default;
+            StringIndexType? stringIndexType = default;
+            string modelVersion = default;
+            bool? loggingOptOut = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("opinionMining"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     opinionMining = property.Value.GetBoolean();
@@ -60,7 +63,6 @@ namespace Azure.AI.TextAnalytics.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     stringIndexType = new StringIndexType(property.Value.GetString());
@@ -75,14 +77,29 @@ namespace Azure.AI.TextAnalytics.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     loggingOptOut = property.Value.GetBoolean();
                     continue;
                 }
             }
-            return new SentimentAnalysisTaskParameters(Optional.ToNullable(loggingOptOut), modelVersion.Value, Optional.ToNullable(opinionMining), Optional.ToNullable(stringIndexType));
+            return new SentimentAnalysisTaskParameters(loggingOptOut, modelVersion, opinionMining, stringIndexType);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new SentimentAnalysisTaskParameters FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSentimentAnalysisTaskParameters(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

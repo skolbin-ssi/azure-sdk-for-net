@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.IoT.TimeSeriesInsights
 {
@@ -16,17 +15,20 @@ namespace Azure.IoT.TimeSeriesInsights
     {
         internal static QueryResultPage DeserializeQueryResultPage(JsonElement element)
         {
-            Optional<IReadOnlyList<DateTimeOffset>> timestamps = default;
-            Optional<IReadOnlyList<PropertyValues>> properties = default;
-            Optional<double> progress = default;
-            Optional<string> continuationToken = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IReadOnlyList<DateTimeOffset> timestamps = default;
+            IReadOnlyList<PropertyValues> properties = default;
+            double? progress = default;
+            string continuationToken = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("timestamps"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<DateTimeOffset> array = new List<DateTimeOffset>();
@@ -41,7 +43,6 @@ namespace Azure.IoT.TimeSeriesInsights
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<PropertyValues> array = new List<PropertyValues>();
@@ -56,7 +57,6 @@ namespace Azure.IoT.TimeSeriesInsights
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     progress = property.Value.GetDouble();
@@ -68,7 +68,15 @@ namespace Azure.IoT.TimeSeriesInsights
                     continue;
                 }
             }
-            return new QueryResultPage(continuationToken.Value, Optional.ToList(timestamps), Optional.ToList(properties), Optional.ToNullable(progress));
+            return new QueryResultPage(continuationToken, timestamps ?? new ChangeTrackingList<DateTimeOffset>(), properties ?? new ChangeTrackingList<PropertyValues>(), progress);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new QueryResultPage FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeQueryResultPage(document.RootElement);
         }
     }
 }

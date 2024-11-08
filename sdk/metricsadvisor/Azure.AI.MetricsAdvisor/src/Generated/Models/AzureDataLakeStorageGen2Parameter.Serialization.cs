@@ -71,8 +71,12 @@ namespace Azure.AI.MetricsAdvisor.Models
 
         internal static AzureDataLakeStorageGen2Parameter DeserializeAzureDataLakeStorageGen2Parameter(JsonElement element)
         {
-            Optional<string> accountName = default;
-            Optional<string> accountKey = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string accountName = default;
+            string accountKey = default;
             string fileSystemName = default;
             string directoryTemplate = default;
             string fileTemplate = default;
@@ -129,7 +133,23 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new AzureDataLakeStorageGen2Parameter(accountName.Value, accountKey.Value, fileSystemName, directoryTemplate, fileTemplate);
+            return new AzureDataLakeStorageGen2Parameter(accountName, accountKey, fileSystemName, directoryTemplate, fileTemplate);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AzureDataLakeStorageGen2Parameter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureDataLakeStorageGen2Parameter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

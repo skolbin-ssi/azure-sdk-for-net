@@ -40,10 +40,14 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static KqlScriptContentCurrentConnection DeserializeKqlScriptContentCurrentConnection(JsonElement element)
         {
-            Optional<string> name = default;
-            Optional<string> poolName = default;
-            Optional<string> databaseName = default;
-            Optional<string> type = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string name = default;
+            string poolName = default;
+            string databaseName = default;
+            string type = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("name"u8))
@@ -67,7 +71,23 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new KqlScriptContentCurrentConnection(name.Value, poolName.Value, databaseName.Value, type.Value);
+            return new KqlScriptContentCurrentConnection(name, poolName, databaseName, type);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static KqlScriptContentCurrentConnection FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeKqlScriptContentCurrentConnection(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

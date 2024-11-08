@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.IoT.Hub.Service.Models
 {
@@ -14,16 +13,19 @@ namespace Azure.IoT.Hub.Service.Models
     {
         internal static PurgeMessageQueueResult DeserializePurgeMessageQueueResult(JsonElement element)
         {
-            Optional<int> totalMessagesPurged = default;
-            Optional<string> deviceId = default;
-            Optional<string> moduleId = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? totalMessagesPurged = default;
+            string deviceId = default;
+            string moduleId = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("totalMessagesPurged"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     totalMessagesPurged = property.Value.GetInt32();
@@ -40,7 +42,15 @@ namespace Azure.IoT.Hub.Service.Models
                     continue;
                 }
             }
-            return new PurgeMessageQueueResult(Optional.ToNullable(totalMessagesPurged), deviceId.Value, moduleId.Value);
+            return new PurgeMessageQueueResult(totalMessagesPurged, deviceId, moduleId);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static PurgeMessageQueueResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePurgeMessageQueueResult(document.RootElement);
         }
     }
 }

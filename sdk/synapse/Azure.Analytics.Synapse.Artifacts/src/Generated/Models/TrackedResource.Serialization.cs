@@ -37,18 +37,21 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static TrackedResource DeserializeTrackedResource(JsonElement element)
         {
-            Optional<IDictionary<string, string>> tags = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IDictionary<string, string> tags = default;
             string location = default;
-            Optional<string> id = default;
-            Optional<string> name = default;
-            Optional<string> type = default;
+            string id = default;
+            string name = default;
+            string type = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("tags"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
@@ -80,7 +83,23 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new TrackedResource(id.Value, name.Value, type.Value, Optional.ToDictionary(tags), location);
+            return new TrackedResource(id, name, type, tags ?? new ChangeTrackingDictionary<string, string>(), location);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new TrackedResource FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTrackedResource(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class TrackedResourceConverter : JsonConverter<TrackedResource>
@@ -89,6 +108,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override TrackedResource Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -15,15 +14,18 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static HealthcareTaskResult DeserializeHealthcareTaskResult(JsonElement element)
         {
-            Optional<HealthcareResult> results = default;
-            Optional<IReadOnlyList<TextAnalyticsError>> errors = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            HealthcareResult results = default;
+            IReadOnlyList<TextAnalyticsError> errors = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("results"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     results = HealthcareResult.DeserializeHealthcareResult(property.Value);
@@ -33,7 +35,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<TextAnalyticsError> array = new List<TextAnalyticsError>();
@@ -45,7 +46,15 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new HealthcareTaskResult(results.Value, Optional.ToList(errors));
+            return new HealthcareTaskResult(results, errors ?? new ChangeTrackingList<TextAnalyticsError>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static HealthcareTaskResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeHealthcareTaskResult(document.RootElement);
         }
     }
 }

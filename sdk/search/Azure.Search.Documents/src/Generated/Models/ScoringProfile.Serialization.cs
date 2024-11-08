@@ -36,7 +36,7 @@ namespace Azure.Search.Documents.Indexes.Models
                 writer.WriteStartArray();
                 foreach (var item in Functions)
                 {
-                    writer.WriteObjectValue(item);
+                    writer.WriteObjectValue<ScoringFunction>(item);
                 }
                 writer.WriteEndArray();
             }
@@ -57,10 +57,14 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static ScoringProfile DeserializeScoringProfile(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string name = default;
-            Optional<TextWeights> text = default;
-            Optional<IList<ScoringFunction>> functions = default;
-            Optional<ScoringFunctionAggregation?> functionAggregation = default;
+            TextWeights text = default;
+            IList<ScoringFunction> functions = default;
+            ScoringFunctionAggregation? functionAggregation = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("name"u8))
@@ -82,7 +86,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<ScoringFunction> array = new List<ScoringFunction>();
@@ -104,7 +107,23 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new ScoringProfile(name, text.Value, Optional.ToList(functions), Optional.ToNullable(functionAggregation));
+            return new ScoringProfile(name, text, functions ?? new ChangeTrackingList<ScoringFunction>(), functionAggregation);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ScoringProfile FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeScoringProfile(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

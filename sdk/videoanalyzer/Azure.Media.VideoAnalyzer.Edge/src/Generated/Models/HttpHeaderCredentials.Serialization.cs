@@ -26,6 +26,10 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static HttpHeaderCredentials DeserializeHttpHeaderCredentials(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string headerName = default;
             string headerValue = default;
             string type = default;
@@ -48,6 +52,22 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 }
             }
             return new HttpHeaderCredentials(type, headerName, headerValue);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new HttpHeaderCredentials FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeHttpHeaderCredentials(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

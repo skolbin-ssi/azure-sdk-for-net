@@ -130,36 +130,39 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static BigDataPoolResourceInfo DeserializeBigDataPoolResourceInfo(JsonElement element)
         {
-            Optional<IDictionary<string, string>> tags = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IDictionary<string, string> tags = default;
             string location = default;
-            Optional<string> id = default;
-            Optional<string> name = default;
-            Optional<string> type = default;
-            Optional<string> provisioningState = default;
-            Optional<AutoScaleProperties> autoScale = default;
-            Optional<DateTimeOffset> creationDate = default;
-            Optional<AutoPauseProperties> autoPause = default;
-            Optional<bool> isComputeIsolationEnabled = default;
-            Optional<bool> sessionLevelPackagesEnabled = default;
-            Optional<int> cacheSize = default;
-            Optional<DynamicExecutorAllocation> dynamicExecutorAllocation = default;
-            Optional<string> sparkEventsFolder = default;
-            Optional<int> nodeCount = default;
-            Optional<LibraryRequirements> libraryRequirements = default;
-            Optional<IList<LibraryInfo>> customLibraries = default;
-            Optional<LibraryRequirements> sparkConfigProperties = default;
-            Optional<string> sparkVersion = default;
-            Optional<string> defaultSparkLogFolder = default;
-            Optional<NodeSize> nodeSize = default;
-            Optional<NodeSizeFamily> nodeSizeFamily = default;
-            Optional<DateTimeOffset> lastSucceededTimestamp = default;
+            string id = default;
+            string name = default;
+            string type = default;
+            string provisioningState = default;
+            AutoScaleProperties autoScale = default;
+            DateTimeOffset? creationDate = default;
+            AutoPauseProperties autoPause = default;
+            bool? isComputeIsolationEnabled = default;
+            bool? sessionLevelPackagesEnabled = default;
+            int? cacheSize = default;
+            DynamicExecutorAllocation dynamicExecutorAllocation = default;
+            string sparkEventsFolder = default;
+            int? nodeCount = default;
+            LibraryRequirements libraryRequirements = default;
+            IList<LibraryInfo> customLibraries = default;
+            LibraryRequirements sparkConfigProperties = default;
+            string sparkVersion = default;
+            string defaultSparkLogFolder = default;
+            NodeSize? nodeSize = default;
+            NodeSizeFamily? nodeSizeFamily = default;
+            DateTimeOffset? lastSucceededTimestamp = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("tags"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, string> dictionary = new Dictionary<string, string>();
@@ -208,7 +211,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             autoScale = AutoScaleProperties.DeserializeAutoScaleProperties(property0.Value);
@@ -218,7 +220,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             creationDate = property0.Value.GetDateTimeOffset("O");
@@ -228,7 +229,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             autoPause = AutoPauseProperties.DeserializeAutoPauseProperties(property0.Value);
@@ -238,7 +238,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             isComputeIsolationEnabled = property0.Value.GetBoolean();
@@ -248,7 +247,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             sessionLevelPackagesEnabled = property0.Value.GetBoolean();
@@ -258,7 +256,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             cacheSize = property0.Value.GetInt32();
@@ -268,7 +265,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             dynamicExecutorAllocation = DynamicExecutorAllocation.DeserializeDynamicExecutorAllocation(property0.Value);
@@ -283,7 +279,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             nodeCount = property0.Value.GetInt32();
@@ -293,7 +288,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             libraryRequirements = LibraryRequirements.DeserializeLibraryRequirements(property0.Value);
@@ -303,7 +297,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             List<LibraryInfo> array = new List<LibraryInfo>();
@@ -318,7 +311,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             sparkConfigProperties = LibraryRequirements.DeserializeLibraryRequirements(property0.Value);
@@ -338,7 +330,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             nodeSize = new NodeSize(property0.Value.GetString());
@@ -348,7 +339,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             nodeSizeFamily = new NodeSizeFamily(property0.Value.GetString());
@@ -358,7 +348,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             lastSucceededTimestamp = property0.Value.GetDateTimeOffset("O");
@@ -368,7 +357,46 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                     continue;
                 }
             }
-            return new BigDataPoolResourceInfo(id.Value, name.Value, type.Value, Optional.ToDictionary(tags), location, provisioningState.Value, autoScale.Value, Optional.ToNullable(creationDate), autoPause.Value, Optional.ToNullable(isComputeIsolationEnabled), Optional.ToNullable(sessionLevelPackagesEnabled), Optional.ToNullable(cacheSize), dynamicExecutorAllocation.Value, sparkEventsFolder.Value, Optional.ToNullable(nodeCount), libraryRequirements.Value, Optional.ToList(customLibraries), sparkConfigProperties.Value, sparkVersion.Value, defaultSparkLogFolder.Value, Optional.ToNullable(nodeSize), Optional.ToNullable(nodeSizeFamily), Optional.ToNullable(lastSucceededTimestamp));
+            return new BigDataPoolResourceInfo(
+                id,
+                name,
+                type,
+                tags ?? new ChangeTrackingDictionary<string, string>(),
+                location,
+                provisioningState,
+                autoScale,
+                creationDate,
+                autoPause,
+                isComputeIsolationEnabled,
+                sessionLevelPackagesEnabled,
+                cacheSize,
+                dynamicExecutorAllocation,
+                sparkEventsFolder,
+                nodeCount,
+                libraryRequirements,
+                customLibraries ?? new ChangeTrackingList<LibraryInfo>(),
+                sparkConfigProperties,
+                sparkVersion,
+                defaultSparkLogFolder,
+                nodeSize,
+                nodeSizeFamily,
+                lastSucceededTimestamp);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new BigDataPoolResourceInfo FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeBigDataPoolResourceInfo(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class BigDataPoolResourceInfoConverter : JsonConverter<BigDataPoolResourceInfo>
@@ -377,6 +405,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override BigDataPoolResourceInfo Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

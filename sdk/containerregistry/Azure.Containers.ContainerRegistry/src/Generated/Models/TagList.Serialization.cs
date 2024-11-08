@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Containers.ContainerRegistry
 {
@@ -15,10 +14,14 @@ namespace Azure.Containers.ContainerRegistry
     {
         internal static TagList DeserializeTagList(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string registry = default;
             string imageName = default;
             IReadOnlyList<TagAttributesBase> tags = default;
-            Optional<string> link = default;
+            string link = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("registry"u8))
@@ -47,7 +50,15 @@ namespace Azure.Containers.ContainerRegistry
                     continue;
                 }
             }
-            return new TagList(registry, imageName, tags, link.Value);
+            return new TagList(registry, imageName, tags, link);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TagList FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTagList(document.RootElement);
         }
     }
 }

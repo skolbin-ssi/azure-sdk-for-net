@@ -42,7 +42,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WriteStartArray();
                 foreach (var item in Annotations)
                 {
-                    writer.WriteObjectValue(item);
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item);
                 }
                 writer.WriteEndArray();
             }
@@ -62,7 +67,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             writer.WriteStartArray();
             foreach (var item in Events)
             {
-                writer.WriteObjectValue(item);
+                if (item == null)
+                {
+                    writer.WriteNullValue();
+                    continue;
+                }
+                writer.WriteObjectValue<object>(item);
             }
             writer.WriteEndArray();
             writer.WritePropertyName("scope"u8);
@@ -71,20 +81,24 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static CustomEventsTrigger DeserializeCustomEventsTrigger(JsonElement element)
         {
-            Optional<IList<TriggerPipelineReference>> pipelines = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IList<TriggerPipelineReference> pipelines = default;
             string type = default;
-            Optional<string> description = default;
-            Optional<TriggerRuntimeState> runtimeState = default;
-            Optional<IList<object>> annotations = default;
-            Optional<string> subjectBeginsWith = default;
-            Optional<string> subjectEndsWith = default;
+            string description = default;
+            TriggerRuntimeState? runtimeState = default;
+            IList<object> annotations = default;
+            string subjectBeginsWith = default;
+            string subjectEndsWith = default;
             IList<object> events = default;
             string scope = default;
             IDictionary<string, object> additionalProperties = default;
@@ -95,7 +109,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<TriggerPipelineReference> array = new List<TriggerPipelineReference>();
@@ -120,7 +133,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     runtimeState = new TriggerRuntimeState(property.Value.GetString());
@@ -130,13 +142,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<object> array = new List<object>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(item.GetObject());
+                        if (item.ValueKind == JsonValueKind.Null)
+                        {
+                            array.Add(null);
+                        }
+                        else
+                        {
+                            array.Add(item.GetObject());
+                        }
                     }
                     annotations = array;
                     continue;
@@ -165,7 +183,14 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                             List<object> array = new List<object>();
                             foreach (var item in property0.Value.EnumerateArray())
                             {
-                                array.Add(item.GetObject());
+                                if (item.ValueKind == JsonValueKind.Null)
+                                {
+                                    array.Add(null);
+                                }
+                                else
+                                {
+                                    array.Add(item.GetObject());
+                                }
                             }
                             events = array;
                             continue;
@@ -181,7 +206,33 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new CustomEventsTrigger(type, description.Value, Optional.ToNullable(runtimeState), Optional.ToList(annotations), additionalProperties, Optional.ToList(pipelines), subjectBeginsWith.Value, subjectEndsWith.Value, events, scope);
+            return new CustomEventsTrigger(
+                type,
+                description,
+                runtimeState,
+                annotations ?? new ChangeTrackingList<object>(),
+                additionalProperties,
+                pipelines ?? new ChangeTrackingList<TriggerPipelineReference>(),
+                subjectBeginsWith,
+                subjectEndsWith,
+                events,
+                scope);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new CustomEventsTrigger FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCustomEventsTrigger(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class CustomEventsTriggerConverter : JsonConverter<CustomEventsTrigger>
@@ -190,6 +241,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override CustomEventsTrigger Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

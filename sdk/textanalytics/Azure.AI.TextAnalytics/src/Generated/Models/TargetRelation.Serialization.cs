@@ -24,6 +24,10 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static TargetRelation DeserializeTargetRelation(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             TargetRelationType relationType = default;
             string @ref = default;
             foreach (var property in element.EnumerateObject())
@@ -40,6 +44,22 @@ namespace Azure.AI.TextAnalytics.Models
                 }
             }
             return new TargetRelation(relationType, @ref);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TargetRelation FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTargetRelation(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

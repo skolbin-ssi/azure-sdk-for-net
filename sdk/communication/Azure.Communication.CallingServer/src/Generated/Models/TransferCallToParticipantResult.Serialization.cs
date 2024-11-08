@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.CallingServer
 {
@@ -14,7 +13,11 @@ namespace Azure.Communication.CallingServer
     {
         internal static TransferCallToParticipantResult DeserializeTransferCallToParticipantResult(JsonElement element)
         {
-            Optional<string> operationContext = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string operationContext = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("operationContext"u8))
@@ -23,7 +26,15 @@ namespace Azure.Communication.CallingServer
                     continue;
                 }
             }
-            return new TransferCallToParticipantResult(operationContext.Value);
+            return new TransferCallToParticipantResult(operationContext);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TransferCallToParticipantResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTransferCallToParticipantResult(document.RootElement);
         }
     }
 }

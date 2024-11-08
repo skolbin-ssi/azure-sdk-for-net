@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Monitor.Query.Models
 {
@@ -14,8 +13,12 @@ namespace Azure.Monitor.Query.Models
     {
         internal static LocalizableString DeserializeLocalizableString(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string value = default;
-            Optional<string> localizedValue = default;
+            string localizedValue = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("value"u8))
@@ -29,7 +32,15 @@ namespace Azure.Monitor.Query.Models
                     continue;
                 }
             }
-            return new LocalizableString(value, localizedValue.Value);
+            return new LocalizableString(value, localizedValue);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static LocalizableString FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeLocalizableString(document.RootElement);
         }
     }
 }

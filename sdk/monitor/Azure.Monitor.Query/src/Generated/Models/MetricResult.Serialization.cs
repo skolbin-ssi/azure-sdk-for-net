@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Monitor.Query.Models
 {
@@ -15,12 +14,16 @@ namespace Azure.Monitor.Query.Models
     {
         internal static MetricResult DeserializeMetricResult(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string id = default;
             string type = default;
             LocalizableString name = default;
-            Optional<string> displayDescription = default;
-            Optional<string> errorCode = default;
-            Optional<string> errorMessage = default;
+            string displayDescription = default;
+            string errorCode = default;
+            string errorMessage = default;
             MetricUnit unit = default;
             IReadOnlyList<MetricTimeSeriesElement> timeseries = default;
             foreach (var property in element.EnumerateObject())
@@ -71,7 +74,23 @@ namespace Azure.Monitor.Query.Models
                     continue;
                 }
             }
-            return new MetricResult(id, type, name, displayDescription.Value, errorCode.Value, errorMessage.Value, unit, timeseries);
+            return new MetricResult(
+                id,
+                type,
+                name,
+                displayDescription,
+                errorCode,
+                errorMessage,
+                unit,
+                timeseries);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static MetricResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeMetricResult(document.RootElement);
         }
     }
 }

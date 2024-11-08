@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,12 +16,16 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static MachineLearningServicesRunCompletedEventData DeserializeMachineLearningServicesRunCompletedEventData(JsonElement element)
         {
-            Optional<string> experimentId = default;
-            Optional<string> experimentName = default;
-            Optional<string> runId = default;
-            Optional<string> runType = default;
-            Optional<object> runTags = default;
-            Optional<object> runProperties = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string experimentId = default;
+            string experimentName = default;
+            string runId = default;
+            string runType = default;
+            object runTags = default;
+            object runProperties = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("experimentId"u8))
@@ -49,7 +52,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     runTags = property.Value.GetObject();
@@ -59,14 +61,27 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     runProperties = property.Value.GetObject();
                     continue;
                 }
             }
-            return new MachineLearningServicesRunCompletedEventData(experimentId.Value, experimentName.Value, runId.Value, runType.Value, runTags.Value, runProperties.Value);
+            return new MachineLearningServicesRunCompletedEventData(
+                experimentId,
+                experimentName,
+                runId,
+                runType,
+                runTags,
+                runProperties);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static MachineLearningServicesRunCompletedEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeMachineLearningServicesRunCompletedEventData(document.RootElement);
         }
 
         internal partial class MachineLearningServicesRunCompletedEventDataConverter : JsonConverter<MachineLearningServicesRunCompletedEventData>
@@ -75,6 +90,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override MachineLearningServicesRunCompletedEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

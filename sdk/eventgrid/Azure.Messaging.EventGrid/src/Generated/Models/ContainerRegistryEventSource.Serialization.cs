@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -14,8 +13,12 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static ContainerRegistryEventSource DeserializeContainerRegistryEventSource(JsonElement element)
         {
-            Optional<string> addr = default;
-            Optional<string> instanceID = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string addr = default;
+            string instanceID = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("addr"u8))
@@ -29,7 +32,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new ContainerRegistryEventSource(addr.Value, instanceID.Value);
+            return new ContainerRegistryEventSource(addr, instanceID);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ContainerRegistryEventSource FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeContainerRegistryEventSource(document.RootElement);
         }
     }
 }

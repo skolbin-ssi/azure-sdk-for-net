@@ -78,17 +78,21 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static WorkspaceRepositoryConfiguration DeserializeWorkspaceRepositoryConfiguration(JsonElement element)
         {
-            Optional<string> type = default;
-            Optional<string> hostName = default;
-            Optional<string> accountName = default;
-            Optional<string> projectName = default;
-            Optional<string> repositoryName = default;
-            Optional<string> collaborationBranch = default;
-            Optional<string> rootFolder = default;
-            Optional<string> lastCommitId = default;
-            Optional<Guid> tenantId = default;
-            Optional<string> clientId = default;
-            Optional<GitHubClientSecret> clientSecret = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string type = default;
+            string hostName = default;
+            string accountName = default;
+            string projectName = default;
+            string repositoryName = default;
+            string collaborationBranch = default;
+            string rootFolder = default;
+            string lastCommitId = default;
+            Guid? tenantId = default;
+            string clientId = default;
+            GitHubClientSecret clientSecret = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("type"u8))
@@ -135,7 +139,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     tenantId = property.Value.GetGuid();
@@ -150,14 +153,40 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     clientSecret = GitHubClientSecret.DeserializeGitHubClientSecret(property.Value);
                     continue;
                 }
             }
-            return new WorkspaceRepositoryConfiguration(type.Value, hostName.Value, accountName.Value, projectName.Value, repositoryName.Value, collaborationBranch.Value, rootFolder.Value, lastCommitId.Value, Optional.ToNullable(tenantId), clientId.Value, clientSecret.Value);
+            return new WorkspaceRepositoryConfiguration(
+                type,
+                hostName,
+                accountName,
+                projectName,
+                repositoryName,
+                collaborationBranch,
+                rootFolder,
+                lastCommitId,
+                tenantId,
+                clientId,
+                clientSecret);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static WorkspaceRepositoryConfiguration FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeWorkspaceRepositoryConfiguration(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class WorkspaceRepositoryConfigurationConverter : JsonConverter<WorkspaceRepositoryConfiguration>
@@ -166,6 +195,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override WorkspaceRepositoryConfiguration Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

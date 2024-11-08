@@ -54,17 +54,21 @@ namespace Azure.Search.Documents.Indexes.Models
             if (Optional.IsDefined(IndexingParametersConfiguration))
             {
                 writer.WritePropertyName("configuration"u8);
-                writer.WriteObjectValue(IndexingParametersConfiguration);
+                writer.WriteObjectValue<IndexingParametersConfiguration>(IndexingParametersConfiguration);
             }
             writer.WriteEndObject();
         }
 
         internal static IndexingParameters DeserializeIndexingParameters(JsonElement element)
         {
-            Optional<int?> batchSize = default;
-            Optional<int?> maxFailedItems = default;
-            Optional<int?> maxFailedItemsPerBatch = default;
-            Optional<IndexingParametersConfiguration> configuration = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            int? batchSize = default;
+            int? maxFailedItems = default;
+            int? maxFailedItemsPerBatch = default;
+            IndexingParametersConfiguration configuration = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("batchSize"u8))
@@ -101,14 +105,29 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     configuration = Models.IndexingParametersConfiguration.DeserializeIndexingParametersConfiguration(property.Value);
                     continue;
                 }
             }
-            return new IndexingParameters(Optional.ToNullable(batchSize), Optional.ToNullable(maxFailedItems), Optional.ToNullable(maxFailedItemsPerBatch), configuration.Value);
+            return new IndexingParameters(batchSize, maxFailedItems, maxFailedItemsPerBatch, configuration);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static IndexingParameters FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeIndexingParameters(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

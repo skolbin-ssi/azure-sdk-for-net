@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Analytics.Synapse.Spark.Models
 {
@@ -15,17 +14,21 @@ namespace Azure.Analytics.Synapse.Spark.Models
     {
         internal static SparkSessionState DeserializeSparkSessionState(JsonElement element)
         {
-            Optional<DateTimeOffset?> notStartedAt = default;
-            Optional<DateTimeOffset?> startingAt = default;
-            Optional<DateTimeOffset?> idleAt = default;
-            Optional<DateTimeOffset?> deadAt = default;
-            Optional<DateTimeOffset?> shuttingDownAt = default;
-            Optional<DateTimeOffset?> killedAt = default;
-            Optional<DateTimeOffset?> recoveringAt = default;
-            Optional<DateTimeOffset?> busyAt = default;
-            Optional<DateTimeOffset?> errorAt = default;
-            Optional<string> currentState = default;
-            Optional<SparkRequest> jobCreationRequest = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            DateTimeOffset? notStartedAt = default;
+            DateTimeOffset? startingAt = default;
+            DateTimeOffset? idleAt = default;
+            DateTimeOffset? deadAt = default;
+            DateTimeOffset? shuttingDownAt = default;
+            DateTimeOffset? killedAt = default;
+            DateTimeOffset? recoveringAt = default;
+            DateTimeOffset? busyAt = default;
+            DateTimeOffset? errorAt = default;
+            string currentState = default;
+            SparkRequest jobCreationRequest = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("notStartedAt"u8))
@@ -127,14 +130,32 @@ namespace Azure.Analytics.Synapse.Spark.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     jobCreationRequest = SparkRequest.DeserializeSparkRequest(property.Value);
                     continue;
                 }
             }
-            return new SparkSessionState(Optional.ToNullable(notStartedAt), Optional.ToNullable(startingAt), Optional.ToNullable(idleAt), Optional.ToNullable(deadAt), Optional.ToNullable(shuttingDownAt), Optional.ToNullable(killedAt), Optional.ToNullable(recoveringAt), Optional.ToNullable(busyAt), Optional.ToNullable(errorAt), currentState.Value, jobCreationRequest.Value);
+            return new SparkSessionState(
+                notStartedAt,
+                startingAt,
+                idleAt,
+                deadAt,
+                shuttingDownAt,
+                killedAt,
+                recoveringAt,
+                busyAt,
+                errorAt,
+                currentState,
+                jobCreationRequest);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SparkSessionState FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSparkSessionState(document.RootElement);
         }
     }
 }

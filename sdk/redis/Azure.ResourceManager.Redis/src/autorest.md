@@ -5,16 +5,23 @@ Run `dotnet build /t:GenerateCode` to generate code.
 ``` yaml
 
 azure-arm: true
-generate-model-factory: false
 csharp: true
 library-name: Redis
 namespace: Azure.ResourceManager.Redis
-require: https://github.com/Azure/azure-rest-api-specs/blob/68847d6ae901f0cb2efa62ae2c523ad8cf5c2ea3/specification/redis/resource-manager/readme.md 
+require: https://github.com/Azure/azure-rest-api-specs/blob/3cb1b51638616435470fc10ea00de92512186ece/specification/redis/resource-manager/readme.md
 output-folder: $(this-folder)/Generated
 clear-output-folder: true
+sample-gen:
+  output-folder: $(this-folder)/../samples/Generated
+  clear-output-folder: true
 skip-csproj: true
 modelerfour:
   flatten-payloads: false
+  lenient-model-deduplication: true
+use-model-reader-writer: true
+use-write-core: true
+enable-bicep-serialization: true
+tag: package-2024-03
 
 rename-mapping:
   CheckNameAvailabilityParameters: RedisNameAvailabilityContent
@@ -40,6 +47,11 @@ rename-mapping:
   RedisCommonPropertiesRedisConfiguration.aof-backup-enabled: IsAofBackupEnabled|boolean
   RedisCommonPropertiesRedisConfiguration.rdb-backup-max-snapshot-count: -|integer
   RedisForceRebootResponse: RedisForceRebootResult
+  RedisCacheAccessPolicyAssignment.properties.objectId: -|uuid
+  RedisCommonPropertiesRedisConfiguration.aad-enabled: IsAadEnabled
+  Redis.properties.disableAccessKeyAuthentication: IsAccessKeyAuthenticationDisabled
+  RedisCreateParameters.properties.disableAccessKeyAuthentication: IsAccessKeyAuthenticationDisabled
+  RedisUpdateParameters.properties.disableAccessKeyAuthentication: IsAccessKeyAuthenticationDisabled
 
 prepend-rp-prefix:
   - OperationStatus
@@ -62,7 +74,7 @@ format-by-name-rules:
   '*Uri': 'Uri'
   '*Uris': 'Uri'
 
-rename-rules:
+acronym-mapping:
   CPU: Cpu
   CPUs: Cpus
   Os: OS

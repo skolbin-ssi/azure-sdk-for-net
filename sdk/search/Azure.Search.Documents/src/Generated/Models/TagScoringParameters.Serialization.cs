@@ -22,6 +22,10 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static TagScoringParameters DeserializeTagScoringParameters(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string tagsParameter = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -32,6 +36,22 @@ namespace Azure.Search.Documents.Indexes.Models
                 }
             }
             return new TagScoringParameters(tagsParameter);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TagScoringParameters FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTagScoringParameters(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

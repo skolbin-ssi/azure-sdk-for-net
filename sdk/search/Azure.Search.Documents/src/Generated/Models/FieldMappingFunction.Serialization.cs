@@ -27,7 +27,12 @@ namespace Azure.Search.Documents.Indexes.Models
                     foreach (var item in Parameters)
                     {
                         writer.WritePropertyName(item.Key);
-                        writer.WriteObjectValue(item.Value);
+                        if (item.Value == null)
+                        {
+                            writer.WriteNullValue();
+                            continue;
+                        }
+                        writer.WriteObjectValue<object>(item.Value);
                     }
                     writer.WriteEndObject();
                 }
@@ -41,8 +46,12 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static FieldMappingFunction DeserializeFieldMappingFunction(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string name = default;
-            Optional<IDictionary<string, object>> parameters = default;
+            IDictionary<string, object> parameters = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("name"u8))
@@ -60,13 +69,36 @@ namespace Azure.Search.Documents.Indexes.Models
                     Dictionary<string, object> dictionary = new Dictionary<string, object>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        dictionary.Add(property0.Name, property0.Value.GetObject());
+                        if (property0.Value.ValueKind == JsonValueKind.Null)
+                        {
+                            dictionary.Add(property0.Name, null);
+                        }
+                        else
+                        {
+                            dictionary.Add(property0.Name, property0.Value.GetObject());
+                        }
                     }
                     parameters = dictionary;
                     continue;
                 }
             }
-            return new FieldMappingFunction(name, Optional.ToDictionary(parameters));
+            return new FieldMappingFunction(name, parameters ?? new ChangeTrackingDictionary<string, object>());
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static FieldMappingFunction FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeFieldMappingFunction(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

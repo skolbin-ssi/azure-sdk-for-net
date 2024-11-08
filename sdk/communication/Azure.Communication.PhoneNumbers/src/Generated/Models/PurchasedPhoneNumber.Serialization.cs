@@ -7,7 +7,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.PhoneNumbers
 {
@@ -15,6 +14,10 @@ namespace Azure.Communication.PhoneNumbers
     {
         internal static PurchasedPhoneNumber DeserializePurchasedPhoneNumber(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string id = default;
             string phoneNumber = default;
             string countryCode = default;
@@ -66,7 +69,23 @@ namespace Azure.Communication.PhoneNumbers
                     continue;
                 }
             }
-            return new PurchasedPhoneNumber(id, phoneNumber, countryCode, phoneNumberType, capabilities, assignmentType, purchaseDate, cost);
+            return new PurchasedPhoneNumber(
+                id,
+                phoneNumber,
+                countryCode,
+                phoneNumberType,
+                capabilities,
+                assignmentType,
+                purchaseDate,
+                cost);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static PurchasedPhoneNumber FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePurchasedPhoneNumber(document.RootElement);
         }
     }
 }

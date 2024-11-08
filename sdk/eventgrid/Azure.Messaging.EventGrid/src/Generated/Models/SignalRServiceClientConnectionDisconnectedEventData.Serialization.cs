@@ -8,7 +8,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -17,18 +16,21 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static SignalRServiceClientConnectionDisconnectedEventData DeserializeSignalRServiceClientConnectionDisconnectedEventData(JsonElement element)
         {
-            Optional<DateTimeOffset> timestamp = default;
-            Optional<string> hubName = default;
-            Optional<string> connectionId = default;
-            Optional<string> userId = default;
-            Optional<string> errorMessage = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            DateTimeOffset? timestamp = default;
+            string hubName = default;
+            string connectionId = default;
+            string userId = default;
+            string errorMessage = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("timestamp"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     timestamp = property.Value.GetDateTimeOffset("O");
@@ -55,7 +57,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new SignalRServiceClientConnectionDisconnectedEventData(Optional.ToNullable(timestamp), hubName.Value, connectionId.Value, userId.Value, errorMessage.Value);
+            return new SignalRServiceClientConnectionDisconnectedEventData(timestamp, hubName, connectionId, userId, errorMessage);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SignalRServiceClientConnectionDisconnectedEventData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSignalRServiceClientConnectionDisconnectedEventData(document.RootElement);
         }
 
         internal partial class SignalRServiceClientConnectionDisconnectedEventDataConverter : JsonConverter<SignalRServiceClientConnectionDisconnectedEventData>
@@ -64,6 +74,7 @@ namespace Azure.Messaging.EventGrid.SystemEvents
             {
                 throw new NotImplementedException();
             }
+
             public override SignalRServiceClientConnectionDisconnectedEventData Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -14,6 +13,10 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static RequestStatistics DeserializeRequestStatistics(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             int documentsCount = default;
             int validDocumentsCount = default;
             int erroneousDocumentsCount = default;
@@ -42,6 +45,14 @@ namespace Azure.AI.TextAnalytics.Legacy
                 }
             }
             return new RequestStatistics(documentsCount, validDocumentsCount, erroneousDocumentsCount, transactionsCount);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static RequestStatistics FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeRequestStatistics(document.RootElement);
         }
     }
 }

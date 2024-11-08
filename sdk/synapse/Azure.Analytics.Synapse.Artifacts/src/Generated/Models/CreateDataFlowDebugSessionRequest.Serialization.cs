@@ -43,10 +43,14 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
 
         internal static CreateDataFlowDebugSessionRequest DeserializeCreateDataFlowDebugSessionRequest(JsonElement element)
         {
-            Optional<string> computeType = default;
-            Optional<int> coreCount = default;
-            Optional<int> timeToLive = default;
-            Optional<IntegrationRuntimeDebugResource> integrationRuntime = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string computeType = default;
+            int? coreCount = default;
+            int? timeToLive = default;
+            IntegrationRuntimeDebugResource integrationRuntime = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("computeType"u8))
@@ -58,7 +62,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     coreCount = property.Value.GetInt32();
@@ -68,7 +71,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     timeToLive = property.Value.GetInt32();
@@ -78,14 +80,29 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     integrationRuntime = IntegrationRuntimeDebugResource.DeserializeIntegrationRuntimeDebugResource(property.Value);
                     continue;
                 }
             }
-            return new CreateDataFlowDebugSessionRequest(computeType.Value, Optional.ToNullable(coreCount), Optional.ToNullable(timeToLive), integrationRuntime.Value);
+            return new CreateDataFlowDebugSessionRequest(computeType, coreCount, timeToLive, integrationRuntime);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static CreateDataFlowDebugSessionRequest FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCreateDataFlowDebugSessionRequest(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class CreateDataFlowDebugSessionRequestConverter : JsonConverter<CreateDataFlowDebugSessionRequest>
@@ -94,6 +111,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override CreateDataFlowDebugSessionRequest Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

@@ -22,25 +22,29 @@ namespace Azure.AI.MetricsAdvisor
             writer.WritePropertyName("endTime"u8);
             writer.WriteStringValue(EndsOn, "O");
             writer.WritePropertyName("value"u8);
-            writer.WriteObjectValue(ValueInternal);
+            writer.WriteObjectValue<ChangePointFeedbackValue>(ValueInternal);
             writer.WritePropertyName("feedbackType"u8);
             writer.WriteStringValue(FeedbackKind.ToString());
             writer.WritePropertyName("metricId"u8);
             writer.WriteStringValue(MetricId);
             writer.WritePropertyName("dimensionFilter"u8);
-            writer.WriteObjectValue(DimensionFilter);
+            writer.WriteObjectValue<FeedbackFilter>(DimensionFilter);
             writer.WriteEndObject();
         }
 
         internal static MetricChangePointFeedback DeserializeMetricChangePointFeedback(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             DateTimeOffset startTime = default;
             DateTimeOffset endTime = default;
             ChangePointFeedbackValue value = default;
             MetricFeedbackKind feedbackType = default;
-            Optional<string> feedbackId = default;
-            Optional<DateTimeOffset> createdTime = default;
-            Optional<string> userPrincipal = default;
+            string feedbackId = default;
+            DateTimeOffset? createdTime = default;
+            string userPrincipal = default;
             string metricId = default;
             FeedbackFilter dimensionFilter = default;
             foreach (var property in element.EnumerateObject())
@@ -74,7 +78,6 @@ namespace Azure.AI.MetricsAdvisor
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     createdTime = property.Value.GetDateTimeOffset("O");
@@ -96,7 +99,32 @@ namespace Azure.AI.MetricsAdvisor
                     continue;
                 }
             }
-            return new MetricChangePointFeedback(feedbackType, feedbackId.Value, Optional.ToNullable(createdTime), userPrincipal.Value, metricId, dimensionFilter, startTime, endTime, value);
+            return new MetricChangePointFeedback(
+                feedbackType,
+                feedbackId,
+                createdTime,
+                userPrincipal,
+                metricId,
+                dimensionFilter,
+                startTime,
+                endTime,
+                value);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new MetricChangePointFeedback FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeMetricChangePointFeedback(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

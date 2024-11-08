@@ -16,31 +16,17 @@ namespace Azure.Core
     /// </summary>
     internal struct ArrayBackedPropertyBag<TKey, TValue> where TKey : struct, IEquatable<TKey>
     {
-        private Kvp _first;
-        private Kvp _second;
-        private Kvp[] _rest;
+        private (TKey Key, TValue Value) _first;
+        private (TKey Key, TValue Value) _second;
+        private (TKey Key, TValue Value)[]? _rest;
         private int _count;
+        private readonly object _lock = new();
 #if DEBUG
         private bool _disposed;
 #endif
-        private readonly struct Kvp
+
+        public ArrayBackedPropertyBag()
         {
-            public readonly TKey Key;
-            public readonly TValue Value;
-
-            public Kvp(TKey key, TValue value)
-            {
-                Key = key;
-                Value = value;
-            }
-
-            public void Deconstruct(out TKey key, out TValue value)
-            {
-                key = Key;
-                value = Value;
-            }
-
-            public override string ToString() => $"[{Key}, {Value?.ToString() ?? "<null>"}]";
         }
 
         public int Count
@@ -68,7 +54,7 @@ namespace Azure.Core
             {
                 0 => _first,
                 1 => _second,
-                _ => _rest[index - 2]
+                _ => GetRest()[index - 2]
             };
         }
 
@@ -78,7 +64,7 @@ namespace Azure.Core
             var index = GetIndex(key);
             if (index < 0)
             {
-                value = default;
+                value = default!;
                 return false;
             }
 
@@ -108,7 +94,7 @@ namespace Azure.Core
             if (index < 0)
                 AddInternal(key, value);
             else
-                SetAt(index, new Kvp(key, value));
+                SetAt(index, (key, value));
         }
 
         public bool TryRemove(TKey key)
@@ -146,32 +132,33 @@ namespace Azure.Core
 
                     return false;
                 default:
+                    (TKey Key, TValue Value)[] rest = GetRest();
                     if (IsFirst(key))
                     {
                         _first = _second;
-                        _second = _rest[0];
+                        _second = rest[0];
                         _count--;
-                        Array.Copy(_rest, 1, _rest, 0, _count - 2);
-                        _rest[_count - 2] = default;
+                        Array.Copy(rest, 1, rest, 0, _count - 2);
+                        rest[_count - 2] = default;
                         return true;
                     }
 
                     if (IsSecond(key))
                     {
-                        _second = _rest[0];
+                        _second = rest[0];
                         _count--;
-                        Array.Copy(_rest, 1, _rest, 0, _count - 2);
-                        _rest[_count - 2] = default;
+                        Array.Copy(rest, 1, rest, 0, _count - 2);
+                        rest[_count - 2] = default;
                         return true;
                     }
 
                     for (var i = 0; i < _count - 2; i++)
                     {
-                        if (IsRest(i, key))
+                        if (rest[i].Key.Equals(key))
                         {
                             _count--;
-                            Array.Copy(_rest, i + 1, _rest, i, _count - 2 - i);
-                            _rest[_count - 2] = default;
+                            Array.Copy(rest, i + 1, rest, i, _count - 2 - i);
+                            rest[_count - 2] = default;
                             return true;
                         }
                     }
@@ -187,25 +174,22 @@ namespace Azure.Core
         private bool IsSecond(TKey key) => _second.Key.Equals(key);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool IsRest(int index, TKey key) => _rest[index].Key.Equals(key);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void AddInternal(TKey key, TValue value)
         {
             switch (_count)
             {
                 case 0:
-                    _first = new Kvp(key, value);
+                    _first = (key, value);
                     _count = 1;
                     return;
                 case 1:
                     if (IsFirst(key))
                     {
-                        _first = new Kvp(_first.Key, value);
+                        _first = (_first.Key, value);
                     }
                     else
                     {
-                        _second = new Kvp(key, value);
+                        _second = (key, value);
                         _count = 2;
                     }
 
@@ -213,33 +197,33 @@ namespace Azure.Core
                 default:
                     if (_rest == null)
                     {
-                        _rest = ArrayPool<Kvp>.Shared.Rent(8);
-                        _rest[_count++ - 2] = new Kvp(key, value);
+                        _rest = ArrayPool<(TKey Key, TValue Value)>.Shared.Rent(8);
+                        _rest[_count++ - 2] = (key, value);
                         return;
                     }
 
                     if (_rest.Length <= _count)
                     {
-                        var larger = ArrayPool<Kvp>.Shared.Rent(_rest.Length << 1);
+                        var larger = ArrayPool<(TKey Key, TValue Value)>.Shared.Rent(_rest.Length << 1);
                         _rest.CopyTo(larger, 0);
                         var old = _rest;
                         _rest = larger;
-                        ArrayPool<Kvp>.Shared.Return(old, true);
+                        ArrayPool<(TKey Key, TValue Value)>.Shared.Return(old, true);
                     }
-                    _rest[_count++ - 2] = new Kvp(key, value);
+                    _rest[_count++ - 2] = (key, value);
                     return;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetAt(int index, Kvp value)
+        private void SetAt(int index, (TKey Key, TValue Value) value)
         {
             if (index == 0)
                 _first = value;
             else if (index == 1)
                 _second = value;
             else
-                _rest[index - 2] = value;
+                GetRest()[index - 2] = value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -247,7 +231,7 @@ namespace Azure.Core
         {
             0 => _first.Value,
             1 => _second.Value,
-            _ => _rest[index - 2].Value
+            _ => GetRest()[index - 2].Value
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -260,38 +244,57 @@ namespace Azure.Core
             if (_count > 1 && _second.Key.Equals(key))
                 return 1;
 
+            if (_count <= 2)
+                return -1;
+
+            (TKey Key, TValue Value)[] rest = GetRest();
             int max = _count - 2;
             for (var i = 0; i < max; i++)
             {
-                if (_rest[i].Key.Equals(key))
+                if (rest[i].Key.Equals(key))
                     return i + 2;
             }
             return -1;
         }
 
-        internal void Dispose()
+        public void Dispose()
         {
-            CheckDisposed();
 #if DEBUG
+            if (_disposed)
+            {
+                return;
+            }
             _disposed = true;
 #endif
-            if (_rest != null)
+            _count = 0;
+            _first = default;
+            _second = default;
+
+            lock (_lock)
             {
-                ArrayPool<Kvp>.Shared.Return(_rest, true);
+                if (_rest == default)
+                {
+                    return;
+                }
+
+                var rest = _rest;
+                _rest = default;
+                ArrayPool<(TKey Key, TValue Value)>.Shared.Return(rest, true);
             }
         }
 
-#pragma warning disable CA1822
+        private (TKey Key, TValue Value)[] GetRest() => _rest ??
+            throw new InvalidOperationException($"{nameof(_rest)} field is null while {nameof(_count)} == {_count}");
+
         [Conditional("DEBUG")]
         private void CheckDisposed()
         {
 #if DEBUG
             if (_disposed)
             {
-                throw new InvalidOperationException($"{nameof(ArrayBackedPropertyBag<TKey, TValue>)} instance is already disposed");
+                throw new ObjectDisposedException($"{nameof(ArrayBackedPropertyBag<TKey, TValue>)} instance is already disposed");
             }
 #endif
         }
-#pragma warning restore CA1822
     }
 }

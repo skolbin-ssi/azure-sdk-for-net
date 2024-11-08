@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.Sms
 {
@@ -14,12 +13,16 @@ namespace Azure.Communication.Sms
     {
         internal static SmsSendResult DeserializeSmsSendResult(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string to = default;
-            Optional<string> messageId = default;
+            string messageId = default;
             int httpStatusCode = default;
-            Optional<SmsSendResponseItemRepeatabilityResult> repeatabilityResult = default;
+            SmsSendResponseItemRepeatabilityResult? repeatabilityResult = default;
             bool successful = default;
-            Optional<string> errorMessage = default;
+            string errorMessage = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("to"u8))
@@ -41,7 +44,6 @@ namespace Azure.Communication.Sms
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     repeatabilityResult = new SmsSendResponseItemRepeatabilityResult(property.Value.GetString());
@@ -58,7 +60,21 @@ namespace Azure.Communication.Sms
                     continue;
                 }
             }
-            return new SmsSendResult(to, messageId.Value, httpStatusCode, Optional.ToNullable(repeatabilityResult), successful, errorMessage.Value);
+            return new SmsSendResult(
+                to,
+                messageId,
+                httpStatusCode,
+                repeatabilityResult,
+                successful,
+                errorMessage);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static SmsSendResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeSmsSendResult(document.RootElement);
         }
     }
 }

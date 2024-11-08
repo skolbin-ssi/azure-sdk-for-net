@@ -22,6 +22,10 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static UnknownCertificateSource DeserializeUnknownCertificateSource(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = "Unknown";
             foreach (var property in element.EnumerateObject())
             {
@@ -32,6 +36,22 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 }
             }
             return new UnknownCertificateSource(type);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new UnknownCertificateSource FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeUnknownCertificateSource(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue<CertificateSource>(this);
+            return content;
         }
     }
 }

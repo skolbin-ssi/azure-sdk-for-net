@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.AI.TextAnalytics;
 using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Models
@@ -36,17 +35,21 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static PreBuiltResult DeserializePreBuiltResult(JsonElement element)
         {
-            IList<InputError> errors = default;
-            Optional<TextDocumentBatchStatistics> statistics = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IList<DocumentError> errors = default;
+            TextDocumentBatchStatistics statistics = default;
             string modelVersion = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("errors"u8))
                 {
-                    List<InputError> array = new List<InputError>();
+                    List<DocumentError> array = new List<DocumentError>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(InputError.DeserializeInputError(item));
+                        array.Add(DocumentError.DeserializeDocumentError(item));
                     }
                     errors = array;
                     continue;
@@ -55,7 +58,6 @@ namespace Azure.AI.TextAnalytics.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     statistics = TextDocumentBatchStatistics.DeserializeTextDocumentBatchStatistics(property.Value);
@@ -67,7 +69,23 @@ namespace Azure.AI.TextAnalytics.Models
                     continue;
                 }
             }
-            return new PreBuiltResult(errors, statistics.Value, modelVersion);
+            return new PreBuiltResult(errors, statistics, modelVersion);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static PreBuiltResult FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePreBuiltResult(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

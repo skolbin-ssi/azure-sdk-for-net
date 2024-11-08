@@ -26,6 +26,10 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static StemmerTokenFilter DeserializeStemmerTokenFilter(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             StemmerTokenFilterLanguage language = default;
             string odataType = default;
             string name = default;
@@ -48,6 +52,22 @@ namespace Azure.Search.Documents.Indexes.Models
                 }
             }
             return new StemmerTokenFilter(odataType, name, language);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new StemmerTokenFilter FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeStemmerTokenFilter(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

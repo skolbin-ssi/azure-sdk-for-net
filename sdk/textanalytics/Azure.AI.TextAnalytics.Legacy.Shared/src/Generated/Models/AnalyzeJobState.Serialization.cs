@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.AI.TextAnalytics.Legacy.Models;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -17,13 +16,17 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static AnalyzeJobState DeserializeAnalyzeJobState(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             TasksStateTasks tasks = default;
-            Optional<IReadOnlyList<TextAnalyticsError>> errors = default;
-            Optional<RequestStatistics> statistics = default;
-            Optional<string> nextLink = default;
-            Optional<string> displayName = default;
+            IReadOnlyList<TextAnalyticsError> errors = default;
+            RequestStatistics statistics = default;
+            string nextLink = default;
+            string displayName = default;
             DateTimeOffset createdDateTime = default;
-            Optional<DateTimeOffset> expirationDateTime = default;
+            DateTimeOffset? expirationDateTime = default;
             Guid jobId = default;
             DateTimeOffset lastUpdateDateTime = default;
             State status = default;
@@ -38,7 +41,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<TextAnalyticsError> array = new List<TextAnalyticsError>();
@@ -53,7 +55,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     statistics = RequestStatistics.DeserializeRequestStatistics(property.Value);
@@ -78,7 +79,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     expirationDateTime = property.Value.GetDateTimeOffset("O");
@@ -100,7 +100,25 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new AnalyzeJobState(createdDateTime, Optional.ToNullable(expirationDateTime), jobId, lastUpdateDateTime, status, displayName.Value, tasks, Optional.ToList(errors), statistics.Value, nextLink.Value);
+            return new AnalyzeJobState(
+                createdDateTime,
+                expirationDateTime,
+                jobId,
+                lastUpdateDateTime,
+                status,
+                displayName,
+                tasks,
+                errors ?? new ChangeTrackingList<TextAnalyticsError>(),
+                statistics,
+                nextLink);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AnalyzeJobState FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAnalyzeJobState(document.RootElement);
         }
     }
 }

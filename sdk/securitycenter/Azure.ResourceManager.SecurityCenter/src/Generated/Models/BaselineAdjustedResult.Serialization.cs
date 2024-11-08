@@ -5,21 +5,39 @@
 
 #nullable disable
 
+using System;
+using System.ClientModel.Primitives;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core;
 
 namespace Azure.ResourceManager.SecurityCenter.Models
 {
-    public partial class BaselineAdjustedResult : IUtf8JsonSerializable
+    public partial class BaselineAdjustedResult : IUtf8JsonSerializable, IJsonModel<BaselineAdjustedResult>
     {
-        void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
+        void IUtf8JsonSerializable.Write(Utf8JsonWriter writer) => ((IJsonModel<BaselineAdjustedResult>)this).Write(writer, ModelSerializationExtensions.WireOptions);
+
+        void IJsonModel<BaselineAdjustedResult>.Write(Utf8JsonWriter writer, ModelReaderWriterOptions options)
         {
             writer.WriteStartObject();
+            JsonModelWriteCore(writer, options);
+            writer.WriteEndObject();
+        }
+
+        /// <param name="writer"> The JSON writer. </param>
+        /// <param name="options"> The client options for reading and writing models. </param>
+        protected virtual void JsonModelWriteCore(Utf8JsonWriter writer, ModelReaderWriterOptions options)
+        {
+            var format = options.Format == "W" ? ((IPersistableModel<BaselineAdjustedResult>)this).GetFormatFromOptions(options) : options.Format;
+            if (format != "J")
+            {
+                throw new FormatException($"The model {nameof(BaselineAdjustedResult)} does not support writing '{format}' format.");
+            }
+
             if (Optional.IsDefined(Baseline))
             {
                 writer.WritePropertyName("baseline"u8);
-                writer.WriteObjectValue(Baseline);
+                writer.WriteObjectValue(Baseline, options);
             }
             if (Optional.IsDefined(Status))
             {
@@ -32,6 +50,11 @@ namespace Azure.ResourceManager.SecurityCenter.Models
                 writer.WriteStartArray();
                 foreach (var item in ResultsNotInBaseline)
                 {
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
                     writer.WriteStartArray();
                     foreach (var item0 in item)
                     {
@@ -47,6 +70,11 @@ namespace Azure.ResourceManager.SecurityCenter.Models
                 writer.WriteStartArray();
                 foreach (var item in ResultsOnlyInBaseline)
                 {
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
                     writer.WriteStartArray();
                     foreach (var item0 in item)
                     {
@@ -56,32 +84,64 @@ namespace Azure.ResourceManager.SecurityCenter.Models
                 }
                 writer.WriteEndArray();
             }
-            writer.WriteEndObject();
+            if (options.Format != "W" && _serializedAdditionalRawData != null)
+            {
+                foreach (var item in _serializedAdditionalRawData)
+                {
+                    writer.WritePropertyName(item.Key);
+#if NET6_0_OR_GREATER
+				writer.WriteRawValue(item.Value);
+#else
+                    using (JsonDocument document = JsonDocument.Parse(item.Value))
+                    {
+                        JsonSerializer.Serialize(writer, document.RootElement);
+                    }
+#endif
+                }
+            }
         }
 
-        internal static BaselineAdjustedResult DeserializeBaselineAdjustedResult(JsonElement element)
+        BaselineAdjustedResult IJsonModel<BaselineAdjustedResult>.Create(ref Utf8JsonReader reader, ModelReaderWriterOptions options)
         {
-            Optional<SqlVulnerabilityAssessmentBaseline> baseline = default;
-            Optional<SqlVulnerabilityAssessmentScanResultRuleStatus> status = default;
-            Optional<IList<IList<string>>> resultsNotInBaseline = default;
-            Optional<IList<IList<string>>> resultsOnlyInBaseline = default;
+            var format = options.Format == "W" ? ((IPersistableModel<BaselineAdjustedResult>)this).GetFormatFromOptions(options) : options.Format;
+            if (format != "J")
+            {
+                throw new FormatException($"The model {nameof(BaselineAdjustedResult)} does not support reading '{format}' format.");
+            }
+
+            using JsonDocument document = JsonDocument.ParseValue(ref reader);
+            return DeserializeBaselineAdjustedResult(document.RootElement, options);
+        }
+
+        internal static BaselineAdjustedResult DeserializeBaselineAdjustedResult(JsonElement element, ModelReaderWriterOptions options = null)
+        {
+            options ??= ModelSerializationExtensions.WireOptions;
+
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            SqlVulnerabilityAssessmentBaseline baseline = default;
+            SqlVulnerabilityAssessmentScanResultRuleStatus? status = default;
+            IList<IList<string>> resultsNotInBaseline = default;
+            IList<IList<string>> resultsOnlyInBaseline = default;
+            IDictionary<string, BinaryData> serializedAdditionalRawData = default;
+            Dictionary<string, BinaryData> rawDataDictionary = new Dictionary<string, BinaryData>();
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("baseline"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
-                    baseline = SqlVulnerabilityAssessmentBaseline.DeserializeSqlVulnerabilityAssessmentBaseline(property.Value);
+                    baseline = SqlVulnerabilityAssessmentBaseline.DeserializeSqlVulnerabilityAssessmentBaseline(property.Value, options);
                     continue;
                 }
                 if (property.NameEquals("status"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     status = new SqlVulnerabilityAssessmentScanResultRuleStatus(property.Value.GetString());
@@ -91,18 +151,24 @@ namespace Azure.ResourceManager.SecurityCenter.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<IList<string>> array = new List<IList<string>>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        List<string> array0 = new List<string>();
-                        foreach (var item0 in item.EnumerateArray())
+                        if (item.ValueKind == JsonValueKind.Null)
                         {
-                            array0.Add(item0.GetString());
+                            array.Add(null);
                         }
-                        array.Add(array0);
+                        else
+                        {
+                            List<string> array0 = new List<string>();
+                            foreach (var item0 in item.EnumerateArray())
+                            {
+                                array0.Add(item0.GetString());
+                            }
+                            array.Add(array0);
+                        }
                     }
                     resultsNotInBaseline = array;
                     continue;
@@ -111,24 +177,66 @@ namespace Azure.ResourceManager.SecurityCenter.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<IList<string>> array = new List<IList<string>>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        List<string> array0 = new List<string>();
-                        foreach (var item0 in item.EnumerateArray())
+                        if (item.ValueKind == JsonValueKind.Null)
                         {
-                            array0.Add(item0.GetString());
+                            array.Add(null);
                         }
-                        array.Add(array0);
+                        else
+                        {
+                            List<string> array0 = new List<string>();
+                            foreach (var item0 in item.EnumerateArray())
+                            {
+                                array0.Add(item0.GetString());
+                            }
+                            array.Add(array0);
+                        }
                     }
                     resultsOnlyInBaseline = array;
                     continue;
                 }
+                if (options.Format != "W")
+                {
+                    rawDataDictionary.Add(property.Name, BinaryData.FromString(property.Value.GetRawText()));
+                }
             }
-            return new BaselineAdjustedResult(baseline.Value, Optional.ToNullable(status), Optional.ToList(resultsNotInBaseline), Optional.ToList(resultsOnlyInBaseline));
+            serializedAdditionalRawData = rawDataDictionary;
+            return new BaselineAdjustedResult(baseline, status, resultsNotInBaseline ?? new ChangeTrackingList<IList<string>>(), resultsOnlyInBaseline ?? new ChangeTrackingList<IList<string>>(), serializedAdditionalRawData);
         }
+
+        BinaryData IPersistableModel<BaselineAdjustedResult>.Write(ModelReaderWriterOptions options)
+        {
+            var format = options.Format == "W" ? ((IPersistableModel<BaselineAdjustedResult>)this).GetFormatFromOptions(options) : options.Format;
+
+            switch (format)
+            {
+                case "J":
+                    return ModelReaderWriter.Write(this, options);
+                default:
+                    throw new FormatException($"The model {nameof(BaselineAdjustedResult)} does not support writing '{options.Format}' format.");
+            }
+        }
+
+        BaselineAdjustedResult IPersistableModel<BaselineAdjustedResult>.Create(BinaryData data, ModelReaderWriterOptions options)
+        {
+            var format = options.Format == "W" ? ((IPersistableModel<BaselineAdjustedResult>)this).GetFormatFromOptions(options) : options.Format;
+
+            switch (format)
+            {
+                case "J":
+                    {
+                        using JsonDocument document = JsonDocument.Parse(data);
+                        return DeserializeBaselineAdjustedResult(document.RootElement, options);
+                    }
+                default:
+                    throw new FormatException($"The model {nameof(BaselineAdjustedResult)} does not support reading '{options.Format}' format.");
+            }
+        }
+
+        string IPersistableModel<BaselineAdjustedResult>.GetFormatFromOptions(ModelReaderWriterOptions options) => "J";
     }
 }

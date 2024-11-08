@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.Language.QuestionAnswering
 {
@@ -14,12 +13,16 @@ namespace Azure.AI.Language.QuestionAnswering
     {
         internal static TextAnswer DeserializeTextAnswer(JsonElement element)
         {
-            Optional<string> answer = default;
-            Optional<double> confidenceScore = default;
-            Optional<string> id = default;
-            Optional<AnswerSpan> answerSpan = default;
-            Optional<int> offset = default;
-            Optional<int> length = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string answer = default;
+            double? confidenceScore = default;
+            string id = default;
+            AnswerSpan answerSpan = default;
+            int? offset = default;
+            int? length = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("answer"u8))
@@ -31,7 +34,6 @@ namespace Azure.AI.Language.QuestionAnswering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     confidenceScore = property.Value.GetDouble();
@@ -46,7 +48,6 @@ namespace Azure.AI.Language.QuestionAnswering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     answerSpan = AnswerSpan.DeserializeAnswerSpan(property.Value);
@@ -56,7 +57,6 @@ namespace Azure.AI.Language.QuestionAnswering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     offset = property.Value.GetInt32();
@@ -66,14 +66,27 @@ namespace Azure.AI.Language.QuestionAnswering
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     length = property.Value.GetInt32();
                     continue;
                 }
             }
-            return new TextAnswer(answer.Value, Optional.ToNullable(confidenceScore), id.Value, answerSpan.Value, Optional.ToNullable(offset), Optional.ToNullable(length));
+            return new TextAnswer(
+                answer,
+                confidenceScore,
+                id,
+                answerSpan,
+                offset,
+                length);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static TextAnswer FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeTextAnswer(document.RootElement);
         }
     }
 }

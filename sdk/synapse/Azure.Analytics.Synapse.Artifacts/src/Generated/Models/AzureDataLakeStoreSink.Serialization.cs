@@ -22,58 +22,62 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(CopyBehavior))
             {
                 writer.WritePropertyName("copyBehavior"u8);
-                writer.WriteObjectValue(CopyBehavior);
+                writer.WriteObjectValue<object>(CopyBehavior);
             }
             if (Optional.IsDefined(EnableAdlsSingleFileParallel))
             {
                 writer.WritePropertyName("enableAdlsSingleFileParallel"u8);
-                writer.WriteObjectValue(EnableAdlsSingleFileParallel);
+                writer.WriteObjectValue<object>(EnableAdlsSingleFileParallel);
             }
             writer.WritePropertyName("type"u8);
             writer.WriteStringValue(Type);
             if (Optional.IsDefined(WriteBatchSize))
             {
                 writer.WritePropertyName("writeBatchSize"u8);
-                writer.WriteObjectValue(WriteBatchSize);
+                writer.WriteObjectValue<object>(WriteBatchSize);
             }
             if (Optional.IsDefined(WriteBatchTimeout))
             {
                 writer.WritePropertyName("writeBatchTimeout"u8);
-                writer.WriteObjectValue(WriteBatchTimeout);
+                writer.WriteObjectValue<object>(WriteBatchTimeout);
             }
             if (Optional.IsDefined(SinkRetryCount))
             {
                 writer.WritePropertyName("sinkRetryCount"u8);
-                writer.WriteObjectValue(SinkRetryCount);
+                writer.WriteObjectValue<object>(SinkRetryCount);
             }
             if (Optional.IsDefined(SinkRetryWait))
             {
                 writer.WritePropertyName("sinkRetryWait"u8);
-                writer.WriteObjectValue(SinkRetryWait);
+                writer.WriteObjectValue<object>(SinkRetryWait);
             }
             if (Optional.IsDefined(MaxConcurrentConnections))
             {
                 writer.WritePropertyName("maxConcurrentConnections"u8);
-                writer.WriteObjectValue(MaxConcurrentConnections);
+                writer.WriteObjectValue<object>(MaxConcurrentConnections);
             }
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static AzureDataLakeStoreSink DeserializeAzureDataLakeStoreSink(JsonElement element)
         {
-            Optional<object> copyBehavior = default;
-            Optional<object> enableAdlsSingleFileParallel = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            object copyBehavior = default;
+            object enableAdlsSingleFileParallel = default;
             string type = default;
-            Optional<object> writeBatchSize = default;
-            Optional<object> writeBatchTimeout = default;
-            Optional<object> sinkRetryCount = default;
-            Optional<object> sinkRetryWait = default;
-            Optional<object> maxConcurrentConnections = default;
+            object writeBatchSize = default;
+            object writeBatchTimeout = default;
+            object sinkRetryCount = default;
+            object sinkRetryWait = default;
+            object maxConcurrentConnections = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -82,7 +86,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     copyBehavior = property.Value.GetObject();
@@ -92,7 +95,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     enableAdlsSingleFileParallel = property.Value.GetObject();
@@ -107,7 +109,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     writeBatchSize = property.Value.GetObject();
@@ -117,7 +118,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     writeBatchTimeout = property.Value.GetObject();
@@ -127,7 +127,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     sinkRetryCount = property.Value.GetObject();
@@ -137,7 +136,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     sinkRetryWait = property.Value.GetObject();
@@ -147,7 +145,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     maxConcurrentConnections = property.Value.GetObject();
@@ -156,7 +153,32 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new AzureDataLakeStoreSink(type, writeBatchSize.Value, writeBatchTimeout.Value, sinkRetryCount.Value, sinkRetryWait.Value, maxConcurrentConnections.Value, additionalProperties, copyBehavior.Value, enableAdlsSingleFileParallel.Value);
+            return new AzureDataLakeStoreSink(
+                type,
+                writeBatchSize,
+                writeBatchTimeout,
+                sinkRetryCount,
+                sinkRetryWait,
+                maxConcurrentConnections,
+                additionalProperties,
+                copyBehavior,
+                enableAdlsSingleFileParallel);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AzureDataLakeStoreSink FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureDataLakeStoreSink(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class AzureDataLakeStoreSinkConverter : JsonConverter<AzureDataLakeStoreSink>
@@ -165,6 +187,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override AzureDataLakeStoreSink Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

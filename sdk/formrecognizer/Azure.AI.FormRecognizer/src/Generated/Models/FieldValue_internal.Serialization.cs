@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.Models
 {
@@ -16,22 +15,26 @@ namespace Azure.AI.FormRecognizer.Models
     {
         internal static FieldValue_internal DeserializeFieldValue_internal(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             FieldValueType type = default;
-            Optional<string> valueString = default;
-            Optional<DateTimeOffset> valueDate = default;
-            Optional<TimeSpan> valueTime = default;
-            Optional<string> valuePhoneNumber = default;
-            Optional<float> valueNumber = default;
-            Optional<long> valueInteger = default;
-            Optional<IReadOnlyList<FieldValue_internal>> valueArray = default;
-            Optional<IReadOnlyDictionary<string, FieldValue_internal>> valueObject = default;
-            Optional<SelectionMarkState> valueSelectionMark = default;
-            Optional<string> valueCountryRegion = default;
-            Optional<string> text = default;
-            Optional<IReadOnlyList<float>> boundingBox = default;
-            Optional<float> confidence = default;
-            Optional<IReadOnlyList<string>> elements = default;
-            Optional<int> page = default;
+            string valueString = default;
+            DateTimeOffset? valueDate = default;
+            TimeSpan? valueTime = default;
+            string valuePhoneNumber = default;
+            float? valueNumber = default;
+            long? valueInteger = default;
+            IReadOnlyList<FieldValue_internal> valueArray = default;
+            IReadOnlyDictionary<string, FieldValue_internal> valueObject = default;
+            SelectionMarkState? valueSelectionMark = default;
+            string valueCountryRegion = default;
+            string text = default;
+            IReadOnlyList<float> boundingBox = default;
+            float? confidence = default;
+            IReadOnlyList<string> elements = default;
+            int? page = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("type"u8))
@@ -48,7 +51,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueDate = property.Value.GetDateTimeOffset("D");
@@ -58,7 +60,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueTime = property.Value.GetTimeSpan("T");
@@ -73,7 +74,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueNumber = property.Value.GetSingle();
@@ -83,7 +83,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueInteger = property.Value.GetInt64();
@@ -93,7 +92,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<FieldValue_internal> array = new List<FieldValue_internal>();
@@ -108,20 +106,12 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, FieldValue_internal> dictionary = new Dictionary<string, FieldValue_internal>();
                     foreach (var property0 in property.Value.EnumerateObject())
                     {
-                        if (property0.Value.ValueKind == JsonValueKind.Null)
-                        {
-                            dictionary.Add(property0.Name, null);
-                        }
-                        else
-                        {
-                            dictionary.Add(property0.Name, DeserializeFieldValue_internal(property0.Value));
-                        }
+                        dictionary.Add(property0.Name, DeserializeFieldValue_internal(property0.Value));
                     }
                     valueObject = dictionary;
                     continue;
@@ -130,7 +120,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     valueSelectionMark = property.Value.GetString().ToSelectionMarkState();
@@ -150,7 +139,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<float> array = new List<float>();
@@ -165,7 +153,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     confidence = property.Value.GetSingle();
@@ -175,7 +162,6 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<string> array = new List<string>();
@@ -190,14 +176,37 @@ namespace Azure.AI.FormRecognizer.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     page = property.Value.GetInt32();
                     continue;
                 }
             }
-            return new FieldValue_internal(type, valueString.Value, Optional.ToNullable(valueDate), Optional.ToNullable(valueTime), valuePhoneNumber.Value, Optional.ToNullable(valueNumber), Optional.ToNullable(valueInteger), Optional.ToList(valueArray), Optional.ToDictionary(valueObject), Optional.ToNullable(valueSelectionMark), valueCountryRegion.Value, text.Value, Optional.ToList(boundingBox), Optional.ToNullable(confidence), Optional.ToList(elements), Optional.ToNullable(page));
+            return new FieldValue_internal(
+                type,
+                valueString,
+                valueDate,
+                valueTime,
+                valuePhoneNumber,
+                valueNumber,
+                valueInteger,
+                valueArray ?? new ChangeTrackingList<FieldValue_internal>(),
+                valueObject ?? new ChangeTrackingDictionary<string, FieldValue_internal>(),
+                valueSelectionMark,
+                valueCountryRegion,
+                text,
+                boundingBox ?? new ChangeTrackingList<float>(),
+                confidence,
+                elements ?? new ChangeTrackingList<string>(),
+                page);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static FieldValue_internal FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeFieldValue_internal(document.RootElement);
         }
     }
 }

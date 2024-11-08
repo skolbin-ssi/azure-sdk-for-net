@@ -17,7 +17,7 @@ namespace Azure.AI.MetricsAdvisor.Administration
         {
             writer.WriteStartObject();
             writer.WritePropertyName("parameters"u8);
-            writer.WriteObjectValue(Parameters);
+            writer.WriteObjectValue<ServicePrincipalParam>(Parameters);
             writer.WritePropertyName("dataSourceCredentialType"u8);
             writer.WriteStringValue(CredentialKind.ToString());
             writer.WritePropertyName("dataSourceCredentialName"u8);
@@ -32,11 +32,15 @@ namespace Azure.AI.MetricsAdvisor.Administration
 
         internal static ServicePrincipalCredentialEntity DeserializeServicePrincipalCredentialEntity(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             ServicePrincipalParam parameters = default;
             DataSourceCredentialKind dataSourceCredentialType = default;
-            Optional<string> dataSourceCredentialId = default;
+            string dataSourceCredentialId = default;
             string dataSourceCredentialName = default;
-            Optional<string> dataSourceCredentialDescription = default;
+            string dataSourceCredentialDescription = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("parameters"u8))
@@ -65,7 +69,23 @@ namespace Azure.AI.MetricsAdvisor.Administration
                     continue;
                 }
             }
-            return new ServicePrincipalCredentialEntity(dataSourceCredentialType, dataSourceCredentialId.Value, dataSourceCredentialName, dataSourceCredentialDescription.Value, parameters);
+            return new ServicePrincipalCredentialEntity(dataSourceCredentialType, dataSourceCredentialId, dataSourceCredentialName, dataSourceCredentialDescription, parameters);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new ServicePrincipalCredentialEntity FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeServicePrincipalCredentialEntity(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

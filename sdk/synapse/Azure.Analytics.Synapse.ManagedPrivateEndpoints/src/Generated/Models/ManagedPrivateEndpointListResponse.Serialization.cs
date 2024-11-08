@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Analytics.Synapse.ManagedPrivateEndpoints.Models
 {
@@ -15,15 +14,18 @@ namespace Azure.Analytics.Synapse.ManagedPrivateEndpoints.Models
     {
         internal static ManagedPrivateEndpointListResponse DeserializeManagedPrivateEndpointListResponse(JsonElement element)
         {
-            Optional<IReadOnlyList<ManagedPrivateEndpoint>> value = default;
-            Optional<string> nextLink = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            IReadOnlyList<ManagedPrivateEndpoint> value = default;
+            string nextLink = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("value"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<ManagedPrivateEndpoint> array = new List<ManagedPrivateEndpoint>();
@@ -40,7 +42,15 @@ namespace Azure.Analytics.Synapse.ManagedPrivateEndpoints.Models
                     continue;
                 }
             }
-            return new ManagedPrivateEndpointListResponse(Optional.ToList(value), nextLink.Value);
+            return new ManagedPrivateEndpointListResponse(value ?? new ChangeTrackingList<ManagedPrivateEndpoint>(), nextLink);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ManagedPrivateEndpointListResponse FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeManagedPrivateEndpointListResponse(document.RootElement);
         }
     }
 }

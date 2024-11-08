@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -14,9 +13,13 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static MicrosoftTeamsUserIdentifierModel DeserializeMicrosoftTeamsUserIdentifierModel(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string userId = default;
-            Optional<bool> isAnonymous = default;
-            Optional<CommunicationCloudEnvironmentModel> cloud = default;
+            bool? isAnonymous = default;
+            CommunicationCloudEnvironmentModel? cloud = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("userId"u8))
@@ -28,7 +31,6 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     isAnonymous = property.Value.GetBoolean();
@@ -38,14 +40,21 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     cloud = new CommunicationCloudEnvironmentModel(property.Value.GetString());
                     continue;
                 }
             }
-            return new MicrosoftTeamsUserIdentifierModel(userId, Optional.ToNullable(isAnonymous), Optional.ToNullable(cloud));
+            return new MicrosoftTeamsUserIdentifierModel(userId, isAnonymous, cloud);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static MicrosoftTeamsUserIdentifierModel FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeMicrosoftTeamsUserIdentifierModel(document.RootElement);
         }
     }
 }

@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.MetricsAdvisor.Models
 {
@@ -15,7 +14,11 @@ namespace Azure.AI.MetricsAdvisor.Models
     {
         internal static AnomalyResultList DeserializeAnomalyResultList(JsonElement element)
         {
-            Optional<string> nextLink = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string nextLink = default;
             IReadOnlyList<DataPointAnomaly> value = default;
             foreach (var property in element.EnumerateObject())
             {
@@ -35,7 +38,15 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new AnomalyResultList(nextLink.Value, value);
+            return new AnomalyResultList(nextLink, value);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static AnomalyResultList FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAnomalyResultList(document.RootElement);
         }
     }
 }

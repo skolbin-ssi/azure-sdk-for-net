@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.DigitalTwins.Core
 {
@@ -14,10 +13,14 @@ namespace Azure.DigitalTwins.Core
     {
         internal static IncomingRelationship DeserializeIncomingRelationship(JsonElement element)
         {
-            Optional<string> relationshipId = default;
-            Optional<string> sourceId = default;
-            Optional<string> relationshipName = default;
-            Optional<string> relationshipLink = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string relationshipId = default;
+            string sourceId = default;
+            string relationshipName = default;
+            string relationshipLink = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("$relationshipId"u8))
@@ -41,7 +44,15 @@ namespace Azure.DigitalTwins.Core
                     continue;
                 }
             }
-            return new IncomingRelationship(relationshipId.Value, sourceId.Value, relationshipName.Value, relationshipLink.Value);
+            return new IncomingRelationship(relationshipId, sourceId, relationshipName, relationshipLink);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static IncomingRelationship FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeIncomingRelationship(document.RootElement);
         }
     }
 }

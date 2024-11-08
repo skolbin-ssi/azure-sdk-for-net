@@ -49,11 +49,15 @@ namespace Azure.Search.Documents.Indexes.Models
 
         internal static PathHierarchyTokenizer DeserializePathHierarchyTokenizer(JsonElement element)
         {
-            Optional<char> delimiter = default;
-            Optional<char> replacement = default;
-            Optional<int> maxTokenLength = default;
-            Optional<bool> reverse = default;
-            Optional<int> skip = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            char? delimiter = default;
+            char? replacement = default;
+            int? maxTokenLength = default;
+            bool? reverse = default;
+            int? skip = default;
             string odataType = default;
             string name = default;
             foreach (var property in element.EnumerateObject())
@@ -62,7 +66,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     delimiter = property.Value.GetChar();
@@ -72,7 +75,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     replacement = property.Value.GetChar();
@@ -82,7 +84,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     maxTokenLength = property.Value.GetInt32();
@@ -92,7 +93,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     reverse = property.Value.GetBoolean();
@@ -102,7 +102,6 @@ namespace Azure.Search.Documents.Indexes.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     skip = property.Value.GetInt32();
@@ -119,7 +118,30 @@ namespace Azure.Search.Documents.Indexes.Models
                     continue;
                 }
             }
-            return new PathHierarchyTokenizer(odataType, name, Optional.ToNullable(delimiter), Optional.ToNullable(replacement), Optional.ToNullable(maxTokenLength), Optional.ToNullable(reverse), Optional.ToNullable(skip));
+            return new PathHierarchyTokenizer(
+                odataType,
+                name,
+                delimiter,
+                replacement,
+                maxTokenLength,
+                reverse,
+                skip);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new PathHierarchyTokenizer FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePathHierarchyTokenizer(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

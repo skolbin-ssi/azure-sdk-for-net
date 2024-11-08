@@ -24,6 +24,10 @@ namespace Azure.Communication.PhoneNumbers
 
         internal static PhoneNumberCapabilities DeserializePhoneNumberCapabilities(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             PhoneNumberCapabilityType calling = default;
             PhoneNumberCapabilityType sms = default;
             foreach (var property in element.EnumerateObject())
@@ -40,6 +44,22 @@ namespace Azure.Communication.PhoneNumbers
                 }
             }
             return new PhoneNumberCapabilities(calling, sms);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static PhoneNumberCapabilities FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePhoneNumberCapabilities(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

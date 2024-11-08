@@ -1,14 +1,49 @@
 # Release History
 
-## 1.3.0-beta.1 (Unreleased)
+## 1.5.0-beta.1 (Unreleased)
 
 ### Features Added
+
+- Enable the new model serialization by using the System.ClientModel, refer this [document](https://aka.ms/azsdk/net/mrw) for more details.
+- Exposed `JsonModelWriteCore` for model serialization procedure.
 
 ### Breaking Changes
 
 ### Bugs Fixed
 
 ### Other Changes
+
+## 1.4.0 (2023-11-30)
+
+### Features Added
+
+- Enable mocking for extension methods, refer this [document](https://aka.ms/azsdk/net/mocking) for more details.
+
+### Other Changes
+
+- Upgraded dependent `Azure.ResourceManager` to 1.9.0.
+
+## 1.4.0-beta.1 (2023-05-31)
+
+### Features Added
+
+- Enable the model factory feature for model mocking, more information can be found [here](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-mocking-factory-builder).
+
+### Other Changes
+
+- Upgraded dependent Azure.Core to 1.32.0.
+- Upgraded dependent Azure.ResourceManager to 1.6.0.
+
+## 1.3.0 (2023-03-21)
+
+### Features Added
+
+- Bumped API version to 2022-11-01 for Reservations
+
+### Other Changes
+
+- Reservation Return API is changed to be long running operation
+- Introduced new properties based on the 2022-11-01 version of swagger
 
 ## 1.2.0 (2023-02-15)
 

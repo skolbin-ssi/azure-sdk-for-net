@@ -6,7 +6,7 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
+using Azure.Maps.Common;
 
 namespace Azure.Maps.Routing.Models
 {
@@ -14,8 +14,12 @@ namespace Azure.Maps.Routing.Models
     {
         internal static ErrorAdditionalInfo DeserializeErrorAdditionalInfo(JsonElement element)
         {
-            Optional<string> type = default;
-            Optional<object> info = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string type = default;
+            object info = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("type"u8))
@@ -27,14 +31,21 @@ namespace Azure.Maps.Routing.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     info = property.Value.GetObject();
                     continue;
                 }
             }
-            return new ErrorAdditionalInfo(type.Value, info.Value);
+            return new ErrorAdditionalInfo(type, info);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ErrorAdditionalInfo FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeErrorAdditionalInfo(document.RootElement);
         }
     }
 }

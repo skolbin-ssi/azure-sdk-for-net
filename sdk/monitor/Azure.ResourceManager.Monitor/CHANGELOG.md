@@ -1,14 +1,83 @@
 # Release History
 
-## 1.1.0-beta.1 (Unreleased)
+## 1.4.0-beta.2 (Unreleased)
 
 ### Features Added
+
+- Exposed `JsonModelWriteCore` for model serialization procedure.
 
 ### Breaking Changes
 
 ### Bugs Fixed
 
 ### Other Changes
+
+## 1.4.0-beta.1 (2024-09-03)
+
+### Features Added
+
+- Added azure monitor pipeline group APIs (version `2023-10-01-preview`)
+
+## 1.3.1 (2024-04-29)
+
+### Features Added
+
+- Enable the new model serialization by using the System.ClientModel, refer this [document](https://aka.ms/azsdk/net/mrw) for more details.
+- Add `ArmOperation.Rehydrate` and `ArmOperation.Rehydrate<T>` static methods to rehydrate a long-running operation.
+
+### Bugs Fixed
+
+- Fix [issue#41377](https://github.com/Azure/azure-sdk-for-net/issues/41377), change the serialization for `MonitorConditionOperator`.
+- Fix [issue#43151](https://github.com/Azure/azure-sdk-for-net/issues/43151), change the deserialization for `TenantId`.
+
+## 1.3.0 (2023-11-21)
+
+### Features Added
+
+- Enable mocking for extension methods, refer this [document](https://aka.ms/azsdk/net/mocking) for more details.
+
+### Other Changes
+
+- Upgraded dependent `Azure.ResourceManager` to 1.9.0.
+
+## 1.3.0-beta.2 (2023-06-13)
+
+### Features Added
+
+- Added azure monitor workspaces APIs (version `2023-04-03`)
+
+## 1.3.0-beta.1 (2023-05-30)
+
+### Features Added
+
+- Enable the model factory feature for model mocking, more information can be found [here](https://azure.github.io/azure-sdk/dotnet_introduction.html#dotnet-mocking-factory-builder).
+
+### Other Changes
+
+- Upgraded dependent Azure.Core to 1.32.0.
+- Upgraded dependent Azure.ResourceManager to 1.6.0.
+
+## 1.2.0 (2023-04-24)
+
+### Features Added
+
+- Bump api-version of `DataCollectionRules` to `2022-06-01`
+- Bump api-version of `DataCollectionRuleAsociations` to `2022-06-01`
+- Bump api-version of `DataCollectionEndpoints` to `2022-06-01`
+
+### Breaking Changes
+
+- Property `MetadataProvisionedBy` on `DataCollectionRuleData` is no longer available for api-version >= `2022-06-01`
+- Property `MetadataProvisionedBy` on `DataCollectionRuleAsociationData` is no longer available for api-version >= `2022-06-01`
+
+## 1.1.0 (2023-04-04)
+
+### Other Changes
+
+- Bump api-version of `ActionGroups` to `2023-01-01`.
+- Bump api-version of `Metrics` to `2021-05-01`.
+- Method `MonitorExtensions.CreateNotifications` and `MonitorExtensions.CreateNotificationsAsync` on `SubscriptionResource` and `ResourceGroupResource` were no longer available for api-version >= `2023-01-01`.
+- Method `MonitorExtensions.GetNotificationStatus` and `MonitorExtensions.GetNotificationStatusAsync` on `SubscriptionResource` and `ResourceGroupResource` were no longer available for api-version >= `2023-01-01`.
 
 ## 1.0.1 (2023-02-21)
 

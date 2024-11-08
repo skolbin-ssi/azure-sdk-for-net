@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.Models
 {
@@ -15,6 +14,10 @@ namespace Azure.AI.FormRecognizer.Models
     {
         internal static DataTable DeserializeDataTable(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             int rows = default;
             int columns = default;
             IReadOnlyList<DataTableCell> cells = default;
@@ -53,6 +56,14 @@ namespace Azure.AI.FormRecognizer.Models
                 }
             }
             return new DataTable(rows, columns, cells, boundingBox);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DataTable FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDataTable(document.RootElement);
         }
     }
 }

@@ -7,11 +7,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Azure;
 using Azure.Core;
 using Azure.Identity;
-using Azure.ResourceManager;
-using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Resources;
 
@@ -24,7 +21,7 @@ namespace Azure.ResourceManager.AppContainers.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task GetAll_ListContainerAppsByResourceGroup()
         {
-            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2022-10-01/examples/ContainerApps_ListByResourceGroup.json
+            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2024-03-01/examples/ContainerApps_ListByResourceGroup.json
             // this example is just showing the usage of "ContainerApps_ListByResourceGroup" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -60,7 +57,7 @@ namespace Azure.ResourceManager.AppContainers.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Get_GetContainerApp()
         {
-            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2022-10-01/examples/ContainerApps_Get.json
+            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2024-03-01/examples/ContainerApps_Get.json
             // this example is just showing the usage of "ContainerApps_Get" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -79,7 +76,7 @@ namespace Azure.ResourceManager.AppContainers.Samples
             ContainerAppCollection collection = resourceGroupResource.GetContainerApps();
 
             // invoke the operation
-            string containerAppName = "testcontainerApp0";
+            string containerAppName = "testcontainerapp0";
             ContainerAppResource result = await collection.GetAsync(containerAppName);
 
             // the variable result is a resource, you could call other operations on this instance as well
@@ -94,7 +91,7 @@ namespace Azure.ResourceManager.AppContainers.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Exists_GetContainerApp()
         {
-            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2022-10-01/examples/ContainerApps_Get.json
+            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2024-03-01/examples/ContainerApps_Get.json
             // this example is just showing the usage of "ContainerApps_Get" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -113,10 +110,52 @@ namespace Azure.ResourceManager.AppContainers.Samples
             ContainerAppCollection collection = resourceGroupResource.GetContainerApps();
 
             // invoke the operation
-            string containerAppName = "testcontainerApp0";
+            string containerAppName = "testcontainerapp0";
             bool result = await collection.ExistsAsync(containerAppName);
 
             Console.WriteLine($"Succeeded: {result}");
+        }
+
+        // Get Container App
+        [NUnit.Framework.Test]
+        [NUnit.Framework.Ignore("Only verifying that the sample builds")]
+        public async Task GetIfExists_GetContainerApp()
+        {
+            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2024-03-01/examples/ContainerApps_Get.json
+            // this example is just showing the usage of "ContainerApps_Get" operation, for the dependent resources, they will have to be created separately.
+
+            // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
+            TokenCredential cred = new DefaultAzureCredential();
+            // authenticate your client
+            ArmClient client = new ArmClient(cred);
+
+            // this example assumes you already have this ResourceGroupResource created on azure
+            // for more information of creating ResourceGroupResource, please refer to the document of ResourceGroupResource
+            string subscriptionId = "34adfa4f-cedf-4dc0-ba29-b6d1a69ab345";
+            string resourceGroupName = "rg";
+            ResourceIdentifier resourceGroupResourceId = ResourceGroupResource.CreateResourceIdentifier(subscriptionId, resourceGroupName);
+            ResourceGroupResource resourceGroupResource = client.GetResourceGroupResource(resourceGroupResourceId);
+
+            // get the collection of this ContainerAppResource
+            ContainerAppCollection collection = resourceGroupResource.GetContainerApps();
+
+            // invoke the operation
+            string containerAppName = "testcontainerapp0";
+            NullableResponse<ContainerAppResource> response = await collection.GetIfExistsAsync(containerAppName);
+            ContainerAppResource result = response.HasValue ? response.Value : null;
+
+            if (result == null)
+            {
+                Console.WriteLine($"Succeeded with null as result");
+            }
+            else
+            {
+                // the variable result is a resource, you could call other operations on this instance as well
+                // but just for demo, we get its data from this resource instance
+                ContainerAppData resourceData = result.Data;
+                // for demo we just print out the id
+                Console.WriteLine($"Succeeded on id: {resourceData.Id}");
+            }
         }
 
         // Create or Update Container App
@@ -124,7 +163,7 @@ namespace Azure.ResourceManager.AppContainers.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task CreateOrUpdate_CreateOrUpdateContainerApp()
         {
-            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2022-10-01/examples/ContainerApps_CreateOrUpdate.json
+            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2024-03-01/examples/ContainerApps_CreateOrUpdate.json
             // this example is just showing the usage of "ContainerApps_CreateOrUpdate" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -143,11 +182,11 @@ namespace Azure.ResourceManager.AppContainers.Samples
             ContainerAppCollection collection = resourceGroupResource.GetContainerApps();
 
             // invoke the operation
-            string containerAppName = "testcontainerApp0";
+            string containerAppName = "testcontainerapp0";
             ContainerAppData data = new ContainerAppData(new AzureLocation("East US"))
             {
                 EnvironmentId = new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/demokube"),
-                WorkloadProfileType = "GeneralPurpose",
+                WorkloadProfileName = "My-GP-01",
                 Configuration = new ContainerAppConfiguration()
                 {
                     Ingress = new ContainerAppIngressConfiguration()
@@ -158,19 +197,21 @@ namespace Azure.ResourceManager.AppContainers.Samples
 {
 new ContainerAppRevisionTrafficWeight()
 {
-RevisionName = "testcontainerApp0-ab1234",
+RevisionName = "testcontainerapp0-ab1234",
 Weight = 100,
 Label = "production",
 }
 },
                         CustomDomains =
 {
-new ContainerAppCustomDomain("www.my-name.com",new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/demokube/certificates/my-certificate-for-my-name-dot-com"))
+new ContainerAppCustomDomain("www.my-name.com")
 {
 BindingType = ContainerAppCustomDomainBindingType.SniEnabled,
-},new ContainerAppCustomDomain("www.my-other-name.com",new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/demokube/certificates/my-certificate-for-my-other-name-dot-com"))
+CertificateId = new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/demokube/certificates/my-certificate-for-my-name-dot-com"),
+},new ContainerAppCustomDomain("www.my-other-name.com")
 {
 BindingType = ContainerAppCustomDomainBindingType.SniEnabled,
+CertificateId = new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/demokube/certificates/my-certificate-for-my-other-name-dot-com"),
 }
 },
                         IPSecurityRestrictions =
@@ -183,6 +224,7 @@ Description = "Allowing all IP's within the subnet below to access containerapp"
 Description = "Allowing all IP's within the subnet below to access containerapp",
 }
 },
+                        StickySessionsAffinity = Affinity.Sticky,
                         ClientCertificateMode = ContainerAppIngressClientCertificateMode.Accept,
                         CorsPolicy = new ContainerAppCorsPolicy(new string[]
             {
@@ -204,6 +246,13 @@ Description = "Allowing all IP's within the subnet below to access containerapp"
                             MaxAge = 1234,
                             AllowCredentials = true,
                         },
+                        AdditionalPortMappings =
+{
+new IngressPortMapping(true,1234),new IngressPortMapping(false,2345)
+{
+ExposedPort = 3456,
+}
+},
                     },
                     Dapr = new ContainerAppDaprConfiguration()
                     {
@@ -216,6 +265,7 @@ Description = "Allowing all IP's within the subnet below to access containerapp"
                         IsApiLoggingEnabled = true,
                     },
                     MaxInactiveRevisions = 10,
+                    ServiceType = "redis",
                 },
                 Template = new ContainerAppTemplate()
                 {
@@ -223,7 +273,7 @@ Description = "Allowing all IP's within the subnet below to access containerapp"
 {
 new ContainerAppInitContainer()
 {
-Image = "repo/testcontainerApp0:v4",
+Image = "repo/testcontainerapp0:v4",
 Name = "testinitcontainerApp0",
 Command =
 {
@@ -235,8 +285,8 @@ Args =
 },
 Resources = new AppContainerResources()
 {
-Cpu = 0.2,
-Memory = "100Mi",
+Cpu = 0.5,
+Memory = "1Gi",
 },
 }
 },
@@ -261,8 +311,8 @@ PeriodSeconds = 3,
 ProbeType = ContainerAppProbeType.Liveness,
 }
 },
-Image = "repo/testcontainerApp0:v1",
-Name = "testcontainerApp0",
+Image = "repo/testcontainerapp0:v1",
+Name = "testcontainerapp0",
 }
 },
                     Scale = new ContainerAppScale()
@@ -285,6 +335,14 @@ Metadata =
 }
 },
                     },
+                    ServiceBinds =
+{
+new ContainerAppServiceBind()
+{
+ServiceId = new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/containerApps/redisService"),
+Name = "redisService",
+}
+},
                 },
             };
             ArmOperation<ContainerAppResource> lro = await collection.CreateOrUpdateAsync(WaitUntil.Completed, containerAppName, data);
@@ -297,12 +355,12 @@ Metadata =
             Console.WriteLine($"Succeeded on id: {resourceData.Id}");
         }
 
-        // Create or Update Tcp App
+        // Create or Update ManagedBy App
         [NUnit.Framework.Test]
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
-        public async Task CreateOrUpdate_CreateOrUpdateTcpApp()
+        public async Task CreateOrUpdate_CreateOrUpdateManagedByApp()
         {
-            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2022-10-01/examples/ContainerApps_TcpApp_CreateOrUpdate.json
+            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2024-03-01/examples/ContainerApps_ManagedBy_CreateOrUpdate.json
             // this example is just showing the usage of "ContainerApps_CreateOrUpdate" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -321,9 +379,10 @@ Metadata =
             ContainerAppCollection collection = resourceGroupResource.GetContainerApps();
 
             // invoke the operation
-            string containerAppName = "testcontainerAppTcp";
+            string containerAppName = "testcontainerappmanagedby";
             ContainerAppData data = new ContainerAppData(new AzureLocation("East US"))
             {
+                ManagedBy = "/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.AppPlatform/Spring/springapp",
                 EnvironmentId = new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/demokube"),
                 Configuration = new ContainerAppConfiguration()
                 {
@@ -337,7 +396,7 @@ Metadata =
 {
 new ContainerAppRevisionTrafficWeight()
 {
-RevisionName = "testcontainerAppTcp-ab1234",
+RevisionName = "testcontainerappmanagedby-ab1234",
 Weight = 100,
 }
 },
@@ -359,8 +418,105 @@ TcpSocket = new ContainerAppTcpSocketRequestInfo(8080),
 ProbeType = ContainerAppProbeType.Liveness,
 }
 },
-Image = "repo/testcontainerAppTcp:v1",
-Name = "testcontainerAppTcp",
+Image = "repo/testcontainerappmanagedby:v1",
+Name = "testcontainerappmanagedby",
+}
+},
+                    Scale = new ContainerAppScale()
+                    {
+                        MinReplicas = 1,
+                        MaxReplicas = 5,
+                        Rules =
+{
+new ContainerAppScaleRule()
+{
+Name = "tcpscalingrule",
+Tcp = new ContainerAppTcpScaleRule()
+{
+Metadata =
+{
+["concurrentConnections"] = "50",
+},
+},
+}
+},
+                    },
+                },
+            };
+            ArmOperation<ContainerAppResource> lro = await collection.CreateOrUpdateAsync(WaitUntil.Completed, containerAppName, data);
+            ContainerAppResource result = lro.Value;
+
+            // the variable result is a resource, you could call other operations on this instance as well
+            // but just for demo, we get its data from this resource instance
+            ContainerAppData resourceData = result.Data;
+            // for demo we just print out the id
+            Console.WriteLine($"Succeeded on id: {resourceData.Id}");
+        }
+
+        // Create or Update Tcp App
+        [NUnit.Framework.Test]
+        [NUnit.Framework.Ignore("Only verifying that the sample builds")]
+        public async Task CreateOrUpdate_CreateOrUpdateTcpApp()
+        {
+            // Generated from example definition: specification/app/resource-manager/Microsoft.App/stable/2024-03-01/examples/ContainerApps_TcpApp_CreateOrUpdate.json
+            // this example is just showing the usage of "ContainerApps_CreateOrUpdate" operation, for the dependent resources, they will have to be created separately.
+
+            // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
+            TokenCredential cred = new DefaultAzureCredential();
+            // authenticate your client
+            ArmClient client = new ArmClient(cred);
+
+            // this example assumes you already have this ResourceGroupResource created on azure
+            // for more information of creating ResourceGroupResource, please refer to the document of ResourceGroupResource
+            string subscriptionId = "34adfa4f-cedf-4dc0-ba29-b6d1a69ab345";
+            string resourceGroupName = "rg";
+            ResourceIdentifier resourceGroupResourceId = ResourceGroupResource.CreateResourceIdentifier(subscriptionId, resourceGroupName);
+            ResourceGroupResource resourceGroupResource = client.GetResourceGroupResource(resourceGroupResourceId);
+
+            // get the collection of this ContainerAppResource
+            ContainerAppCollection collection = resourceGroupResource.GetContainerApps();
+
+            // invoke the operation
+            string containerAppName = "testcontainerapptcp";
+            ContainerAppData data = new ContainerAppData(new AzureLocation("East US"))
+            {
+                EnvironmentId = new ResourceIdentifier("/subscriptions/34adfa4f-cedf-4dc0-ba29-b6d1a69ab345/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/demokube"),
+                Configuration = new ContainerAppConfiguration()
+                {
+                    Ingress = new ContainerAppIngressConfiguration()
+                    {
+                        External = true,
+                        TargetPort = 3000,
+                        ExposedPort = 4000,
+                        Transport = ContainerAppIngressTransportMethod.Tcp,
+                        Traffic =
+{
+new ContainerAppRevisionTrafficWeight()
+{
+RevisionName = "testcontainerapptcp-ab1234",
+Weight = 100,
+}
+},
+                    },
+                },
+                Template = new ContainerAppTemplate()
+                {
+                    Containers =
+{
+new ContainerAppContainer()
+{
+Probes =
+{
+new ContainerAppProbe()
+{
+InitialDelaySeconds = 3,
+PeriodSeconds = 3,
+TcpSocket = new ContainerAppTcpSocketRequestInfo(8080),
+ProbeType = ContainerAppProbeType.Liveness,
+}
+},
+Image = "repo/testcontainerapptcp:v1",
+Name = "testcontainerapptcp",
 }
 },
                     Scale = new ContainerAppScale()

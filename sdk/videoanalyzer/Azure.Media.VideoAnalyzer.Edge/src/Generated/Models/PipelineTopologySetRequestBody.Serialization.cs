@@ -27,6 +27,8 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 writer.WritePropertyName("properties"u8);
                 writer.WriteObjectValue(Properties);
             }
+            writer.WritePropertyName("methodName"u8);
+            writer.WriteStringValue(MethodName);
             if (Optional.IsDefined(ApiVersion))
             {
                 writer.WritePropertyName("@apiVersion"u8);
@@ -37,11 +39,15 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
 
         internal static PipelineTopologySetRequestBody DeserializePipelineTopologySetRequestBody(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string name = default;
-            Optional<SystemData> systemData = default;
-            Optional<PipelineTopologyProperties> properties = default;
+            SystemData systemData = default;
+            PipelineTopologyProperties properties = default;
             string methodName = default;
-            Optional<string> apiVersion = default;
+            string apiVersion = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("name"u8))
@@ -53,7 +59,6 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     systemData = SystemData.DeserializeSystemData(property.Value);
@@ -63,7 +68,6 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     properties = PipelineTopologyProperties.DeserializePipelineTopologyProperties(property.Value);
@@ -80,7 +84,23 @@ namespace Azure.Media.VideoAnalyzer.Edge.Models
                     continue;
                 }
             }
-            return new PipelineTopologySetRequestBody(methodName, apiVersion.Value, name, systemData.Value, properties.Value);
+            return new PipelineTopologySetRequestBody(methodName, apiVersion, name, systemData, properties);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new PipelineTopologySetRequestBody FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePipelineTopologySetRequestBody(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

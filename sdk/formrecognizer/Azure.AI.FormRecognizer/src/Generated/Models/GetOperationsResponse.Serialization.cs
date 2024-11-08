@@ -5,9 +5,9 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.FormRecognizer.DocumentAnalysis
 {
@@ -15,8 +15,12 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
     {
         internal static GetOperationsResponse DeserializeGetOperationsResponse(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IReadOnlyList<OperationSummary> value = default;
-            Optional<string> nextLink = default;
+            Uri nextLink = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("value"u8))
@@ -31,11 +35,23 @@ namespace Azure.AI.FormRecognizer.DocumentAnalysis
                 }
                 if (property.NameEquals("nextLink"u8))
                 {
-                    nextLink = property.Value.GetString();
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    nextLink = new Uri(property.Value.GetString());
                     continue;
                 }
             }
-            return new GetOperationsResponse(value, nextLink.Value);
+            return new GetOperationsResponse(value, nextLink);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static GetOperationsResponse FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeGetOperationsResponse(document.RootElement);
         }
     }
 }

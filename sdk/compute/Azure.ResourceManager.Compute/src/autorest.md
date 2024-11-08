@@ -8,15 +8,19 @@ Run `dotnet build /t:GenerateCode` to generate code.
 
 ``` yaml
 azure-arm: true
-generate-model-factory: false
 library-name: Compute
 namespace: Azure.ResourceManager.Compute
-require: https://github.com/Azure/azure-rest-api-specs/blob/5bba638fd53d813e475bfdc3b1b2789ee75b187c/specification/compute/resource-manager/readme.md
+require: https://github.com/Azure/azure-rest-api-specs/blob/4f68529971f845e8757c2b2a746d78ceb91854cd/specification/compute/resource-manager/readme.md
 output-folder: $(this-folder)/Generated
 clear-output-folder: true
+sample-gen:
+  output-folder: $(this-folder)/../samples/Generated
+  clear-output-folder: true
 skip-csproj: true
 modelerfour:
   flatten-payloads: false
+use-model-reader-writer: true
+use-write-core: true
 
 update-required-copy:
   GalleryImage: OSType
@@ -33,7 +37,7 @@ keep-plural-enums:
 - IntervalInMins
 - VmGuestPatchClassificationForWindows # we have this because the generator will change windows to window which does not make sense
 
-rename-rules:
+acronym-mapping:
   CPU: Cpu
   CPUs: Cpus
   Os: OS
@@ -65,6 +69,8 @@ rename-rules:
   ZRS: Zrs
   RestorePointCollection: RestorePointGroup # the word `collection` is reserved by the SDK, therefore we need to rename all the occurrences of this in all resources and models
   EncryptionSettingsCollection: EncryptionSettingsGroup # the word `collection` is reserved by the SDK, therefore we need to rename all the occurrences of this in all resources and models
+  VHD: Vhd
+  VHDX: Vhdx
 
 list-exception:
 - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/restorePointCollections/{restorePointGroupName}/restorePoints/{restorePointName} # compute RP did not provide an API for listing this resource
@@ -120,8 +126,8 @@ prepend-rp-prefix:
 - PublicIPAddressSkuTier
 - StatusLevelTypes
 
-#mgmt-debug:
-#    show-serialized-names: true
+# mgmt-debug:
+#   show-serialized-names: true
 
 rename-mapping:
   DiskSecurityTypes.ConfidentialVM_VMGuestStateOnlyEncryptedWithPlatformKey: ConfidentialVmGuestStateOnlyEncryptedWithPlatformKey
@@ -159,6 +165,7 @@ rename-mapping:
   DiskRestorePoint.properties.sourceResourceLocation: -|azure-location
   Encryption: DiskEncryption
   Encryption.diskEncryptionSetId: -|arm-id
+  Encryption.type: EncryptionType
   CreationData: DiskCreationData
   CreationData.storageAccountId: -|arm-id
   CreationData.sourceResourceId: -|arm-id
@@ -258,7 +265,24 @@ rename-mapping:
   VirtualMachineScaleSet.properties.constrainedMaximumCapacity : IsMaximumCapacityConstrained
   RollingUpgradePolicy.maxSurge : IsMaxSurgeEnabled
   ScheduledEventsProfile: ComputeScheduledEventsProfile
-
+  ExpandTypeForListVMs: GetVirtualMachineExpandType
+  ExpandTypesForListVm: GetVirtualMachineExpandType
+  RestorePointSourceVmStorageProfile.dataDisks: DataDiskList
+  SecurityPostureReference.id: -|arm-id
+  CommunityGalleryImage.properties.identifier: ImageIdentifier
+  GalleryTargetExtendedLocation.storageAccountType: GalleryStorageAccountType
+  FileFormat: DiskImageFileFormat
+  CreationData.elasticSanResourceId: -|arm-id
+  NetworkInterfaceAuxiliarySku: ComputeNetworkInterfaceAuxiliarySku
+  NetworkInterfaceAuxiliaryMode: ComputeNetworkInterfaceAuxiliaryMode
+  CommunityGalleryInfo.publisherUri: PublisherUriString
+  GalleryArtifactVersionFullSource.virtualMachineId: -|arm-id
+  SecurityPostureReference: ComputeSecurityPostureReference
+  SecurityPostureReference.excludeExtensions: ExcludeExtensionNames
+  SkuProfile : ComputeSkuProfile
+  SkuProfileVMSize : ComputeSkuProfileVMSize
+  AllocationStrategy : ComputeAllocationStrategy
+  
 directive:
 # copy the systemData from common-types here so that it will be automatically replaced
   - from: common.json
@@ -356,4 +380,17 @@ directive:
   - from: swagger-document
     where: $.definitions.KeyVaultSecretReference
     transform: $["x-csharp-usage"] = "converter";
+  # TODO -- to be removed. This is a temporary workaround because the rename-mapping configuration is not working properly on arrays.
+  - from: restorePoint.json
+    where: $.definitions.RestorePointSourceVMStorageProfile.properties.dataDisks
+    transform: $["x-ms-client-name"] = "DataDiskList";
+  # Add a dummy property because generator tries to flatten automaticallyApprove in both UserInitiatedRedeploy and UserInitiatedReboot
+  - from: computeRPCommon.json
+    where: $.definitions.UserInitiatedRedeploy.properties
+    transform: >
+      $.dummyProperty = {
+        "type": "string",
+        "description": "This is a dummy property to prevent flattening."
+      };      
+    
 ```

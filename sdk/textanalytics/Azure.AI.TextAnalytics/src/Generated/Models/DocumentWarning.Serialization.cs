@@ -29,9 +29,13 @@ namespace Azure.AI.TextAnalytics.Models
 
         internal static DocumentWarning DeserializeDocumentWarning(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             WarningCodeValue code = default;
             string message = default;
-            Optional<string> targetRef = default;
+            string targetRef = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("code"u8))
@@ -50,7 +54,23 @@ namespace Azure.AI.TextAnalytics.Models
                     continue;
                 }
             }
-            return new DocumentWarning(code, message, targetRef.Value);
+            return new DocumentWarning(code, message, targetRef);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static DocumentWarning FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeDocumentWarning(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal virtual RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
     }
 }

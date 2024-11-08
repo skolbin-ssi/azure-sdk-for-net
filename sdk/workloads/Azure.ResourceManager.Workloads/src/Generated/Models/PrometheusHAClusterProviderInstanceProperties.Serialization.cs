@@ -6,16 +6,35 @@
 #nullable disable
 
 using System;
+using System.ClientModel.Primitives;
+using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core;
 
 namespace Azure.ResourceManager.Workloads.Models
 {
-    public partial class PrometheusHAClusterProviderInstanceProperties : IUtf8JsonSerializable
+    public partial class PrometheusHAClusterProviderInstanceProperties : IUtf8JsonSerializable, IJsonModel<PrometheusHAClusterProviderInstanceProperties>
     {
-        void IUtf8JsonSerializable.Write(Utf8JsonWriter writer)
+        void IUtf8JsonSerializable.Write(Utf8JsonWriter writer) => ((IJsonModel<PrometheusHAClusterProviderInstanceProperties>)this).Write(writer, ModelSerializationExtensions.WireOptions);
+
+        void IJsonModel<PrometheusHAClusterProviderInstanceProperties>.Write(Utf8JsonWriter writer, ModelReaderWriterOptions options)
         {
             writer.WriteStartObject();
+            JsonModelWriteCore(writer, options);
+            writer.WriteEndObject();
+        }
+
+        /// <param name="writer"> The JSON writer. </param>
+        /// <param name="options"> The client options for reading and writing models. </param>
+        protected override void JsonModelWriteCore(Utf8JsonWriter writer, ModelReaderWriterOptions options)
+        {
+            var format = options.Format == "W" ? ((IPersistableModel<PrometheusHAClusterProviderInstanceProperties>)this).GetFormatFromOptions(options) : options.Format;
+            if (format != "J")
+            {
+                throw new FormatException($"The model {nameof(PrometheusHAClusterProviderInstanceProperties)} does not support writing '{format}' format.");
+            }
+
+            base.JsonModelWriteCore(writer, options);
             if (Optional.IsDefined(PrometheusUri))
             {
                 writer.WritePropertyName("prometheusUrl"u8);
@@ -36,25 +55,53 @@ namespace Azure.ResourceManager.Workloads.Models
                 writer.WritePropertyName("clusterName"u8);
                 writer.WriteStringValue(ClusterName);
             }
-            writer.WritePropertyName("providerType"u8);
-            writer.WriteStringValue(ProviderType);
-            writer.WriteEndObject();
+            if (Optional.IsDefined(SslPreference))
+            {
+                writer.WritePropertyName("sslPreference"u8);
+                writer.WriteStringValue(SslPreference.Value.ToString());
+            }
+            if (Optional.IsDefined(SslCertificateUri))
+            {
+                writer.WritePropertyName("sslCertificateUri"u8);
+                writer.WriteStringValue(SslCertificateUri.AbsoluteUri);
+            }
         }
 
-        internal static PrometheusHAClusterProviderInstanceProperties DeserializePrometheusHAClusterProviderInstanceProperties(JsonElement element)
+        PrometheusHAClusterProviderInstanceProperties IJsonModel<PrometheusHAClusterProviderInstanceProperties>.Create(ref Utf8JsonReader reader, ModelReaderWriterOptions options)
         {
-            Optional<Uri> prometheusUrl = default;
-            Optional<string> hostname = default;
-            Optional<string> sid = default;
-            Optional<string> clusterName = default;
+            var format = options.Format == "W" ? ((IPersistableModel<PrometheusHAClusterProviderInstanceProperties>)this).GetFormatFromOptions(options) : options.Format;
+            if (format != "J")
+            {
+                throw new FormatException($"The model {nameof(PrometheusHAClusterProviderInstanceProperties)} does not support reading '{format}' format.");
+            }
+
+            using JsonDocument document = JsonDocument.ParseValue(ref reader);
+            return DeserializePrometheusHAClusterProviderInstanceProperties(document.RootElement, options);
+        }
+
+        internal static PrometheusHAClusterProviderInstanceProperties DeserializePrometheusHAClusterProviderInstanceProperties(JsonElement element, ModelReaderWriterOptions options = null)
+        {
+            options ??= ModelSerializationExtensions.WireOptions;
+
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            Uri prometheusUrl = default;
+            string hostname = default;
+            string sid = default;
+            string clusterName = default;
+            SapSslPreference? sslPreference = default;
+            Uri sslCertificateUri = default;
             string providerType = default;
+            IDictionary<string, BinaryData> serializedAdditionalRawData = default;
+            Dictionary<string, BinaryData> rawDataDictionary = new Dictionary<string, BinaryData>();
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("prometheusUrl"u8))
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        prometheusUrl = null;
                         continue;
                     }
                     prometheusUrl = new Uri(property.Value.GetString());
@@ -75,13 +122,75 @@ namespace Azure.ResourceManager.Workloads.Models
                     clusterName = property.Value.GetString();
                     continue;
                 }
+                if (property.NameEquals("sslPreference"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    sslPreference = new SapSslPreference(property.Value.GetString());
+                    continue;
+                }
+                if (property.NameEquals("sslCertificateUri"u8))
+                {
+                    if (property.Value.ValueKind == JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+                    sslCertificateUri = new Uri(property.Value.GetString());
+                    continue;
+                }
                 if (property.NameEquals("providerType"u8))
                 {
                     providerType = property.Value.GetString();
                     continue;
                 }
+                if (options.Format != "W")
+                {
+                    rawDataDictionary.Add(property.Name, BinaryData.FromString(property.Value.GetRawText()));
+                }
             }
-            return new PrometheusHAClusterProviderInstanceProperties(providerType, prometheusUrl.Value, hostname.Value, sid.Value, clusterName.Value);
+            serializedAdditionalRawData = rawDataDictionary;
+            return new PrometheusHAClusterProviderInstanceProperties(
+                providerType,
+                serializedAdditionalRawData,
+                prometheusUrl,
+                hostname,
+                sid,
+                clusterName,
+                sslPreference,
+                sslCertificateUri);
         }
+
+        BinaryData IPersistableModel<PrometheusHAClusterProviderInstanceProperties>.Write(ModelReaderWriterOptions options)
+        {
+            var format = options.Format == "W" ? ((IPersistableModel<PrometheusHAClusterProviderInstanceProperties>)this).GetFormatFromOptions(options) : options.Format;
+
+            switch (format)
+            {
+                case "J":
+                    return ModelReaderWriter.Write(this, options);
+                default:
+                    throw new FormatException($"The model {nameof(PrometheusHAClusterProviderInstanceProperties)} does not support writing '{options.Format}' format.");
+            }
+        }
+
+        PrometheusHAClusterProviderInstanceProperties IPersistableModel<PrometheusHAClusterProviderInstanceProperties>.Create(BinaryData data, ModelReaderWriterOptions options)
+        {
+            var format = options.Format == "W" ? ((IPersistableModel<PrometheusHAClusterProviderInstanceProperties>)this).GetFormatFromOptions(options) : options.Format;
+
+            switch (format)
+            {
+                case "J":
+                    {
+                        using JsonDocument document = JsonDocument.Parse(data);
+                        return DeserializePrometheusHAClusterProviderInstanceProperties(document.RootElement, options);
+                    }
+                default:
+                    throw new FormatException($"The model {nameof(PrometheusHAClusterProviderInstanceProperties)} does not support reading '{options.Format}' format.");
+            }
+        }
+
+        string IPersistableModel<PrometheusHAClusterProviderInstanceProperties>.GetFormatFromOptions(ModelReaderWriterOptions options) => "J";
     }
 }

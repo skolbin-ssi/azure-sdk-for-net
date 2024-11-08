@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Communication.PhoneNumbers
 {
@@ -14,6 +13,10 @@ namespace Azure.Communication.PhoneNumbers
     {
         internal static PhoneNumberCost DeserializePhoneNumberCost(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             double amount = default;
             string currencyCode = default;
             BillingFrequency billingFrequency = default;
@@ -36,6 +39,14 @@ namespace Azure.Communication.PhoneNumbers
                 }
             }
             return new PhoneNumberCost(amount, currencyCode, billingFrequency);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static PhoneNumberCost FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializePhoneNumberCost(document.RootElement);
         }
     }
 }

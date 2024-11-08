@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.AI.TextAnalytics.Legacy.Models;
-using Azure.Core;
 
 namespace Azure.AI.TextAnalytics.Legacy
 {
@@ -17,11 +16,15 @@ namespace Azure.AI.TextAnalytics.Legacy
     {
         internal static HealthcareJobState DeserializeHealthcareJobState(JsonElement element)
         {
-            Optional<HealthcareResult> results = default;
-            Optional<IReadOnlyList<TextAnalyticsError>> errors = default;
-            Optional<string> nextLink = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            HealthcareResult results = default;
+            IReadOnlyList<TextAnalyticsError> errors = default;
+            string nextLink = default;
             DateTimeOffset createdDateTime = default;
-            Optional<DateTimeOffset> expirationDateTime = default;
+            DateTimeOffset? expirationDateTime = default;
             Guid jobId = default;
             DateTimeOffset lastUpdateDateTime = default;
             State status = default;
@@ -31,7 +34,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     results = HealthcareResult.DeserializeHealthcareResult(property.Value);
@@ -41,7 +43,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<TextAnalyticsError> array = new List<TextAnalyticsError>();
@@ -66,7 +67,6 @@ namespace Azure.AI.TextAnalytics.Legacy
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     expirationDateTime = property.Value.GetDateTimeOffset("O");
@@ -88,7 +88,23 @@ namespace Azure.AI.TextAnalytics.Legacy
                     continue;
                 }
             }
-            return new HealthcareJobState(createdDateTime, Optional.ToNullable(expirationDateTime), jobId, lastUpdateDateTime, status, results.Value, Optional.ToList(errors), nextLink.Value);
+            return new HealthcareJobState(
+                createdDateTime,
+                expirationDateTime,
+                jobId,
+                lastUpdateDateTime,
+                status,
+                results,
+                errors ?? new ChangeTrackingList<TextAnalyticsError>(),
+                nextLink);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new HealthcareJobState FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeHealthcareJobState(document.RootElement);
         }
     }
 }

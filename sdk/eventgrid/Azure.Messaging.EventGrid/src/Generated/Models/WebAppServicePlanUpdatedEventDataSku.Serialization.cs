@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.Messaging.EventGrid.SystemEvents
 {
@@ -14,11 +13,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
     {
         internal static WebAppServicePlanUpdatedEventDataSku DeserializeWebAppServicePlanUpdatedEventDataSku(JsonElement element)
         {
-            Optional<string> name = default;
-            Optional<string> tier = default;
-            Optional<string> size = default;
-            Optional<string> family = default;
-            Optional<string> capacity = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string name = default;
+            string tier = default;
+            string size = default;
+            string family = default;
+            string capacity = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("name"u8))
@@ -47,7 +50,15 @@ namespace Azure.Messaging.EventGrid.SystemEvents
                     continue;
                 }
             }
-            return new WebAppServicePlanUpdatedEventDataSku(name.Value, tier.Value, size.Value, family.Value, capacity.Value);
+            return new WebAppServicePlanUpdatedEventDataSku(name, tier, size, family, capacity);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static WebAppServicePlanUpdatedEventDataSku FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeWebAppServicePlanUpdatedEventDataSku(document.RootElement);
         }
     }
 }

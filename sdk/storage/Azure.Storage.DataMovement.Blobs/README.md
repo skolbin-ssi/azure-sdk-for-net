@@ -2,6 +2,12 @@
 
 > Server Version: 2020-04-08, 2020-02-10, 2019-12-12, 2019-07-07, and 2020-02-02
 
+## Project Status: Beta
+
+This product is in beta. Some features will be missing or have significant bugs. Please see [Known Issues](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/storage/Azure.Storage.DataMovement/KnownIssues.md) for detailed information.
+
+---
+
 Azure Storage is a Microsoft-managed service providing cloud storage that is
 highly available, secure, durable, scalable, and redundant. Azure Storage
 includes Azure Blobs (objects), Azure Data Lake Storage Gen2, Azure Files,
@@ -41,24 +47,7 @@ az storage account create --name MyStorageAccount --resource-group MyResourceGro
 ```
 
 ### Authenticate the client
-In order to interact with the Data Movement library you have to create an instance with the TransferManager class.
-
-### Create Instance of TransferManager
-```C# Snippet:CreateTransferManagerSimple
-TransferManager transferManager = new TransferManager(new TransferManagerOptions());
-```
-
-### Create Instance of TransferManager with Options
-```C# Snippet:CreateTransferManagerWithOptions
-// Create BlobTransferManager with event handler in Options bag
-TransferManagerOptions transferManagerOptions = new TransferManagerOptions();
-ContainerTransferOptions options = new ContainerTransferOptions()
-{
-    MaximumTransferChunkSize = 4 * Constants.MB,
-    CreateMode = StorageResourceCreateMode.Overwrite,
-};
-TransferManager transferManager = new TransferManager(transferManagerOptions);
-```
+The Azure.Storage.DataMovement.Blobs library uses clients from the Azure.Storage.Blobs package to communicate with the Azure Blob Storage service. For more information see the Azure.Storage.Blobs [authentication documentation](https://github.com/Azure/azure-sdk-for-net/tree/main/sdk/storage/Azure.Storage.Blobs#authenticate-the-client).
 
 ## Key concepts
 
@@ -75,88 +64,251 @@ We guarantee that all client instance methods are thread-safe and independent of
 [Long-running operations](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/README.md#consuming-long-running-operations-using-operationt) |
 [Handling failures](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/README.md#reporting-errors-requestfailedexception) |
 [Diagnostics](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/samples/Diagnostics.md) |
-[Mocking](https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/core/Azure.Core/README.md#mocking) |
+[Mocking](https://learn.microsoft.com/dotnet/azure/sdk/unit-testing-mocking) |
 [Client lifetime](https://devblogs.microsoft.com/azure-sdk/lifetime-management-and-thread-safety-guarantees-of-azure-sdk-net-clients/)
 <!-- CLIENT COMMON BAR -->
 
 ## Examples
 
-Please see the examples for [Blobs][blobs_examples].
+This section demonstrates usage of Data Movement for interacting with blob storage.
 
-### Start Upload from Local File to Block Blob
+### Extensions on `BlobContainerClient`
+
+For applications with preexisting code using Azure.Storage.Blobs, this package provides extension methods for `BlobContainerClient` to get some of the benefits of the `TransferManager` with minimal extra code.
+
+Instantiate the BlobContainerClient
+```C# Snippet:ExtensionMethodCreateContainerClient
+BlobServiceClient service = new BlobServiceClient(serviceUri, credential);
+
+BlobContainerClient container = service.GetBlobContainerClient(containerName);
+```
+
+Upload a local directory to the root of the container
+```C# Snippet:ExtensionMethodSimpleUploadToRoot
+DataTransfer transfer = await container.StartUploadDirectoryAsync(localPath);
+
+await transfer.WaitForCompletionAsync();
+```
+
+Upload a local directory to a virtual directory in the container by specifying a directory prefix
+```C# Snippet:ExtensionMethodSimpleUploadToDirectoryPrefix
+DataTransfer transfer = await container.StartUploadDirectoryAsync(localPath, blobDirectoryPrefix);
+
+await transfer.WaitForCompletionAsync();
+```
+
+Upload a local directory to a virtual directory in the container specifying more advanced options
+```C# Snippet:ExtensionMethodSimpleUploadWithOptions
+BlobContainerClientTransferOptions options = new BlobContainerClientTransferOptions
+{
+    BlobContainerOptions = new BlobStorageResourceContainerOptions
+    {
+        BlobDirectoryPrefix = blobDirectoryPrefix
+    },
+    TransferOptions = new DataTransferOptions()
+    {
+        CreationPreference = StorageResourceCreationPreference.OverwriteIfExists,
+    }
+};
+
+DataTransfer transfer = await container.StartUploadDirectoryAsync(localPath, options);
+
+await transfer.WaitForCompletionAsync();
+```
+
+Download the entire container to a local directory
+```C# Snippet:ExtensionMethodSimpleDownloadContainer
+DataTransfer transfer = await container.StartDownloadToDirectoryAsync(localDirectoryPath);
+
+await transfer.WaitForCompletionAsync();
+```
+
+Download a directory in the container by specifying a directory prefix
+```C# Snippet:ExtensionMethodSimpleDownloadContainerDirectory
+DataTransfer tranfer = await container.StartDownloadToDirectoryAsync(localDirectoryPath2, blobDirectoryPrefix);
+
+await tranfer.WaitForCompletionAsync();
+```
+
+Download from the container specifying more advanced options
+```C# Snippet:ExtensionMethodSimpleDownloadContainerDirectoryWithOptions
+BlobContainerClientTransferOptions options = new BlobContainerClientTransferOptions
+{
+    BlobContainerOptions = new BlobStorageResourceContainerOptions
+    {
+        BlobDirectoryPrefix = blobDirectoryPrefix
+    },
+    TransferOptions = new DataTransferOptions()
+    {
+        CreationPreference = StorageResourceCreationPreference.OverwriteIfExists,
+    }
+};
+
+DataTransfer tranfer = await container.StartDownloadToDirectoryAsync(localDirectoryPath2, options);
+
+await tranfer.WaitForCompletionAsync();
+```
+
+### Initializing Blob Storage `StorageResource`
+
+Azure.Storage.DataMovement.Blobs exposes `BlobsStorageResourceProvider` to create `StorageResource` instances for each type of blob (block, page, append) as well as a blob container. The resource provider should be initialized with a credential to properly authenticate the storage resources. The following demonstrates this using an `Azure.Core` token credential.
+
+```C# Snippet:MakeProvider_TokenCredential
+BlobsStorageResourceProvider blobs = new(tokenCredential);
+```
+
+To create a blob `StorageResource`, use the methods `FromBlob` or `FromContainer`.
+
+```C# Snippet:ResourceConstruction_Blobs
+StorageResource container = blobs.FromContainer(
+    new Uri("http://myaccount.blob.core.windows.net/container"));
+
+// Block blobs are the default if no options are specified
+StorageResource blockBlob = blobs.FromBlob(
+    new Uri("http://myaccount.blob.core.windows.net/container/sample-blob-block"),
+    new BlockBlobStorageResourceOptions());
+StorageResource pageBlob = blobs.FromBlob(
+    new Uri("http://myaccount.blob.core.windows.net/container/sample-blob-page"),
+    new PageBlobStorageResourceOptions());
+StorageResource appendBlob = blobs.FromBlob(
+    new Uri("http://myaccount.blob.core.windows.net/container/sample-blob-append"),
+    new AppendBlobStorageResourceOptions());
+```
+
+Storage resources can also be initialized with the appropriate client object from Azure.Storage.Blobs. Since these resources will use the credential already present in the client object, no credential is required in the provider when using `FromClient()`. **However**, a `BlobsStorageResourceProvider` must still have a credential if it is to be used in `TransferManagerOptions` for resuming a transfer.
+
+```C# Snippet:ResourceConstruction_FromClients_Blobs
+BlobsStorageResourceProvider blobs = new();
+StorageResource containerResource = blobs.FromClient(blobContainerClient);
+StorageResource blockBlobResource = blobs.FromClient(blockBlobClient);
+StorageResource pageBlobResource = blobs.FromClient(pageBlobClient);
+StorageResource appendBlobResource = blobs.FromClient(appendBlobClient);
+```
+
+There are more options which can be used when creating a blob storage resource. Below are some examples.
+
+```C# Snippet:ResourceConstruction_Blobs_WithOptions_VirtualDirectory
+BlobStorageResourceContainerOptions virtualDirectoryOptions = new()
+{
+    BlobDirectoryPrefix = "blob/directory/prefix"
+};
+
+StorageResource virtualDirectoryResource = blobs.FromClient(
+    blobContainerClient,
+    virtualDirectoryOptions);
+```
+
+```C# Snippet:ResourceConstruction_Blobs_WithOptions_BlockBlob
+BlockBlobStorageResourceOptions resourceOptions = new()
+{
+    Metadata = new DataTransferProperty<IDictionary<string, string>> (
+        new Dictionary<string, string>
+        {
+            { "key", "value" }
+        })
+};
+StorageResource leasedBlockBlobResource = blobs.FromClient(
+    blockBlobClient,
+    resourceOptions);
+```
+
+### Upload
+
+An upload takes place between a local file `StorageResource` as source and blob `StorageResource` as destination.
+
+Upload a block blob.
+
 ```C# Snippet:SimpleBlobUpload
 DataTransfer dataTransfer = await transferManager.StartTransferAsync(
-    sourceResource: new LocalFileStorageResource(sourceLocalPath),
-    destinationResource: new BlockBlobStorageResource(destinationBlob));
-await dataTransfer.AwaitCompletion();
+    sourceResource: files.FromFile(sourceLocalPath),
+    destinationResource: blobs.FromBlob(destinationBlobUri));
+await dataTransfer.WaitForCompletionAsync();
 ```
 
-### Apply Options to Block Blob Download
-```C# Snippet:BlockBlobDownloadOptions
-await transferManager.StartTransferAsync(
-    sourceResource: new BlockBlobStorageResource(sourceBlob, new BlockBlobStorageResourceOptions()
-    {
-        DestinationConditions = new BlobRequestConditions(){ LeaseId = "xyz" }
-    }),
-    destinationResource: new LocalFileStorageResource(downloadPath2));
-```
+Upload a directory as a specific blob type.
 
-### Start Directory Upload
 ```C# Snippet:SimpleDirectoryUpload
-// Create simple transfer directory upload job which uploads the directory and the contents of that directory
 DataTransfer dataTransfer = await transferManager.StartTransferAsync(
-    sourceResource: new LocalDirectoryStorageResourceContainer(sourcePath),
-    destinationResource: new BlobDirectoryStorageResourceContainer(container, "sample-directory2"),
-    transferOptions: options);
+    sourceResource: files.FromDirectory(sourcePath),
+    destinationResource: blobs.FromContainer(
+        blobContainerUri,
+        new BlobStorageResourceContainerOptions()
+        {
+            // Block blobs are the default if not specified
+            BlobType = new(BlobType.Block),
+            BlobDirectoryPrefix = optionalDestinationPrefix,
+        }));
 ```
 
-### Start Directory Download
-```C# Snippet:SimpleDirectoryDownload
-DataTransfer downloadDirectoryJobId2 = await transferManager.StartTransferAsync(
-    sourceDirectory2,
-    destinationDirectory2);
+### Download
+
+A download takes place between a blob `StorageResource` as source and local file `StorageResource` as destination.
+
+Download a blob.
+
+```C# Snippet:SimpleBlockBlobDownload
+DataTransfer dataTransfer = await transferManager.StartTransferAsync(
+    sourceResource: blobs.FromBlob(sourceBlobUri),
+    destinationResource: files.FromFile(downloadPath));
+await dataTransfer.WaitForCompletionAsync();
 ```
 
-### Simple Logger Sample for Transfer Manager Options
-```C# Snippet:SimpleLoggingSample
-// Create BlobTransferManager with event handler in Options bag
-TransferManagerOptions options = new TransferManagerOptions();
-ContainerTransferOptions containerTransferOptions = new ContainerTransferOptions();
-containerTransferOptions.SingleTransferCompleted += (SingleTransferCompletedEventArgs args) =>
-{
-    using (StreamWriter logStream = File.AppendText(logFile))
+Download a container which may contain a mix of blob types.
+
+```C# Snippet:SimpleDirectoryDownload_Blob
+DataTransfer dataTransfer = await transferManager.StartTransferAsync(
+    sourceResource: blobs.FromContainer(
+        blobContainerUri,
+        new BlobStorageResourceContainerOptions()
+        {
+            BlobDirectoryPrefix = optionalSourcePrefix
+        }),
+    destinationResource: files.FromDirectory(downloadPath));
+await dataTransfer.WaitForCompletionAsync();
+```
+
+### Blob Copy
+
+A copy takes place between two blob `StorageResource` instances. Copying between to Azure blobs uses PUT from URL REST APIs, which do not transfer data through the machine running DataMovement.
+
+Copy a single blob. Note the destination blob is an append blob, regardless of the first blob's type.
+
+```C# Snippet:s2sCopyBlob
+DataTransfer dataTransfer = await transferManager.StartTransferAsync(
+    sourceResource: blobs.FromBlob(sourceBlobUri),
+    destinationResource: blobs.FromBlob(destinationBlobUri, new AppendBlobStorageResourceOptions()));
+await dataTransfer.WaitForCompletionAsync();
+```
+
+Copy a blob container.
+
+```C# Snippet:s2sCopyBlobContainer
+DataTransfer dataTransfer = await transferManager.StartTransferAsync(
+sourceResource: blobs.FromContainer(
+    sourceContainerUri,
+    new BlobStorageResourceContainerOptions()
     {
-        logStream.WriteLine($"File Completed Transfer: {args.SourceResource.Path}");
-    }
-    return Task.CompletedTask;
-};
-```
-
-### Simple Failed Event Delegation for Container Transfer Options
-```C# Snippet:FailedEventDelegation
-containerTransferOptions.TransferFailed += (TransferFailedEventArgs args) =>
-{
-    using (StreamWriter logStream = File.AppendText(logFile))
+        BlobDirectoryPrefix = sourceDirectoryName
+    }),
+destinationResource: blobs.FromContainer(
+    destinationContainerUri,
+    new BlobStorageResourceContainerOptions()
     {
-        // Specifying specific resources that failed, since its a directory transfer
-        // maybe only one file failed out of many
-        logStream.WriteLine($"Exception occured with TransferId: {args.TransferId}," +
-            $"Source Resource: {args.SourceResource.Path}, +" +
-            $"Destination Resource: {args.DestinationResource.Path}," +
-            $"Exception Message: {args.Exception.Message}");
-    }
-    return Task.CompletedTask;
-};
+        // all source blobs will be copied as a single type of destination blob
+        // defaults to block blobs if unspecified
+        BlobType = new(BlobType.Block),
+        BlobDirectoryPrefix = downloadPath
+    }));
+await dataTransfer.WaitForCompletionAsync();
 ```
 
 ## Troubleshooting
 
-All Azure Storage services will throw a [RequestFailedException][RequestFailedException]
-with helpful [`ErrorCode`s][error_codes].
+***TODO***
 
 ## Next steps
 
-Get started with our [Blob DataMovement samples][samples].
+***TODO***
 
 ## Contributing
 

@@ -7,11 +7,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Azure;
 using Azure.Core;
 using Azure.Identity;
-using Azure.ResourceManager;
-using Azure.ResourceManager.Media;
 using Azure.ResourceManager.Media.Models;
 
 namespace Azure.ResourceManager.Media.Samples
@@ -23,7 +20,7 @@ namespace Azure.ResourceManager.Media.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Get_GetAnAccountFilterByName()
         {
-            // Generated from example definition: specification/mediaservices/resource-manager/Microsoft.Media/Metadata/stable/2022-08-01/examples/accountFilters-get-by-name.json
+            // Generated from example definition: specification/mediaservices/resource-manager/Microsoft.Media/Metadata/stable/2023-01-01/examples/accountFilters-get-by-name.json
             // this example is just showing the usage of "AccountFilters_Get" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -34,7 +31,7 @@ namespace Azure.ResourceManager.Media.Samples
             // this example assumes you already have this MediaServicesAccountFilterResource created on azure
             // for more information of creating MediaServicesAccountFilterResource, please refer to the document of MediaServicesAccountFilterResource
             string subscriptionId = "00000000-0000-0000-0000-000000000000";
-            string resourceGroupName = "contoso";
+            string resourceGroupName = "contosorg";
             string accountName = "contosomedia";
             string filterName = "accountFilterWithTrack";
             ResourceIdentifier mediaServicesAccountFilterResourceId = MediaServicesAccountFilterResource.CreateResourceIdentifier(subscriptionId, resourceGroupName, accountName, filterName);
@@ -55,7 +52,7 @@ namespace Azure.ResourceManager.Media.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Delete_DeleteAnAccountFilter()
         {
-            // Generated from example definition: specification/mediaservices/resource-manager/Microsoft.Media/Metadata/stable/2022-08-01/examples/accountFilters-delete.json
+            // Generated from example definition: specification/mediaservices/resource-manager/Microsoft.Media/Metadata/stable/2023-01-01/examples/accountFilters-delete.json
             // this example is just showing the usage of "AccountFilters_Delete" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -66,7 +63,7 @@ namespace Azure.ResourceManager.Media.Samples
             // this example assumes you already have this MediaServicesAccountFilterResource created on azure
             // for more information of creating MediaServicesAccountFilterResource, please refer to the document of MediaServicesAccountFilterResource
             string subscriptionId = "00000000-0000-0000-0000-000000000000";
-            string resourceGroupName = "contoso";
+            string resourceGroupName = "contosorg";
             string accountName = "contosomedia";
             string filterName = "accountFilterWithTimeWindowAndTrack";
             ResourceIdentifier mediaServicesAccountFilterResourceId = MediaServicesAccountFilterResource.CreateResourceIdentifier(subscriptionId, resourceGroupName, accountName, filterName);
@@ -83,7 +80,7 @@ namespace Azure.ResourceManager.Media.Samples
         [NUnit.Framework.Ignore("Only verifying that the sample builds")]
         public async Task Update_UpdateAnAccountFilter()
         {
-            // Generated from example definition: specification/mediaservices/resource-manager/Microsoft.Media/Metadata/stable/2022-08-01/examples/accountFilters-update.json
+            // Generated from example definition: specification/mediaservices/resource-manager/Microsoft.Media/Metadata/stable/2023-01-01/examples/accountFilters-update.json
             // this example is just showing the usage of "AccountFilters_Update" operation, for the dependent resources, they will have to be created separately.
 
             // get your azure access token, for more details of how Azure SDK get your access token, please refer to https://learn.microsoft.com/en-us/dotnet/azure/sdk/authentication?tabs=command-line
@@ -94,7 +91,7 @@ namespace Azure.ResourceManager.Media.Samples
             // this example assumes you already have this MediaServicesAccountFilterResource created on azure
             // for more information of creating MediaServicesAccountFilterResource, please refer to the document of MediaServicesAccountFilterResource
             string subscriptionId = "00000000-0000-0000-0000-000000000000";
-            string resourceGroupName = "contoso";
+            string resourceGroupName = "contosorg";
             string accountName = "contosomedia";
             string filterName = "accountFilterWithTimeWindowAndTrack";
             ResourceIdentifier mediaServicesAccountFilterResourceId = MediaServicesAccountFilterResource.CreateResourceIdentifier(subscriptionId, resourceGroupName, accountName, filterName);
@@ -105,11 +102,11 @@ namespace Azure.ResourceManager.Media.Samples
             {
                 PresentationTimeRange = new PresentationTimeRange()
                 {
-                    StartTimestamp = 10,
-                    EndTimestamp = 170000000,
-                    PresentationWindowDuration = 9223372036854775000,
-                    LiveBackoffDuration = 0,
-                    Timescale = 10000000,
+                    StartTimestamp = 10L,
+                    EndTimestamp = 170000000L,
+                    PresentationWindowDuration = 9223372036854775000L,
+                    LiveBackoffDuration = 0L,
+                    Timescale = 10000000L,
                     ForceEndTimestamp = false,
                 },
                 FirstQualityBitrate = 128000,

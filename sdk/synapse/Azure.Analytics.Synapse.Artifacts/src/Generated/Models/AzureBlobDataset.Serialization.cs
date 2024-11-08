@@ -29,12 +29,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(Structure))
             {
                 writer.WritePropertyName("structure"u8);
-                writer.WriteObjectValue(Structure);
+                writer.WriteObjectValue<object>(Structure);
             }
             if (Optional.IsDefined(Schema))
             {
                 writer.WritePropertyName("schema"u8);
-                writer.WriteObjectValue(Schema);
+                writer.WriteObjectValue<object>(Schema);
             }
             writer.WritePropertyName("linkedServiceName"u8);
             writer.WriteObjectValue(LinkedServiceName);
@@ -55,7 +55,12 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 writer.WriteStartArray();
                 foreach (var item in Annotations)
                 {
-                    writer.WriteObjectValue(item);
+                    if (item == null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+                    writer.WriteObjectValue<object>(item);
                 }
                 writer.WriteEndArray();
             }
@@ -69,27 +74,27 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             if (Optional.IsDefined(FolderPath))
             {
                 writer.WritePropertyName("folderPath"u8);
-                writer.WriteObjectValue(FolderPath);
+                writer.WriteObjectValue<object>(FolderPath);
             }
             if (Optional.IsDefined(TableRootLocation))
             {
                 writer.WritePropertyName("tableRootLocation"u8);
-                writer.WriteObjectValue(TableRootLocation);
+                writer.WriteObjectValue<object>(TableRootLocation);
             }
             if (Optional.IsDefined(FileName))
             {
                 writer.WritePropertyName("fileName"u8);
-                writer.WriteObjectValue(FileName);
+                writer.WriteObjectValue<object>(FileName);
             }
             if (Optional.IsDefined(ModifiedDatetimeStart))
             {
                 writer.WritePropertyName("modifiedDatetimeStart"u8);
-                writer.WriteObjectValue(ModifiedDatetimeStart);
+                writer.WriteObjectValue<object>(ModifiedDatetimeStart);
             }
             if (Optional.IsDefined(ModifiedDatetimeEnd))
             {
                 writer.WritePropertyName("modifiedDatetimeEnd"u8);
-                writer.WriteObjectValue(ModifiedDatetimeEnd);
+                writer.WriteObjectValue<object>(ModifiedDatetimeEnd);
             }
             if (Optional.IsDefined(Format))
             {
@@ -105,28 +110,32 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             foreach (var item in AdditionalProperties)
             {
                 writer.WritePropertyName(item.Key);
-                writer.WriteObjectValue(item.Value);
+                writer.WriteObjectValue<object>(item.Value);
             }
             writer.WriteEndObject();
         }
 
         internal static AzureBlobDataset DeserializeAzureBlobDataset(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             string type = default;
-            Optional<string> description = default;
-            Optional<object> structure = default;
-            Optional<object> schema = default;
+            string description = default;
+            object structure = default;
+            object schema = default;
             LinkedServiceReference linkedServiceName = default;
-            Optional<IDictionary<string, ParameterSpecification>> parameters = default;
-            Optional<IList<object>> annotations = default;
-            Optional<DatasetFolder> folder = default;
-            Optional<object> folderPath = default;
-            Optional<object> tableRootLocation = default;
-            Optional<object> fileName = default;
-            Optional<object> modifiedDatetimeStart = default;
-            Optional<object> modifiedDatetimeEnd = default;
-            Optional<DatasetStorageFormat> format = default;
-            Optional<DatasetCompression> compression = default;
+            IDictionary<string, ParameterSpecification> parameters = default;
+            IList<object> annotations = default;
+            DatasetFolder folder = default;
+            object folderPath = default;
+            object tableRootLocation = default;
+            object fileName = default;
+            object modifiedDatetimeStart = default;
+            object modifiedDatetimeEnd = default;
+            DatasetStorageFormat format = default;
+            DatasetCompression compression = default;
             IDictionary<string, object> additionalProperties = default;
             Dictionary<string, object> additionalPropertiesDictionary = new Dictionary<string, object>();
             foreach (var property in element.EnumerateObject())
@@ -145,7 +154,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     structure = property.Value.GetObject();
@@ -155,7 +163,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     schema = property.Value.GetObject();
@@ -170,7 +177,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     Dictionary<string, ParameterSpecification> dictionary = new Dictionary<string, ParameterSpecification>();
@@ -185,13 +191,19 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<object> array = new List<object>();
                     foreach (var item in property.Value.EnumerateArray())
                     {
-                        array.Add(item.GetObject());
+                        if (item.ValueKind == JsonValueKind.Null)
+                        {
+                            array.Add(null);
+                        }
+                        else
+                        {
+                            array.Add(item.GetObject());
+                        }
                     }
                     annotations = array;
                     continue;
@@ -200,7 +212,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     folder = DatasetFolder.DeserializeDatasetFolder(property.Value);
@@ -219,7 +230,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             folderPath = property0.Value.GetObject();
@@ -229,7 +239,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             tableRootLocation = property0.Value.GetObject();
@@ -239,7 +248,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             fileName = property0.Value.GetObject();
@@ -249,7 +257,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             modifiedDatetimeStart = property0.Value.GetObject();
@@ -259,7 +266,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             modifiedDatetimeEnd = property0.Value.GetObject();
@@ -269,7 +275,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             format = DatasetStorageFormat.DeserializeDatasetStorageFormat(property0.Value);
@@ -279,7 +284,6 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                         {
                             if (property0.Value.ValueKind == JsonValueKind.Null)
                             {
-                                property0.ThrowNonNullablePropertyIsNull();
                                 continue;
                             }
                             compression = DatasetCompression.DeserializeDatasetCompression(property0.Value);
@@ -291,7 +295,39 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
                 additionalPropertiesDictionary.Add(property.Name, property.Value.GetObject());
             }
             additionalProperties = additionalPropertiesDictionary;
-            return new AzureBlobDataset(type, description.Value, structure.Value, schema.Value, linkedServiceName, Optional.ToDictionary(parameters), Optional.ToList(annotations), folder.Value, additionalProperties, folderPath.Value, tableRootLocation.Value, fileName.Value, modifiedDatetimeStart.Value, modifiedDatetimeEnd.Value, format.Value, compression.Value);
+            return new AzureBlobDataset(
+                type,
+                description,
+                structure,
+                schema,
+                linkedServiceName,
+                parameters ?? new ChangeTrackingDictionary<string, ParameterSpecification>(),
+                annotations ?? new ChangeTrackingList<object>(),
+                folder,
+                additionalProperties,
+                folderPath,
+                tableRootLocation,
+                fileName,
+                modifiedDatetimeStart,
+                modifiedDatetimeEnd,
+                format,
+                compression);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static new AzureBlobDataset FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeAzureBlobDataset(document.RootElement);
+        }
+
+        /// <summary> Convert into a <see cref="RequestContent"/>. </summary>
+        internal override RequestContent ToRequestContent()
+        {
+            var content = new Utf8JsonRequestContent();
+            content.JsonWriter.WriteObjectValue(this);
+            return content;
         }
 
         internal partial class AzureBlobDatasetConverter : JsonConverter<AzureBlobDataset>
@@ -300,6 +336,7 @@ namespace Azure.Analytics.Synapse.Artifacts.Models
             {
                 writer.WriteObjectValue(model);
             }
+
             public override AzureBlobDataset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             {
                 using var document = JsonDocument.ParseValue(ref reader);

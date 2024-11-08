@@ -7,7 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.MixedReality.RemoteRendering
 {
@@ -15,8 +14,12 @@ namespace Azure.MixedReality.RemoteRendering
     {
         internal static ConversionList DeserializeConversionList(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             IReadOnlyList<AssetConversion> conversions = default;
-            Optional<string> nextLink = default;
+            string nextLink = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("conversions"u8))
@@ -35,7 +38,15 @@ namespace Azure.MixedReality.RemoteRendering
                     continue;
                 }
             }
-            return new ConversionList(conversions, nextLink.Value);
+            return new ConversionList(conversions, nextLink);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static ConversionList FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeConversionList(document.RootElement);
         }
     }
 }

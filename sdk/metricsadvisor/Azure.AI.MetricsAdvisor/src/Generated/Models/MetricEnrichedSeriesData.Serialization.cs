@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.AI.MetricsAdvisor.Models
 {
@@ -16,6 +15,10 @@ namespace Azure.AI.MetricsAdvisor.Models
     {
         internal static MetricEnrichedSeriesData DeserializeMetricEnrichedSeriesData(JsonElement element)
         {
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
             SeriesIdentity series = default;
             IReadOnlyList<DateTimeOffset> timestampList = default;
             IReadOnlyList<double> valueList = default;
@@ -137,7 +140,23 @@ namespace Azure.AI.MetricsAdvisor.Models
                     continue;
                 }
             }
-            return new MetricEnrichedSeriesData(series, timestampList, valueList, isAnomalyList, periodList, expectedValueList, lowerBoundaryList, upperBoundaryList);
+            return new MetricEnrichedSeriesData(
+                series,
+                timestampList,
+                valueList,
+                isAnomalyList,
+                periodList,
+                expectedValueList,
+                lowerBoundaryList,
+                upperBoundaryList);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static MetricEnrichedSeriesData FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeMetricEnrichedSeriesData(document.RootElement);
         }
     }
 }

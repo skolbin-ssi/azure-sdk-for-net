@@ -6,7 +6,6 @@
 #nullable disable
 
 using System.Text.Json;
-using Azure.Core;
 
 namespace Azure.IoT.TimeSeriesInsights
 {
@@ -14,8 +13,12 @@ namespace Azure.IoT.TimeSeriesInsights
     {
         internal static InstancesSearchStringSuggestion DeserializeInstancesSearchStringSuggestion(JsonElement element)
         {
-            Optional<string> searchString = default;
-            Optional<string> highlightedSearchString = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string searchString = default;
+            string highlightedSearchString = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("searchString"u8))
@@ -29,7 +32,15 @@ namespace Azure.IoT.TimeSeriesInsights
                     continue;
                 }
             }
-            return new InstancesSearchStringSuggestion(searchString.Value, highlightedSearchString.Value);
+            return new InstancesSearchStringSuggestion(searchString, highlightedSearchString);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static InstancesSearchStringSuggestion FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeInstancesSearchStringSuggestion(document.RootElement);
         }
     }
 }

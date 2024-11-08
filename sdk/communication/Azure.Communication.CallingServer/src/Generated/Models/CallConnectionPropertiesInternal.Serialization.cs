@@ -7,8 +7,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Azure.Communication;
-using Azure.Core;
 
 namespace Azure.Communication.CallingServer
 {
@@ -16,14 +14,18 @@ namespace Azure.Communication.CallingServer
     {
         internal static CallConnectionPropertiesInternal DeserializeCallConnectionPropertiesInternal(JsonElement element)
         {
-            Optional<string> callConnectionId = default;
-            Optional<string> serverCallId = default;
-            Optional<CallSourceInternal> source = default;
-            Optional<IReadOnlyList<CommunicationIdentifierModel>> targets = default;
-            Optional<CallConnectionState> callConnectionState = default;
-            Optional<string> subject = default;
-            Optional<string> callbackUri = default;
-            Optional<string> mediaSubscriptionId = default;
+            if (element.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+            string callConnectionId = default;
+            string serverCallId = default;
+            CallSourceInternal source = default;
+            IReadOnlyList<CommunicationIdentifierModel> targets = default;
+            CallConnectionState? callConnectionState = default;
+            string subject = default;
+            string callbackUri = default;
+            string mediaSubscriptionId = default;
             foreach (var property in element.EnumerateObject())
             {
                 if (property.NameEquals("callConnectionId"u8))
@@ -40,7 +42,6 @@ namespace Azure.Communication.CallingServer
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     source = CallSourceInternal.DeserializeCallSourceInternal(property.Value);
@@ -50,7 +51,6 @@ namespace Azure.Communication.CallingServer
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     List<CommunicationIdentifierModel> array = new List<CommunicationIdentifierModel>();
@@ -65,7 +65,6 @@ namespace Azure.Communication.CallingServer
                 {
                     if (property.Value.ValueKind == JsonValueKind.Null)
                     {
-                        property.ThrowNonNullablePropertyIsNull();
                         continue;
                     }
                     callConnectionState = new CallConnectionState(property.Value.GetString());
@@ -87,7 +86,23 @@ namespace Azure.Communication.CallingServer
                     continue;
                 }
             }
-            return new CallConnectionPropertiesInternal(callConnectionId.Value, serverCallId.Value, source.Value, Optional.ToList(targets), Optional.ToNullable(callConnectionState), subject.Value, callbackUri.Value, mediaSubscriptionId.Value);
+            return new CallConnectionPropertiesInternal(
+                callConnectionId,
+                serverCallId,
+                source,
+                targets ?? new ChangeTrackingList<CommunicationIdentifierModel>(),
+                callConnectionState,
+                subject,
+                callbackUri,
+                mediaSubscriptionId);
+        }
+
+        /// <summary> Deserializes the model from a raw response. </summary>
+        /// <param name="response"> The response to deserialize the model from. </param>
+        internal static CallConnectionPropertiesInternal FromResponse(Response response)
+        {
+            using var document = JsonDocument.Parse(response.Content);
+            return DeserializeCallConnectionPropertiesInternal(document.RootElement);
         }
     }
 }
